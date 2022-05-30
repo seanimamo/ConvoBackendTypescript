@@ -8,7 +8,7 @@ export type User = {
   isEmaiValidated: boolean,
   firstName: string,
   lastName: string,
-  joinDate: Date;
+  joinDate: string,
   thumbnail?: string,
   bio?: string,
   occupation?: string,

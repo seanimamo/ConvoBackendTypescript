@@ -1,11 +1,10 @@
-import { UserPassword } from "../../../../common/structures/user/UserPassword";
+import { User } from "../../../../common/objects/user/User";
+import { UserPassword } from "../../../../common/objects/user/UserPassword";
 
 describe("Test UserPassword logic", () => {
 
   const plainTextPassword = "testPwrd";
   const userPassword = new UserPassword(plainTextPassword);
-
-  console.log(JSON.stringify(userPassword));
 
   test("Check the correct password returns true", () => {
     expect(userPassword.isPasswordCorrect(plainTextPassword)).toEqual(true);
