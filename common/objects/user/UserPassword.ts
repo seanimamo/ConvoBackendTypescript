@@ -1,16 +1,23 @@
 import * as bcrypt from 'bcrypt'
+import { Expose } from 'class-transformer';
 
 export class UserPassword {
-  #saltRounds = 10;
-  salt: string;
-  passwordHash: string;
+  static saltRounds = 10;
+  @Expose() salt: string
+  @Expose() passwordHash: string;
 
-  constructor(plainFextPassword: string) {
-    this.salt = bcrypt.genSaltSync(this.#saltRounds);
-    this.passwordHash = bcrypt.hashSync(plainFextPassword, this.salt);
+  constructor(salt: string, passwordHash: string) {
+    this.salt = salt;
+    this.passwordHash = passwordHash;
   };
 
-  isPasswordCorrect = (password: string) => {
-    return bcrypt.compareSync(password, this.passwordHash);
+  static fromPlainTextPassword(plainTextPassword: string) {
+    const salt = bcrypt.genSaltSync(UserPassword.saltRounds);
+    const passwordHash = bcrypt.hashSync(plainTextPassword, salt);
+    return new UserPassword(salt, passwordHash);
+  }
+
+  isPasswordCorrect(plainTextPassword: string) {
+    return bcrypt.compareSync(plainTextPassword, this.passwordHash);
   }
 }
