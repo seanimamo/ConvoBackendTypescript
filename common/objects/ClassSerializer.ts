@@ -20,7 +20,7 @@ export class ClassSerializer {
     return instanceToPlain(classBasedObject, {exposeUnsetFields: false})
   }
 
-  serialize(classBasedObject: Record<any, any>) {
+  serialize(classBasedObject: Record<any, any>): string {
     return JSON.stringify(instanceToPlain(classBasedObject, {exposeUnsetFields: false}));
   }
 
