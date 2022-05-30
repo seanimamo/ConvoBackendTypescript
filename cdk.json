@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts cdk/convo-aws-cdk-app.ts",
+  "app": "npx ts-node --prefer-ts-exts aws-cdk/cdk-app.ts",
   "watch": {
     "include": [
       "**"

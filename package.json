@@ -2,7 +2,7 @@
   "name": "convo-backend-typescript",
   "version": "0.1.0",
   "bin": {
-    "convo-backend-typescript": "cdk/convo-aws-cdk-app.ts"
+    "convo-backend-typescript": "aws-cdk/cdk-app.ts"
   },
   "scripts": {
     "build": "tsc",
