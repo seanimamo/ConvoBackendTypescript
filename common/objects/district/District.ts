@@ -11,7 +11,9 @@ export class District {
     @Expose() talkingPointCount: number;
     @Expose() isBanned: boolean;
     @Expose() viewMode: ViewMode;
-    @Expose() categories: Array<Category>; //Is there a way to store category tags? Should be able to sort districts by categories.
+    @Expose() primaryCategory: Category;
+    @Expose() secondaryCategory?: Category;
+    @Expose() tertiaryCategory?: Category;
     @Expose() description?: string;
     @Expose() thumbnail?: string;
 
@@ -25,7 +27,9 @@ export class District {
         talkingPointCount: number,
         isBanned: boolean,
         viewMode: ViewMode,
-        categories: Array<Category>,
+        primaryCategory: Category,
+        secondaryCategory?: Category,
+        tertiaryCategory?: Category,
         description?: string,
         thumbnail?: string) {
         this.title = title;
@@ -38,7 +42,9 @@ export class District {
         this.talkingPointCount = talkingPointCount;
         this.isBanned = isBanned;
         this.viewMode = viewMode;
-        this.categories = categories;
+        this.primaryCategory = primaryCategory
+        this.secondaryCategory = secondaryCategory
+        this.tertiaryCategory = tertiaryCategory
         this.description = description;
         this.thumbnail = thumbnail;
     }
@@ -55,7 +61,9 @@ export class District {
             talkingPointCount: number,
             isBanned: boolean,
             viewMode: ViewMode,
-            categories: Array<Category>,
+            primaryCategory: Category,
+            secondaryCategory?: Category,
+            tertiaryCategory?: Category,
             description?: string,
             thumbnail?: string,
         }
@@ -71,7 +79,9 @@ export class District {
             props.talkingPointCount,
             props.isBanned,
             props.viewMode,
-            props.categories,
+            props.primaryCategory,
+            props.secondaryCategory,
+            props.tertiaryCategory,
             props.description,
             props.thumbnail,
         )
@@ -86,13 +96,12 @@ export enum ViewMode {
 }
 
 export enum Category {
-    WORLDNEWS = "World News",
     BUSINESS = "Business",
-    CRYPTOCURRENCY = "Crypto Currency",
-    HEALTH = "Health",
-    TECHNOLOGY = "Technology",
-    SPORTS = "Sports",
     ENTERTAINMENT = "Entertainment",
-    SOFTWARE = "Software",
-    VEHICLES = "Vehicles"
+    FINANCE = "Finance",
+    HEALTH = "Health",
+    NEWS = "News",
+    POLITICS = "Politics",
+    SPORTS = "Sports",
+    TECHNOLOGY = "Technology"
 }
