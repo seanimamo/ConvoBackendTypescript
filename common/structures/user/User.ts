@@ -1,24 +1,28 @@
-export type UserProps = {
+import { UserPassword } from "./UserPassword";
+
+export type User = {
   username: string;
-  // private UserAccountType accountType;
-  // private UserPassword password;
-  email: string;
-  firstName: string;
-  lastName: string;
+  accountType: "CONVO" | "GOOGLE" | "FACEBOOK" | "APPLE";
+  password: UserPassword,
+  email: string,
+  isEmaiValidated: boolean,
+  firstName: string,
+  lastName: string,
+  joinDate: Date;
+  thumbnail?: string,
+  bio?: string,
+  occupation?: string,
+  convoScore: number,
+  followerCount: number,
+  followingCount: number,
+  settings: UserSettings
 }
 
-export class User {
-  readonly username: string;
-  // private UserAccountType accountType;
-  // private UserPassword password;
-  readonly email: string;
-  readonly firstName: string;
-  readonly lastName: string;
+export type UserSettings = {
+  hideRealName: boolean;
+}
 
-  constructor(props: UserProps) {
-    this.username = props.username;
-    this.email = props.email;
-    this.firstName = props.firstName;
-    this.lastName = props.lastName;
-  }
+export type UserBanStatus = {
+  type: "BASIC" | "SHADOW";
+  expirationDate: Date;
 }
