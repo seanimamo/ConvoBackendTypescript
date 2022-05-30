@@ -28,8 +28,9 @@ describe("Test User", () => {
 
   test("Check that transforming the class to and from plain json does not change any data", () => {
     const userPlainJson = classSerializer.classToPlainJson(user);
-    console.log("user class turned to plain json: ", userPlainJson);
+    // console.log("user class turned to plain json: ", userPlainJson);
     const userClassFromPlainJson = classSerializer.plainJsonToClass(User, userPlainJson);
+    // console.log("user class from  plain json: ", userClassFromPlainJson);
     expect(userClassFromPlainJson.password.isPasswordCorrect(plainTextPassword)).toEqual(true);
     expect(userClassFromPlainJson).toEqual(user);
   });
