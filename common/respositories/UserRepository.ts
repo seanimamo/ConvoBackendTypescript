@@ -1,5 +1,5 @@
-import { DynamoDB } from "aws-sdk";
-import { Converter } from "aws-sdk/clients/dynamodb";
+import { DynamoDBClient, GetItemCommand, GetItemCommandInput, PutItemCommand, PutItemCommandInput } from "@aws-sdk/client-dynamodb";
+import { marshall } from "@aws-sdk/util-dynamodb";
 import { Stage } from "../../aws-cdk/Stage";
 import { createStageBasedId } from "../../aws-cdk/util/cdkUtils";
 import { ClassSerializer } from "../objects/ClassSerializer";
@@ -7,12 +7,12 @@ import { User } from "../objects/user/User";
 import { UserPassword } from "../objects/user/UserPassword";
 
 export class UserRepository {
-    #client: DynamoDB;
+    #client: DynamoDBClient;
     #tableName = createStageBasedId(Stage.BETA, "ConvoMainTable");
     #serializer: ClassSerializer;
 
 
-    constructor(client: DynamoDB) {
+    constructor(client: DynamoDBClient) {
         this.#client = client;
         this.#serializer = new ClassSerializer();
     }
@@ -20,27 +20,26 @@ export class UserRepository {
     async save(user: User) {
         const serializedUser = this.#serializer.classToPlainJson(user);
 
-        const params: DynamoDB.PutItemInput = {
+        const params: PutItemCommandInput = {
             TableName: this.#tableName,
-            Item: Converter.marshall(serializedUser),
-            ReturnValues: 'ALL_OLD',
+            Item: marshall(serializedUser),
+            ConditionExpression: 'attribute_not_exists(PKEY)'
         }
 
-        params.Item["PKEY"] = { S: user.username }
+        params.Item!["PKEY"] = { S: user.username }
 
-        const response = await this.#client.putItem(params).promise();
+        const response = await this.#client.send(new PutItemCommand(params));
         return response;
     }
 
     async getByUsername(username: string) {
-        const params: DynamoDB.GetItemInput = {
+        const params: GetItemCommandInput = {
             TableName: this.#tableName,
             Key: {
                 'PKEY': { S: username }
             }
         }
-
-        return await this.#client.getItem(params).promise();
+        return await this.#client.send(new GetItemCommand(params));;
     }
 
 
