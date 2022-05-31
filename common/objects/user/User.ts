@@ -1,3 +1,4 @@
+import 'reflect-metadata'; //required for class transformer to work;
 import { UserPassword } from "./UserPassword";
 import { Expose, Type } from 'class-transformer';
 
