@@ -7,6 +7,7 @@ import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
 import { ObjectAlreadyExistsError } from "../../../common/respositories/error/ObjectAlreadyExistsError";
 import { getDummyUser } from "../../util/DummyFactory";
 import { classToClassFromExist } from "class-transformer";
+import { ObjectDoesNotExistError } from "../../../common/respositories/error/ObjectDoesNotExistError";
 
 let v3Client: DynamoDBClient;
 let userRepository: UserRepository;
@@ -38,9 +39,7 @@ afterAll(async () => {
   stopDb();
 })
 
-describe("Test Dynamo", () => {
-  const user = getDummyUser();
-
+describe("Test User Repository", () => {
   test("Saving new user succeeds", async () => {
     await userRepository.save(user);
   });
@@ -65,6 +64,12 @@ describe("Test Dynamo", () => {
     await userRepository.updateIsEmailValidated(user.username, !user.isEmailValidated);
     const updatedUser = await userRepository.getByUsername(user.username) as User;
     expect(updatedUser.isEmailValidated).toEqual(!user.isEmailValidated);
+  });
+
+  test("Updating user IsEmailValidated fails if user does not exist", async () => {
+    await expect(userRepository.updateIsEmailValidated("userThatDoesntExisttt", user.isEmailValidated))
+    .rejects
+    .toThrow(ObjectDoesNotExistError);
   });
 
 });

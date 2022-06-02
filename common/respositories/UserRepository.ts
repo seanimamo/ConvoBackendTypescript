@@ -1,11 +1,12 @@
-import { ConditionalCheckFailedException, DynamoDBClient, GetItemCommand, GetItemCommandInput, PutItemCommand, PutItemCommandInput, QueryCommand, QueryCommandInput, UpdateItemCommand, UpdateItemCommandInput } from "@aws-sdk/client-dynamodb";
+import { ConditionalCheckFailedException, DynamoDBClient, PutItemCommand, PutItemCommandInput, QueryCommand, QueryCommandInput, UpdateItemCommand, UpdateItemCommandInput } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { DynamoDBStack } from "../../aws-cdk/stacks/dynamodb-stack";
 import { Stage } from "../../aws-cdk/Stage";
 import { createStageBasedId } from "../../aws-cdk/util/cdkUtils";
 import { ClassSerializer } from "../objects/ClassSerializer";
-import { User, UserAccountType } from "../objects/user/User";
+import { User } from "../objects/user/User";
 import { ObjectAlreadyExistsError } from "./error/ObjectAlreadyExistsError";
+import { ObjectDoesNotExistError } from "./error/ObjectDoesNotExistError";
 
 export class UserRepository {
     #client: DynamoDBClient;
@@ -17,10 +18,10 @@ export class UserRepository {
         return user.username;
     }
 
-    createSortkey = () => {
+    createSortkey = (user: User) => {
         return [
             UserRepository.userIdentifier,
-            UserAccountType.CONVO
+            user.followerCount
         ].join('_');
     }
 
@@ -39,7 +40,7 @@ export class UserRepository {
         }
 
         params.Item![DynamoDBStack.PARTITION_KEY] = { S: this.createPartitionkey(user) }
-        params.Item![DynamoDBStack.SORT_KEY] = { S: this.createSortkey() }
+        params.Item![DynamoDBStack.SORT_KEY] = { S: this.createSortkey(user) }
 
         try {
             return await this.#client.send(new PutItemCommand(params));
@@ -70,20 +71,21 @@ export class UserRepository {
     }
 
     async updateIsEmailValidated(username: string, isEmailValidated: boolean) {
+        let user = await this.getByUsername(username) as User | null;
+        if (user === null) {
+            throw new ObjectDoesNotExistError("User does not exist");
+        }
         const params: UpdateItemCommandInput = {
             TableName: this.#tableName,
             Key: {
-                [DynamoDBStack.PARTITION_KEY]: { S: username },
-                [DynamoDBStack.SORT_KEY]: { S: this.createSortkey() }
+                [DynamoDBStack.PARTITION_KEY]: { S: user.username },
+                [DynamoDBStack.SORT_KEY]: { S: this.createSortkey(user) }
             },
             UpdateExpression: `SET isEmailValidated = :isEmailValidated`,
             ExpressionAttributeValues: {
                 ":isEmailValidated": { BOOL: isEmailValidated },
             }
         }
-        console.log("UpdateItemCommand params", params)
-        const response = await this.#client.send(new UpdateItemCommand(params));
-        console.log("UpdateItemCommand response", response)
-        return;
+        return await this.#client.send(new UpdateItemCommand(params));
     }
 }
