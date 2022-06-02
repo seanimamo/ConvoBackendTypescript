@@ -1,7 +1,8 @@
 import 'reflect-metadata'; //required for class transformer to work;
 import { UserPassword } from "./UserPassword";
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import { DataValidator } from '../../util/DataValidator';
+import TransformDate from '../TransformDate';
 
 export class User {
   @Expose() username: string;
@@ -12,14 +13,14 @@ export class User {
   @Expose() isEmailValidated: boolean;
   @Expose() firstName: string;
   @Expose() lastName: string;
-  @Type(() => Date)
+  @TransformDate()
   @Expose() joinDate: Date;
   @Expose() convoScore: number;
   @Expose() followerCount: number;
   @Expose() followingCount: number;
   @Expose() settings: UserSettings;
   // @Expose() banStatus?: UserBanStatus; uncomment when ready to add functionality
-  @Type(() => Date)
+  @TransformDate()
   @Expose() birthDate?: Date;
   @Expose() thumbnail?: string;
   @Expose() bio?: string;

@@ -31,6 +31,7 @@ export class UserRepository {
     }
 
     async save(user: User) {
+        User.validate(user);
         const serializedUser = this.#serializer.classToPlainJson(user);
 
         const params: PutItemCommandInput = {
