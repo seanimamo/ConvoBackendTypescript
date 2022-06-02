@@ -8,7 +8,7 @@ export class User {
   @Type(() => UserPassword)
   @Expose() password: UserPassword;
   @Expose() email: string;
-  @Expose() isEmaiValidated: boolean;
+  @Expose() isEmailValidated: boolean;
   @Expose() firstName: string;
   @Expose() lastName: string;
   @Expose() joinDate: string;
@@ -22,10 +22,10 @@ export class User {
   @Expose() occupation?: string;
 
   constructor(username: string,
-    accountType: "CONVO" | "GOOGLE" | "FACEBOOK" | "APPLE",
+    accountType: UserAccountType,
     password: UserPassword,
     email: string,
-    isEmaiValidated: boolean,
+    isEmailValidated: boolean,
     firstName: string,
     lastName: string,
     joinDate: string,
@@ -41,7 +41,7 @@ export class User {
     this.accountType = accountType;
     this.password = password;
     this.email = email;
-    this.isEmaiValidated = isEmaiValidated;
+    this.isEmailValidated = isEmailValidated;
     this.firstName = firstName;
     this.lastName = lastName;
     this.joinDate = joinDate;
@@ -58,10 +58,10 @@ export class User {
   static builder(
     props: {
       username: string;
-      accountType: "CONVO" | "GOOGLE" | "FACEBOOK" | "APPLE";
+      accountType: UserAccountType,
       password: UserPassword,
       email: string,
-      isEmaiValidated: boolean,
+      isEmailValidated: boolean,
       firstName: string,
       lastName: string,
       joinDate: string,
@@ -80,7 +80,7 @@ export class User {
       props.accountType,
       props.password,
       props.email,
-      props.isEmaiValidated,
+      props.isEmailValidated,
       props.firstName,
       props.lastName,
       props.joinDate,
@@ -94,6 +94,13 @@ export class User {
       props.occupation,
     )
   }
+}
+
+export enum UserAccountType {
+  CONVO = "CONVO",
+  GOOGLE = "GOOGLE",
+  FACEBOOK = "FACEBOOK",
+  APPLE = "APPLE",
 }
 
 export type UserSettings = {

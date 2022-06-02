@@ -1,11 +1,16 @@
 
-import { User } from "../../../common/objects/user/User";
+import { User, UserAccountType } from "../../../common/objects/user/User";
 import { UserPassword } from "../../../common/objects/user/UserPassword";
 import { UserRepository } from "../../../common/respositories/UserRepository";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { ConditionalCheckFailedException, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
+import { ObjectAlreadyExistsError } from "../../../common/respositories/error/ObjectAlreadyExistsError";
+import { getDummyUser } from "../../util/DummyFactory";
+import { classToClassFromExist } from "class-transformer";
 
 let v3Client: DynamoDBClient;
+let userRepository: UserRepository;
+let user: User;
 jest.setTimeout(100000);
 
 beforeAll(async () => {
@@ -16,10 +21,12 @@ beforeAll(async () => {
     region: "us-east-1",
     endpoint: process.env.MOCK_DYNAMODB_ENDPOINT
   });
+  userRepository = new UserRepository(v3Client);
 });
 
 beforeEach(async () => {
   await createTables();
+  user = getDummyUser();
 })
 
 afterEach(async () => {
@@ -32,53 +39,32 @@ afterAll(async () => {
 })
 
 describe("Test Dynamo", () => {
-  const user: User = User.builder({
-    username: "testusername",
-    accountType: "CONVO",
-    password: UserPassword.fromPlainTextPassword('test'),
-    email: "string",
-    isEmaiValidated: true,
-    firstName: "string",
-    lastName: "string",
-    joinDate: new Date("2022-01-01").toUTCString(),
-    thumbnail: "string",
-    bio: "string",
-    occupation: "string",
-    convoScore: 0,
-    followerCount: 0,
-    followingCount: 0,
-    settings: {
-      hideRealName: false
-    }
+  const user = getDummyUser();
+
+  test("Saving new user succeeds", async () => {
+    await userRepository.save(user);
   });
 
-  test("Test saving new user succeeds", async () => {
-    const userRepository = new UserRepository(v3Client);
-    try {
-      const response = await userRepository.save(user);
-      console.log("Successful save", response);
-    } catch (error) {
-      console.log("failed to save", error);
-    }
+  test("Getting an existing user succeeds", async () => {
+    await userRepository.save(user);
+    await expect(userRepository.getByUsername(user.username)).resolves.toEqual(user);
+  });
+  
+  test("Getting a nonexistant user returns null", async () => {
+    await userRepository.save(user);
+    await expect(userRepository.getByUsername(user.username + 'asd')).resolves.toBeNull();
   });
 
-  test("Test saving and getting user succeeds", async () => {
-    const userRepository = new UserRepository(v3Client);
+  test("Saving a user with a prexisting username fails", async () => {
+    await userRepository.save(user);
+    await expect(userRepository.save(user)).rejects.toThrow(ObjectAlreadyExistsError);
+  });
 
-    try {
-      const response = await userRepository.save(user);
-      console.log("Successful save", response);
-    } catch (error) {
-      console.log("failed to save", error);
-    }
-
-    try {
-      const response = await userRepository.getByUsername(user.username);
-      console.log("Successful get: ", response);
-    } catch (error) {
-      console.log("failed to get: ", error);
-    }
-
+  test("Updating user IsEmailValidated works", async () => {
+    await userRepository.save(user);
+    await userRepository.updateIsEmailValidated(user.username, !user.isEmailValidated);
+    const updatedUser = await userRepository.getByUsername(user.username) as User;
+    expect(updatedUser.isEmailValidated).toEqual(!user.isEmailValidated);
   });
 
 });

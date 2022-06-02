@@ -9,20 +9,20 @@ type DynamoDBStackProps = {
 } & StackProps;
 
 export class DynamoDBStack extends Stack {
-  public PARTITION_KEY: string = "PKEY";
-  public SORT_KEY: string = "SKEY";
+  public static PARTITION_KEY: string = "PKEY";
+  public static SORT_KEY: string = "SKEY";
 
-  public GSI1_INDEX_NAME: string = "GSI1";
-  public GSI1_PARTITION_KEY: string = "GSI1PKEY";
-  public GSI1_SORT_KEY: string = "GSI1SKEY";
+  public static GSI1_INDEX_NAME: string = "GSI1";
+  public static GSI1_PARTITION_KEY: string = "GSI1PKEY";
+  public static GSI1_SORT_KEY: string = "GSI1SKEY";
 
-  public GSI2_INDEX_NAME: string = "GSI2";
-  public GSI2_PARTITION_KEY: string = "GSI2PKEY";
-  public GSI2_SORT_KEY: string = "GSI2SKEY";
+  public static GSI2_INDEX_NAME: string = "GSI2";
+  public static GSI2_PARTITION_KEY: string = "GSI2PKEY";
+  public static GSI2_SORT_KEY: string = "GSI2SKEY";
 
-  public GSI3_INDEX_NAME: string = "GSI3";
-  public GSI3_PARTITION_KEY: string = "GSI3PKEY";
-  public GSI3_SORT_KEY: string = "GSI3SKEY";
+  public static GSI3_INDEX_NAME: string = "GSI3";
+  public static GSI3_PARTITION_KEY: string = "GSI3PKEY";
+  public static GSI3_SORT_KEY: string = "GSI3SKEY";
 
   public mainTableArn: string;
   public mainTableArnGsi1Arn: string;
@@ -39,11 +39,11 @@ export class DynamoDBStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
       tableName: createStageBasedId(props.stage, "ConvoMainTable"),
       partitionKey: {
-        name: this.PARTITION_KEY,
+        name: DynamoDBStack.PARTITION_KEY,
         type: AttributeType.STRING
       },
       sortKey: {
-        name: this.SORT_KEY,
+        name: DynamoDBStack.SORT_KEY,
         type: AttributeType.STRING
       }
     });
@@ -51,45 +51,45 @@ export class DynamoDBStack extends Stack {
 
     // GSI 1
     mainTable.addGlobalSecondaryIndex({
-      indexName: this.GSI1_INDEX_NAME,
+      indexName: DynamoDBStack.GSI1_INDEX_NAME,
       partitionKey: {
-        name: this.GSI1_PARTITION_KEY,
+        name: DynamoDBStack.GSI1_PARTITION_KEY,
         type: AttributeType.STRING
       },
       sortKey: {
-        name: this.GSI1_SORT_KEY,
+        name: DynamoDBStack.GSI1_SORT_KEY,
         type: AttributeType.STRING
       }
     })
-    this.mainTableArnGsi1Arn = `${mainTable.tableArn}/index/${this.GSI1_INDEX_NAME}`;
+    this.mainTableArnGsi1Arn = `${mainTable.tableArn}/index/${DynamoDBStack.GSI1_INDEX_NAME}`;
 
     // GSI 2
     mainTable.addGlobalSecondaryIndex({
-      indexName: this.GSI2_INDEX_NAME,
+      indexName: DynamoDBStack.GSI2_INDEX_NAME,
       partitionKey: {
-        name: this.GSI2_PARTITION_KEY,
+        name: DynamoDBStack.GSI2_PARTITION_KEY,
         type: AttributeType.STRING
       },
       sortKey: {
-        name: this.GSI2_SORT_KEY,
+        name: DynamoDBStack.GSI2_SORT_KEY,
         type: AttributeType.STRING
       }
     })
-    this.mainTableArnGsi2Arn = `${mainTable.tableArn}/index/${this.GSI2_INDEX_NAME}`;
+    this.mainTableArnGsi2Arn = `${mainTable.tableArn}/index/${DynamoDBStack.GSI2_INDEX_NAME}`;
 
     // GSI 3
     mainTable.addGlobalSecondaryIndex({
-      indexName: this.GSI3_INDEX_NAME,
+      indexName: DynamoDBStack.GSI3_INDEX_NAME,
       partitionKey: {
-        name: this.GSI3_PARTITION_KEY,
+        name: DynamoDBStack.GSI3_PARTITION_KEY,
         type: AttributeType.STRING
       },
       sortKey: {
-        name: this.GSI3_SORT_KEY,
+        name: DynamoDBStack.GSI3_SORT_KEY,
         type: AttributeType.STRING
       }
     })
-    this.mainTableArnGsi3Arn = `${mainTable.tableArn}/index/${this.GSI3_INDEX_NAME}`;
+    this.mainTableArnGsi3Arn = `${mainTable.tableArn}/index/${DynamoDBStack.GSI3_INDEX_NAME}`;
 
     const secondaryTable = new Table(this, 'ConvoSecondaryTable', {
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -97,11 +97,11 @@ export class DynamoDBStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
       tableName: createStageBasedId(props.stage, "ConvoSecondaryTable"),
       partitionKey: {
-        name: this.PARTITION_KEY,
+        name: DynamoDBStack.PARTITION_KEY,
         type: AttributeType.STRING
       },
       sortKey: {
-        name: this.SORT_KEY,
+        name: DynamoDBStack.SORT_KEY,
         type: AttributeType.STRING
       }
     });
