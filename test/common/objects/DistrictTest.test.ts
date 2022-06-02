@@ -19,7 +19,7 @@ describe("Test District", () => {
   
     test("Check that transforming the class to and from plain json does not change any data", () => {
       const districtPlainJson = classSerializer.classToPlainJson(district);
-      console.log("user class turned to plain json: ", districtPlainJson);
+      console.log("district class turned to plain json: ", districtPlainJson);
       const districtClassFromPlainJson = classSerializer.plainJsonToClass(District, districtPlainJson);
       expect(districtClassFromPlainJson).toEqual(district);
     });

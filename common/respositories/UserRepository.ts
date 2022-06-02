@@ -11,7 +11,7 @@ import { ObjectDoesNotExistError } from "./error/ObjectDoesNotExistError";
 export class UserRepository {
     #client: DynamoDBClient;
     #tableName = createStageBasedId(Stage.BETA, "ConvoMainTable");
-    static userIdentifier = "USR";
+    static userIdentifier = "USER";
     #serializer: ClassSerializer;
 
     createPartitionkey = (user: User) => {
