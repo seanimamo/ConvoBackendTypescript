@@ -56,7 +56,7 @@ export class UserRepository {
             KeyConditionExpression: `${DynamoDBStack.PARTITION_KEY} = :PkeyValue and begins_with(${DynamoDBStack.SORT_KEY}, :SkeyValue)`,
             ExpressionAttributeValues: {
                 ":PkeyValue": { S: username },
-                ":SkeyValue": { S: this.createSortkey() }
+                ":SkeyValue": { S: UserRepository.userIdentifier }
             }
         }
         const response = await this.#client.send(new QueryCommand(params));
