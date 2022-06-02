@@ -1,12 +1,11 @@
 import 'reflect-metadata'; //required for class transformer to work;
 import { UserPassword } from "./UserPassword";
-import { Expose, Transform, Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { DataValidator } from '../../util/DataValidator';
 import TransformDate from '../TransformDate';
 
 export class User {
   @Expose() username: string;
-  @Expose() accountType: UserAccountType;
   @Type(() => UserPassword)
   @Expose() password: UserPassword;
   @Expose() email: string;
@@ -28,7 +27,6 @@ export class User {
   @Expose() location?: string;
 
   constructor(username: string,
-    accountType: UserAccountType,
     password: UserPassword,
     email: string,
     isEmailValidated: boolean,
@@ -46,7 +44,6 @@ export class User {
     occupation?: string,
     location?: string) {
     this.username = username;
-    this.accountType = accountType;
     this.password = password;
     this.email = email;
     this.isEmailValidated = isEmailValidated;
@@ -68,7 +65,6 @@ export class User {
   static builder(
     props: {
       username: string;
-      accountType: UserAccountType,
       password: UserPassword,
       email: string,
       isEmailValidated: boolean,
@@ -89,7 +85,6 @@ export class User {
   ) {
     return new User(
       props.username,
-      props.accountType,
       props.password,
       props.email,
       props.isEmailValidated,
@@ -115,7 +110,6 @@ export class User {
 
     // TODO: add complex more username format/constraints validation
     validator.validate(user.username, 'username').notUndefined().notNull().isString().notEmpty();
-    validator.validate(user.accountType, 'accountType').notUndefined().notNull().isString().notEmpty();
     // TODO: add complex user email format validation
     validator.validate(user.email, 'email').notUndefined().notNull().isString().notEmpty();
     validator.validate(user.isEmailValidated, 'isEmailValidated').notUndefined().notNull().isBoolean();
@@ -148,13 +142,6 @@ export class User {
       validator.validate(user.location, 'location').notNull().notEmpty().isString();
     }
   }
-}
-
-export enum UserAccountType {
-  CONVO = "CONVO",
-  GOOGLE = "GOOGLE",
-  FACEBOOK = "FACEBOOK",
-  APPLE = "APPLE",
 }
 
 export type UserSettings = {

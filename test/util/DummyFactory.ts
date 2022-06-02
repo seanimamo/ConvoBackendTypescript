@@ -1,11 +1,10 @@
-import { User, UserAccountType } from "../../common/objects/user/User";
+import { User } from "../../common/objects/user/User";
 import { UserPassword } from "../../common/objects/user/UserPassword";
 
 // Note that ban status was left off, an unbanned user wont have a value.
 export const getDummyUser = () => {
   return User.builder({
     username: "testusername",
-    accountType: UserAccountType.CONVO,
     password: UserPassword.fromPlainTextPassword('test'),
     email: "string",
     isEmailValidated: true,
