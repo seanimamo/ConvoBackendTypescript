@@ -11,3 +11,10 @@ export class UsernameAlreadyInUseError extends Error {
     this.name = "UsernameAlreadyInUseError";
   }
 }
+
+export class UsernameDoesNotExist extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UsernameDoesNotExist";
+  }
+}

@@ -31,8 +31,8 @@ afterAll(async () => {
   await stopDb();
 })
 
-describe("Test PreSignUpHandler", () => {
-  test("New Instance of Handler class can get user gets saved to dynamodb correctly from presignup event", async () => {
+describe("Test PreSignUpLambdaTrigger", () => {
+  test("New Instance of Handler class can get user gets saved to dynamodb correctly from pre signup event", async () => {
     const cognitoPreSignupTriggerEvent: PreSignUpEmailTriggerEvent = {
       version: '1',
       region: 'us-east-1',

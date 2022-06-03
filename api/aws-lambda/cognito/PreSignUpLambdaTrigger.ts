@@ -86,5 +86,5 @@ export class PreSignUpLambdaTrigger {
  * Because they are being used in isolation through dynamic binding, they lose the calling context.
  * Luckily, this can be easily solved with context binding:
  */
-export const preSignUpLambdaTrigger = new PreSignUpLambdaTrigger()
+const preSignUpLambdaTrigger = new PreSignUpLambdaTrigger();
 export const preSignUpLambdaTrigger_handleRequest = preSignUpLambdaTrigger.handleRequest.bind(preSignUpLambdaTrigger);
