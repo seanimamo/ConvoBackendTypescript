@@ -28,7 +28,6 @@ export class DynamoDBStack extends Stack {
   public mainTableArnGsi1Arn: string;
   public mainTableArnGsi2Arn: string;
   public mainTableArnGsi3Arn: string;
-  public secondaryTableArn: string;
 
   constructor(scope: Construct, id: string, props: DynamoDBStackProps) {
     super(scope, id, props);
@@ -90,21 +89,5 @@ export class DynamoDBStack extends Stack {
       }
     })
     this.mainTableArnGsi3Arn = `${mainTable.tableArn}/index/${DynamoDBStack.GSI3_INDEX_NAME}`;
-
-    const secondaryTable = new Table(this, 'ConvoSecondaryTable', {
-      billingMode: BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
-      removalPolicy: RemovalPolicy.RETAIN,
-      tableName: createStageBasedId(props.stage, "ConvoSecondaryTable"),
-      partitionKey: {
-        name: DynamoDBStack.PARTITION_KEY,
-        type: AttributeType.STRING
-      },
-      sortKey: {
-        name: DynamoDBStack.SORT_KEY,
-        type: AttributeType.STRING
-      }
-    });
-    this.secondaryTableArn = secondaryTable.tableArn;
   }
 }

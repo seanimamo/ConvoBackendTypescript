@@ -1,16 +1,15 @@
 import { ConditionalCheckFailedException, DynamoDBClient, PutItemCommand, PutItemCommandInput, QueryCommand, QueryCommandInput, UpdateItemCommand, UpdateItemCommandInput } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { DynamoDBStack } from "../../../aws-cdk/stacks/dynamodb-stack";
-import { Stage } from "../../../aws-cdk/Stage";
-import { createStageBasedId } from "../../../aws-cdk/util/cdkUtils";
 import { ClassSerializer } from "../../objects/ClassSerializer";
 import { UserUuidPointer } from "../../objects/user/UserUuidPointer";
 import { UniqueObjectAlreadyExistsError } from "../error/UniqueObjectAlreadyExistsError";
+import 'dotenv/config';
 
 export class UserUuidPointerRepository {
   static UserUuidPointerIdentifier = "USER_UUID_POINTER";
   #client: DynamoDBClient;
-  #parimaryTableName = createStageBasedId(Stage.BETA, "ConvoMainTable")
+  #primaryTableName: string;
   #serializer: ClassSerializer;
 
   createPartitionkey = (emailPointer: UserUuidPointer) => {
@@ -27,13 +26,14 @@ export class UserUuidPointerRepository {
   constructor(client: DynamoDBClient) {
     this.#client = client;
     this.#serializer = new ClassSerializer();
+    this.#primaryTableName = process.env.DYNAMO_MAIN_TABLE_NAME!;
   }
 
   async save(uuidPointer: UserUuidPointer) {
     UserUuidPointer.validate(uuidPointer);
     const serializedPointer = this.#serializer.classToPlainJson(uuidPointer);
     const params: PutItemCommandInput = {
-      TableName: this.#parimaryTableName,
+      TableName: this.#primaryTableName,
       Item: marshall(serializedPointer),
       ConditionExpression: `attribute_not_exists(${DynamoDBStack.PARTITION_KEY}) and attribute_not_exists(${DynamoDBStack.SORT_KEY})`
     }
@@ -51,7 +51,7 @@ export class UserUuidPointerRepository {
 
   async getByEmail(email: string) {
     const params: QueryCommandInput = {
-      TableName: this.#parimaryTableName,
+      TableName: this.#primaryTableName,
       KeyConditionExpression: `${DynamoDBStack.PARTITION_KEY} = :PkeyValue and begins_with(${DynamoDBStack.SORT_KEY}, :SkeyValue)`,
       ExpressionAttributeValues: {
         ":PkeyValue": { S: email },

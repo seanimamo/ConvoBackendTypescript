@@ -20,10 +20,8 @@ export class PreSignUpLambdaTrigger {
     this.dataValidator = new DataValidator();
     if (!dynamoDBClient) {
       this.userRepository = new UserRepository(
-        // TODO: replace with actual client configuration.
         new DynamoDBClient({
           region: "us-east-1",
-          endpoint: process.env.MOCK_DYNAMODB_ENDPOINT
         })
       );
     } else {

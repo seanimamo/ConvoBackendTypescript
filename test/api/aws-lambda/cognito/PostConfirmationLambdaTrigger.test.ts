@@ -67,37 +67,4 @@ describe("Test PostConfirmationLambdaTrigger", () => {
     expect(retrievedUser.isEmailValidated).toEqual(true);
   });
 
-  test("Handler handleRequest function export can get user gets saved to dynamodb correctly from post confirmation event", async () => {
-    const user = getDummyUser();
-    user.isEmailValidated = false;
-    await userRepository.save(user);
-
-    const cognitoPostConfirmationEvent: PostConfirmationTriggerEvent = {
-      version: '1',
-      region: 'us-east-1',
-      userPoolId: 'us-east-1_testUserPoolId',
-      userName: user.username,
-      callerContext: {
-        awsSdkVersion: 'aws-sdk-unknown-unknown',
-        clientId: "testClientId"
-      },
-      triggerSource: 'PostConfirmation_ConfirmSignUp',
-      request: {
-        userAttributes: {
-          sub: "testsub",
-          "email_verified": "true",
-          "cognito:user_status" : "CONFIRMED",
-          email: user.email
-        }
-      },
-      response: {}
-    }
-
-    // @ts-ignore
-    await postConfirmationLambdaTrigger_handleRequest(cognitoPostConfirmationEvent, null, (e: any, c: any) => { });
-    const retrievedUser = await userRepository.getByUsername(cognitoPostConfirmationEvent.userName) as User;
-    expect(retrievedUser).toBeDefined();
-    expect(retrievedUser.isEmailValidated).toEqual(true);
-  });
-
 });

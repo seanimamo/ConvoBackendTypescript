@@ -11,11 +11,12 @@ import { ObjectDoesNotExistError } from "../error/ObjectDoesNotExistError";
 import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "./error";
 import { UserUuidPointerRepository } from "./UserUuidPointerRepository";
 import { instanceToPlain } from "class-transformer";
+import 'dotenv/config';
 
 export class UserRepository {
     static userIdentifier = "USER";
     #client: DynamoDBClient;
-    #primaryTableName = createStageBasedId(Stage.BETA, "ConvoMainTable");
+    #primaryTableName: string;
     #serializer: ClassSerializer;
     #userUuidPointerRepo: UserUuidPointerRepository;
 
@@ -34,6 +35,7 @@ export class UserRepository {
         this.#client = client;
         this.#userUuidPointerRepo = new UserUuidPointerRepository(client);
         this.#serializer = new ClassSerializer();
+        this.#primaryTableName = process.env.DYNAMO_MAIN_TABLE_NAME!;
     }
 
     async save(user: User) {

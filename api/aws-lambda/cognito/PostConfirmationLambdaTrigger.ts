@@ -22,7 +22,6 @@ export class PostConfirmationLambdaTrigger {
         // TODO: replace with actual client configuration.
         new DynamoDBClient({
           region: "us-east-1",
-          endpoint: process.env.MOCK_DYNAMODB_ENDPOINT
         })
       );
     } else {

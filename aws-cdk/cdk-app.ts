@@ -10,7 +10,7 @@ const accountId = "579960896624";
 const region = "us-east-1";
 
 const createConvoApp = (stage: Stage) => {
-  new ApiGatewayStack(app, createStageBasedId(stage, "ApiGatewayStack"), {
+  new ApiGatewayStack(app, createStageBasedId(stage, "ConvoApiGatewayStack"), {
     env: {
       region: region,
       account: accountId
@@ -18,12 +18,13 @@ const createConvoApp = (stage: Stage) => {
     stage: stage
   });
 
-  new DynamoDBStack(app, createStageBasedId(stage, "DynamoDBStack"), {
+  new DynamoDBStack(app, createStageBasedId(stage, "ConvoDynamoDBStack"), {
     env: {
       region: region,
       account: accountId
     },
-    stage: stage
+    stage: stage,
+    terminationProtection: true
   });
 }
 
