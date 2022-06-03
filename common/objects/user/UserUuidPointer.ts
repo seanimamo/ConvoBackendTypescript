@@ -1,4 +1,5 @@
 
+import { Expose } from 'class-transformer';
 import 'reflect-metadata'; //required for class transformer to work;
 import { DataValidator } from '../../util/DataValidator';
 import { User } from './User';
@@ -8,9 +9,9 @@ import { User } from './User';
  * This helps keeps clutter away from GSI's as well as move RCU/WCU's away from the main table.
  */
 export class UserUuidPointer {
-  email: string;
-  username: string;
-  accountType: UserAccountType;
+  @Expose() email: string;
+  @Expose() username: string;
+  @Expose() accountType: UserAccountType;
 
   constructor(username: string, email: string, accountType: UserAccountType) {
     this.username = username;

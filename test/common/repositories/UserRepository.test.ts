@@ -10,7 +10,7 @@ import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "../../../comm
 let v3Client: DynamoDBClient;
 let userRepository: UserRepository;
 let user: User;
-jest.setTimeout(100000);
+jest.setTimeout(10000);
 
 beforeAll(async () => {
   await startDb();

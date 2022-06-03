@@ -10,6 +10,7 @@ import { UniqueObjectAlreadyExistsError } from "../error/UniqueObjectAlreadyExis
 import { ObjectDoesNotExistError } from "../error/ObjectDoesNotExistError";
 import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "./error";
 import { UserUuidPointerRepository } from "./UserUuidPointerRepository";
+import { instanceToPlain } from "class-transformer";
 
 export class UserRepository {
     static userIdentifier = "USER";
@@ -36,6 +37,7 @@ export class UserRepository {
     }
 
     async save(user: User) {
+        console.log("save called with user", instanceToPlain(user))
         User.validate(user);
         // In the future with OAuth logins, we will utilize other account types.
         const uuidPointer = UserUuidPointer.fromUser(user, UserAccountType.CONVO);
