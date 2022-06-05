@@ -5,7 +5,7 @@ describe("Test District", () => {
     const district: District = District.builder({
         title: "string", 
         authorUsername: "string", 
-        createDate: "string",
+        createDate: new Date(),
         subscriberCount: 0,
         viewCount: 0,
         postCount: 0,

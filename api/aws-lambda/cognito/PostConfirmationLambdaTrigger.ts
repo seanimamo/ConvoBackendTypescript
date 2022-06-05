@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { Context, PostConfirmationTriggerEvent, PostConfirmationTriggerHandler } from "aws-lambda"
+import { Context, PostConfirmationTriggerEvent, PostConfirmationTriggerHandler } from "aws-lambda";
 import { ObjectDoesNotExistError } from "../../../common/respositories/error/ObjectDoesNotExistError";
 import { UserRepository } from "../../../common/respositories/user/UserRepository";
 import { DataValidator, InvalidDataTypeError } from '../../../common/util/DataValidator';

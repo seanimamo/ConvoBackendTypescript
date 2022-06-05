@@ -1,6 +1,5 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
-import { LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { AccountRecovery, CfnUserPool, Mfa, StringAttribute, UserPool, UserPoolDomain, UserPoolOperation, UserPoolResourceServer, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito';
+import { AccountRecovery, CfnUserPool, Mfa, StringAttribute, UserPool, UserPoolOperation, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -91,11 +90,13 @@ export class ConvoCognitoStack extends Stack {
   }
 
   addUserPoolLambdaTriggers(cognitoUserPool: UserPool) {
-    const preSignUpLambdaTrigger = new NodejsFunction(this, createStageBasedId(this.stage, "PreSignUpLambdaTrigger"), {
-      runtime: Runtime.NODEJS_14_X,
+    const preSignUpLambdaTrigger = new NodejsFunction(this, createStageBasedId(this.stage, "ConvoPreSignUpTrigger"), {
+      runtime: Runtime.NODEJS_16_X,
+      functionName: 'ConvoPreSignUpTrigger',
       entry: path.join(__dirname, `../../api/aws-lambda/cognito/PreSignUpLambdaTrigger.ts`),
       handler: "preSignUpLambdaTrigger_handleRequest",
       architecture: Architecture.ARM_64,
+      memorySize: 1024,
       environment: {
         'DYNAMO_MAIN_TABLE_NAME': this.convoDynamoMainTableName
       },
@@ -105,17 +106,28 @@ export class ConvoCognitoStack extends Stack {
           effect: Effect.ALLOW,
           resources: [this.convoMainDynamoTableArn]
         })
-      ]
+      ],
+      bundling: {
+        minify: true,
+        externalModules: [
+          'aws-sdk', // Use the 'aws-sdk' available in the Lambda runtime
+        ],
+        esbuildArgs: { // Pass additional arguments to esbuild
+          // "--analyze": true
+        },
+      }
     }
-    
+
     );
     cognitoUserPool.addTrigger(UserPoolOperation.PRE_SIGN_UP, preSignUpLambdaTrigger);
 
-    const postConfirmationLambdaTrigger = new NodejsFunction(this, createStageBasedId(this.stage, "PreSignUpLambdaTrigger"), {
-      runtime: Runtime.NODEJS_14_X,
+    const postConfirmationLambdaTrigger = new NodejsFunction(this, createStageBasedId(this.stage, "ConvoPostConfirmationTrigger"), {
+      runtime: Runtime.NODEJS_16_X,
+      functionName: 'ConvoPostConfirmationTrigger',
       entry: path.join(__dirname, `../../api/aws-lambda/cognito/PostConfirmationLambdaTrigger.ts`),
       handler: "postConfirmationLambdaTrigger_handleRequest",
       architecture: Architecture.ARM_64,
+      memorySize: 1024,
       environment: {
         'DYNAMO_MAIN_TABLE_NAME': this.convoDynamoMainTableName
       },
@@ -125,7 +137,16 @@ export class ConvoCognitoStack extends Stack {
           effect: Effect.ALLOW,
           resources: [this.convoMainDynamoTableArn]
         })
-      ]
+      ],
+      bundling: {
+        minify: true,
+        externalModules: [
+          'aws-sdk', // Use the 'aws-sdk' available in the Lambda runtime
+        ],
+        esbuildArgs: { // Pass additional arguments to esbuild
+          // "--analyze": true,
+        },
+      },
     });
     cognitoUserPool.addTrigger(UserPoolOperation.POST_CONFIRMATION, postConfirmationLambdaTrigger);
   }

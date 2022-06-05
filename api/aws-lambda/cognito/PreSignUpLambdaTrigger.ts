@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { Context, PreSignUpTriggerEvent, PreSignUpTriggerHandler } from "aws-lambda"
+import { Context, PreSignUpTriggerEvent, PreSignUpTriggerHandler } from "aws-lambda";
 import { User } from "../../../common/objects/user/User";
 import { UserPassword } from "../../../common/objects/user/UserPassword";
 import { UserRepository } from "../../../common/respositories/user/UserRepository";
@@ -24,7 +24,8 @@ export class PreSignUpLambdaTrigger {
           region: "us-east-1",
         })
       );
-    } else {
+    } 
+    else {
       this.userRepository = new UserRepository(dynamoDBClient);
     }
   }
@@ -72,6 +73,8 @@ export class PreSignUpLambdaTrigger {
       }
     });
     await this.userRepository.save(user);
+
+    console.log(`successfully created and saved new user ${username}`)
 
     // Returns response to Amazon Cognito
     callback(null, event);

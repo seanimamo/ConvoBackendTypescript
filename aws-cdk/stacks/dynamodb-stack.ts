@@ -24,6 +24,7 @@ export class DynamoDBStack extends Stack {
   public static GSI3_PARTITION_KEY: string = "GSI3PKEY";
   public static GSI3_SORT_KEY: string = "GSI3SKEY";
 
+  public mainTableName: string;
   public mainTableArn: string;
   public mainTableArnGsi1Arn: string;
   public mainTableArnGsi2Arn: string;
@@ -32,11 +33,12 @@ export class DynamoDBStack extends Stack {
   constructor(scope: Construct, id: string, props: DynamoDBStackProps) {
     super(scope, id, props);
 
-    const mainTable = new Table(this, 'ConvoMainTable', {
+    this.mainTableName = createStageBasedId(props.stage, "ConvoMainTable")
+    const mainTable = new Table(this, this.mainTableName, {
       billingMode: BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
       removalPolicy: RemovalPolicy.RETAIN,
-      tableName: createStageBasedId(props.stage, "ConvoMainTable"),
+      tableName: this.mainTableName,
       partitionKey: {
         name: DynamoDBStack.PARTITION_KEY,
         type: AttributeType.STRING

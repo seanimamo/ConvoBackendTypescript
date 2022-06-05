@@ -42,12 +42,12 @@ describe("Test User Repository", () => {
     await userRepository.save(user);
   });
 
-  test("Getting an existing user succeeds", async () => {
+  test("Getting an existing user by username succeeds", async () => {
     await userRepository.save(user);
     await expect(userRepository.getByUsername(user.username)).resolves.toEqual(user);
   });
   
-  test("Getting a nonexistant user returns null", async () => {
+  test("Getting a nonexistant user by username returns null", async () => {
     await userRepository.save(user);
     await expect(userRepository.getByUsername(user.username + 'asd')).resolves.toBeNull();
   });

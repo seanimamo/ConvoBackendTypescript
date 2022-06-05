@@ -1,14 +1,11 @@
 import { Expose } from 'class-transformer';
+import TransformDate from '../TransformDate';
 
 export class District {
     @Expose() title: string;
     @Expose() authorUsername: string;
-    @Expose() createDate: string;
-    @Expose() subscriberCount: number;
-    @Expose() viewCount: number;
-    @Expose() postCount: number;
-    @Expose() convoCount: number;
-    @Expose() talkingPointCount: number;
+    @TransformDate()
+    @Expose() createDate: Date;
     @Expose() isBanned: boolean;
     @Expose() viewMode: ViewMode;
     @Expose() primaryCategory: Category;
@@ -16,10 +13,16 @@ export class District {
     @Expose() tertiaryCategory?: Category;
     @Expose() description?: string;
     @Expose() thumbnail?: string;
+    // Metrics
+    @Expose() subscriberCount: number;
+    @Expose() viewCount: number;
+    @Expose() postCount: number;
+    @Expose() convoCount: number;
+    @Expose() talkingPointCount: number;
 
     constructor(title: string, 
         authorUsername: string, 
-        createDate: string,
+        createDate: Date,
         subscriberCount: number,
         viewCount: number,
         postCount: number,
@@ -35,7 +38,7 @@ export class District {
         this.title = title;
         this.authorUsername = authorUsername;
         this.createDate = createDate;
-        this.subscriberCount = subscriberCount; //Maybe should just be set to 0 in the constructor rather than taking an argument?
+        this.subscriberCount = subscriberCount; 
         this.viewCount = viewCount;
         this.postCount = postCount;
         this.convoCount = convoCount;
@@ -53,7 +56,7 @@ export class District {
         props: {
             title: string, 
             authorUsername: string, 
-            createDate: string,
+            createDate: Date,
             subscriberCount: number,
             viewCount: number,
             postCount: number,
@@ -85,6 +88,10 @@ export class District {
             props.description,
             props.thumbnail,
         )
+    }
+
+    static validate(district: District) {
+        
     }
     
 

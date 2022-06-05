@@ -6,7 +6,7 @@ export class EmailAlreadyInUseError extends Error {
 }
 
 export class UsernameAlreadyInUseError extends Error {
-  constructor(message: string) {
+  constructor(message: string = "Username already exists") {
     super(message);
     this.name = "UsernameAlreadyInUseError";
   }
