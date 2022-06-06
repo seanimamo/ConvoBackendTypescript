@@ -8,7 +8,6 @@ import "dotenv/config";
 
 export abstract class Repository<T> {
 
-  primaryTableName: string;
   client: DynamoDBClient;
   serializer: ClassSerializer;
   itemType: ClassConstructor<T>;
@@ -16,7 +15,6 @@ export abstract class Repository<T> {
   constructor(client: DynamoDBClient, itemType: ClassConstructor<T>) {
     this.client = client;
     this.serializer = new ClassSerializer();
-    this.primaryTableName = process.env.DYNAMO_MAIN_TABLE_NAME!;
     this.itemType = itemType;
   }
 
@@ -31,7 +29,7 @@ export abstract class Repository<T> {
 
     const serializedUser = this.serializer.classToPlainJson(params.object);
     const commandParams: PutItemCommandInput = {
-      TableName: this.primaryTableName,
+      TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
       Item: marshall(serializedUser),
     }
 
@@ -73,7 +71,7 @@ export abstract class Repository<T> {
     }
 
     const commandParams: QueryCommandInput = {
-      TableName: this.primaryTableName,
+      TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
       KeyConditionExpression: keyConditionExpression,
       ExpressionAttributeValues: {
         ":PkeyValue": { S: params.primaryKey },

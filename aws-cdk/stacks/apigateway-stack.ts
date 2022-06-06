@@ -15,8 +15,8 @@ export class ApiGatewayStack extends Stack {
   constructor(scope: Construct, id: string, props: ApiGatewayStackProps) {
     super(scope, id, props);
  
-    const restApi = new RestApi(this, createStageBasedId(props.stage, "ConvoApiV2"), {
-      restApiName: createStageBasedId(props.stage, "ConvoApiV2")
+    const restApi = new RestApi(this, createStageBasedId(props.stage, "ConvoApi"), {
+      restApiName: createStageBasedId(props.stage, "ConvoApi")
     });
 
     const lamdaFunction = new NodejsFunction(this, createStageBasedId(props.stage, "testTypescriptLambda"), {

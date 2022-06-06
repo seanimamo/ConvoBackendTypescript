@@ -7,6 +7,7 @@ import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "./error";
 import { UserUuidPointerRepository } from "./UserUuidPointerRepository";
 import { DynamoDBKeyNames } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
+import "dotenv/config";
 
 export class UserRepository extends Repository<User> {
     static objectIdentifier = "USER";
@@ -65,7 +66,7 @@ export class UserRepository extends Repository<User> {
             throw new ObjectDoesNotExistError("User does not exist");
         }
         const params: UpdateItemCommandInput = {
-            TableName: super.primaryTableName,
+            TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
             Key: {
                 [DynamoDBKeyNames.PARTITION_KEY]: { S: user.username },
                 [DynamoDBKeyNames.SORT_KEY]: { S: this.createSortKey(user) }

@@ -27,7 +27,13 @@ export class ConvoCognitoStack extends Stack {
     this.convoDynamoMainTableName = props.convoDynamoMainTableName;
     this.convoMainDynamoTableArn = props.convoMainDynamoTableArn;
 
-    const userPoolName = createStageBasedId(this.stage, 'ConvoUserPool');
+    const cognitoUserPool = this.createCognitoUserPool();
+    this.addUserPoolLambdaTriggers(cognitoUserPool);
+    this.createUserPoolUIClient(cognitoUserPool)
+  }
+  
+  createCognitoUserPool() {
+    const userPoolName = createStageBasedId(this.stage, 'ConvoCognitoUserPool');
     const cognitoUserPool = new UserPool(this, userPoolName, {
       userPoolName: userPoolName,
       signInAliases: {
@@ -65,7 +71,7 @@ export class ConvoCognitoStack extends Stack {
       mfa: Mfa.OPTIONAL
     });
 
-    cognitoUserPool.addDomain(createStageBasedId(this.stage, "CognitoUserPoolDomain"),
+    cognitoUserPool.addDomain(createStageBasedId(this.stage, "ConvoCognitoUserPoolDomain"),
       {
         cognitoDomain: {
           domainPrefix: createStageBasedId(this.stage, "convo").toLowerCase()
@@ -85,18 +91,30 @@ export class ConvoCognitoStack extends Stack {
       deviceOnlyRememberedOnUserPrompt: true
     };
 
+    return cognitoUserPool;
+  }
 
-    this.addUserPoolLambdaTriggers(cognitoUserPool);
+  createUserPoolUIClient(cognitoUserPool: UserPool) {
+    cognitoUserPool.addClient(createStageBasedId(this.stage, "ConvoCognitoUserPoolClient"), {
+      userPoolClientName: createStageBasedId(this.stage, "ConvoCognitoUserPoolClient"),
+      generateSecret: false,
+      authFlows: {
+        userSrp: true,
+        userPassword: true,
+        custom: true
+      },
+      preventUserExistenceErrors: true
+    });
   }
 
   addUserPoolLambdaTriggers(cognitoUserPool: UserPool) {
-    const preSignUpLambdaTrigger = new NodejsFunction(this, createStageBasedId(this.stage, "ConvoPreSignUpTrigger"), {
+    const preSignUpLambdaTrigger = new NodejsFunction(this, createStageBasedId(this.stage, "ConvoCognitoPreSignUpTrigger"), {
       runtime: Runtime.NODEJS_16_X,
-      functionName: 'ConvoPreSignUpTrigger',
+      functionName: createStageBasedId(this.stage, "ConvoCognitoPreSignUpTrigger", true),
       entry: path.join(__dirname, `../../api/aws-lambda/cognito/PreSignUpLambdaTrigger.ts`),
       handler: "preSignUpLambdaTrigger_handleRequest",
       architecture: Architecture.ARM_64,
-      memorySize: 1024,
+      memorySize: 1024, // This memory amount is overkill but will minimize cold start time
       environment: {
         'DYNAMO_MAIN_TABLE_NAME': this.convoDynamoMainTableName
       },
@@ -123,7 +141,7 @@ export class ConvoCognitoStack extends Stack {
 
     const postConfirmationLambdaTrigger = new NodejsFunction(this, createStageBasedId(this.stage, "ConvoPostConfirmationTrigger"), {
       runtime: Runtime.NODEJS_16_X,
-      functionName: 'ConvoPostConfirmationTrigger',
+      functionName: createStageBasedId(this.stage, "ConvoCognitoPostConfirmationTrigger"),
       entry: path.join(__dirname, `../../api/aws-lambda/cognito/PostConfirmationLambdaTrigger.ts`),
       handler: "postConfirmationLambdaTrigger_handleRequest",
       architecture: Architecture.ARM_64,
