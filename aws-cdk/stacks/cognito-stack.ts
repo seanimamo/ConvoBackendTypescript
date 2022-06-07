@@ -5,7 +5,7 @@ import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import * as path from 'path';
-import { Stage } from '../Stage';
+import { Stage } from '../util/Stage';
 import { createStageBasedId } from '../util/cdkUtils';
 
 type ConvoCognitoStackProps = {
@@ -74,7 +74,7 @@ export class ConvoCognitoStack extends Stack {
     cognitoUserPool.addDomain(createStageBasedId(this.stage, "ConvoCognitoUserPoolDomain"),
       {
         cognitoDomain: {
-          domainPrefix: createStageBasedId(this.stage, "convo").toLowerCase()
+          domainPrefix: this.stage === Stage.PROD ? 'convo' : createStageBasedId(this.stage, "convo").toLowerCase()
         }
       }
     );

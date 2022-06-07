@@ -2,7 +2,7 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { ApiGatewayStack } from './stacks/apigateway-stack';
-import { Stage } from './Stage';
+import { Stage } from './util/Stage';
 import { createStageBasedId } from './util/cdkUtils';
 import { DynamoDBStack } from './stacks/dynamodb-stack';
 import { ConvoCognitoStack } from './stacks/cognito-stack';
@@ -42,3 +42,4 @@ const createConvoApp = (stage: Stage) => {
 
 const app = new cdk.App();
 createConvoApp(Stage.BETA);
+createConvoApp(Stage.PROD);

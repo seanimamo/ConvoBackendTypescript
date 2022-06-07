@@ -1,4 +1,4 @@
-import { Stage } from "../Stage";
+import { Stage } from "./Stage";
 
 export const createStageBasedId = (stage: Stage, id: string, withSeparater: boolean = true) => {
   if (withSeparater) {

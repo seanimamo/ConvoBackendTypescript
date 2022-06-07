@@ -4,7 +4,7 @@ import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import * as path from 'path';
-import { Stage } from '../Stage';
+import { Stage } from '../util/Stage';
 import { createStageBasedId } from '../util/cdkUtils';
 
 type ApiGatewayStackProps = {

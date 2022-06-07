@@ -1,7 +1,7 @@
 import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
-import { Stage } from '../Stage';
+import { Stage } from '../util/Stage';
 import { createStageBasedId } from '../util/cdkUtils';
 
 type DynamoDBStackProps = {
