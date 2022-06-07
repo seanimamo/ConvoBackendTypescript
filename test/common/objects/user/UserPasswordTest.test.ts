@@ -1,4 +1,4 @@
-import { ClassSerializer } from "../../../../common/objects/ClassSerializer";
+import { ClassSerializer } from "../../../../common/util/ClassSerializer";
 import { User } from "../../../../common/objects/user/User";
 import { UserPassword } from "../../../../common/objects/user/UserPassword";
 

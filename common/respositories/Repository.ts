@@ -1,7 +1,7 @@
 import { ConditionalCheckFailedException, DynamoDBClient, PutItemCommand, PutItemCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { ClassConstructor } from "class-transformer";
-import { ClassSerializer } from "../objects/ClassSerializer";
+import { ClassSerializer } from "../util/ClassSerializer";
 import { DynamoDBKeyNames } from "./DynamoDBConstants";
 import { UniqueObjectAlreadyExistsError } from "./error/UniqueObjectAlreadyExistsError";
 import "dotenv/config";

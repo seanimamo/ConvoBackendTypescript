@@ -2,7 +2,7 @@ import 'reflect-metadata'; //required for class transformer to work;
 import { UserPassword } from "./UserPassword";
 import { Expose, Type } from 'class-transformer';
 import { DataValidator } from '../../util/DataValidator';
-import TransformDate from '../TransformDate';
+import TransformDate from '../../util/TransformDate';
 
 export class User {
   @Expose() username: string;

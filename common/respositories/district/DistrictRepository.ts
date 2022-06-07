@@ -1,6 +1,6 @@
 import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import { Repository } from "../Repository";
-import { District } from "../../objects/district/District";
+import { District } from "../../objects/District";
 import { DistrictAlreadyExists } from "./error";
 
 export class DistrictRepository extends Repository<District> {

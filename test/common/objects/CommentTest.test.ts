@@ -1,5 +1,5 @@
-import { ClassSerializer } from "../../../common/objects/ClassSerializer";
-import { Comment } from "../../../common/objects/comment/Comment";
+import { ClassSerializer } from "../../../common/util/ClassSerializer";
+import { Comment } from "../../../common/objects/Comment";
 
 describe("Test Comment", () => {
     const comment: Comment = Comment.builder({

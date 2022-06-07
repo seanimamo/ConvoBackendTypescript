@@ -1,8 +1,8 @@
 import { Expose } from 'class-transformer';
-import TransformDate from '../TransformDate';
+import TransformDate from '../util/TransformDate';
 
 export class District {
-    @Expose() title: string;
+    @Expose() title: string; // This is also the UUID for a district.
     @Expose() authorUsername: string;
     @TransformDate()
     @Expose() createDate: Date;

@@ -2,7 +2,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
 import { getDummyDistrict } from "../../util/DummyFactory";
-import { District } from "../../../common/objects/district/District";
+import { District } from "../../../common/objects/District";
 import { DistrictRepository } from "../../../common/respositories/district/DistrictRepository";
 import { DistrictAlreadyExists } from "../../../common/respositories/district/error";
 

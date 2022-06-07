@@ -1,4 +1,4 @@
-import { Category, District, ViewMode } from "../../common/objects/district/District";
+import { Category, District, ViewMode } from "../../common/objects/District";
 import { User } from "../../common/objects/user/User";
 import { UserPassword } from "../../common/objects/user/UserPassword";
 

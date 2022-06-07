@@ -1,5 +1,5 @@
-import { ClassSerializer } from "../../../common/objects/ClassSerializer";
-import { Category, District, ViewMode } from "../../../common/objects/district/District";
+import { ClassSerializer } from "../../../common/util/ClassSerializer";
+import { Category, District, ViewMode } from "../../../common/objects/District";
 
 describe("Test District", () => {
     const district: District = District.builder({
