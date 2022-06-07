@@ -5,7 +5,7 @@ import { DataValidator } from '../../util/DataValidator';
 import TransformDate from '../../util/TransformDate';
 
 export class User {
-  @Expose() username: string;
+  @Expose() userName: string;
   @Type(() => UserPassword)
   @Expose() password: UserPassword;
   @Expose() email: string;
@@ -26,7 +26,7 @@ export class User {
   @Expose() occupation?: string;
   @Expose() location?: string;
 
-  constructor(username: string,
+  constructor(userName: string,
     password: UserPassword,
     email: string,
     isEmailValidated: boolean,
@@ -43,7 +43,7 @@ export class User {
     bio?: string,
     occupation?: string,
     location?: string) {
-    this.username = username;
+    this.userName = userName;
     this.password = password;
     this.email = email;
     this.isEmailValidated = isEmailValidated;
@@ -64,7 +64,7 @@ export class User {
 
   static builder(
     props: {
-      username: string;
+      userName: string;
       password: UserPassword,
       email: string,
       isEmailValidated: boolean,
@@ -84,7 +84,7 @@ export class User {
     }
   ) {
     return new User(
-      props.username,
+      props.userName,
       props.password,
       props.email,
       props.isEmailValidated,
@@ -108,8 +108,8 @@ export class User {
     // TODO: Grab validator from singleton source
     const validator: DataValidator = new DataValidator();
 
-    // TODO: add complex more username format/constraints validation
-    validator.validate(user.username, 'username').notUndefined().notNull().isString().notEmpty();
+    // TODO: add complex more userName format/constraints validation
+    validator.validate(user.userName, 'userName').notUndefined().notNull().isString().notEmpty();
     // TODO: add complex user email format validation
     validator.validate(user.email, 'email').notUndefined().notNull().isString().notEmpty();
     validator.validate(user.isEmailValidated, 'isEmailValidated').notUndefined().notNull().isBoolean();

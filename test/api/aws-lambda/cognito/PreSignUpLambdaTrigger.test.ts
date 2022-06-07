@@ -71,7 +71,7 @@ describe("Test PreSignUpLambdaTrigger", () => {
 
     const user = await userRepository.getByUsername(cognitoPreSignupTriggerEvent.userName) as User;
     expect(user).toBeDefined();
-    expect(user.username).toEqual(cognitoPreSignupTriggerEvent.userName);
+    expect(user.userName).toEqual(cognitoPreSignupTriggerEvent.userName);
     expect(user.password.isPasswordCorrect(cognitoPreSignupTriggerEvent.request.clientMetadata!['rawPassword'])).toEqual(true);
     expect(user.settings.hideRealName).toEqual(cognitoPreSignupTriggerEvent.request.clientMetadata!['hideRealName'] === 'true');
     expect(user.firstName).toEqual(cognitoPreSignupTriggerEvent.request.userAttributes['custom:firstName']);
@@ -87,7 +87,7 @@ describe("Test PreSignUpLambdaTrigger", () => {
       version: '1',
       region: 'us-east-1',
       userPoolId: 'us-east-1_testUserPoolId',
-      userName: user.username,
+      userName: user.userName,
       callerContext: {
         awsSdkVersion: 'aws-sdk-unknown-unknown',
         clientId: "testClientId"
@@ -124,7 +124,7 @@ describe("Test PreSignUpLambdaTrigger", () => {
       version: '1',
       region: 'us-east-1',
       userPoolId: 'us-east-1_testUserPoolId',
-      userName: user.username + 'uniqueString',
+      userName: user.userName + 'uniqueString',
       callerContext: {
         awsSdkVersion: 'aws-sdk-unknown-unknown',
         clientId: "testClientId"
@@ -161,7 +161,7 @@ describe("Test PreSignUpLambdaTrigger", () => {
       version: '1',
       region: 'us-east-1',
       userPoolId: 'us-east-1_testUserPoolId',
-      userName: user.username,
+      userName: user.userName,
       callerContext: {
         awsSdkVersion: 'aws-sdk-unknown-unknown',
         clientId: "testClientId"

@@ -1,5 +1,6 @@
 import { Expose } from 'class-transformer';
 import TransformDate from '../util/TransformDate';
+import { ViewMode } from './ViewMode';
 
 export class District {
     @Expose() title: string; // This is also the UUID for a district.
@@ -91,15 +92,10 @@ export class District {
     }
 
     static validate(district: District) {
-        
+        // TODO: Add validation
     }
     
 
-}
-
-export enum ViewMode {
-    PRIVATE,
-    PUBLIC
 }
 
 export enum Category {

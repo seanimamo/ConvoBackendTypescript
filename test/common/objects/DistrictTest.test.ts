@@ -1,20 +1,9 @@
 import { ClassSerializer } from "../../../common/util/ClassSerializer";
-import { Category, District, ViewMode } from "../../../common/objects/District";
+import { District } from "../../../common/objects/District";
+import { getDummyDistrict } from "../../util/DummyFactory";
 
 describe("Test District", () => {
-    const district: District = District.builder({
-        title: "string", 
-        authorUsername: "string", 
-        createDate: new Date(),
-        subscriberCount: 0,
-        viewCount: 0,
-        postCount: 0,
-        convoCount: 0,
-        talkingPointCount: 0,
-        isBanned: false,
-        viewMode: ViewMode.PRIVATE,
-        primaryCategory: Category.BUSINESS
-    });
+    const district = getDummyDistrict();
     const classSerializer = new ClassSerializer();
   
     test("Check that transforming the class to and from plain json does not change any data", () => {

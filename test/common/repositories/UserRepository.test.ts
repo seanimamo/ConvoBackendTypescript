@@ -42,17 +42,17 @@ describe("Test User Repository", () => {
     await userRepository.save(user);
   });
 
-  test("Getting an existing user by username succeeds", async () => {
+  test("Getting an existing user by userName succeeds", async () => {
     await userRepository.save(user);
-    await expect(userRepository.getByUsername(user.username)).resolves.toEqual(user);
+    await expect(userRepository.getByUsername(user.userName)).resolves.toEqual(user);
   });
   
-  test("Getting a nonexistant user by username returns null", async () => {
+  test("Getting a nonexistant user by userName returns null", async () => {
     await userRepository.save(user);
-    await expect(userRepository.getByUsername(user.username + 'asd')).resolves.toBeNull();
+    await expect(userRepository.getByUsername(user.userName + 'asd')).resolves.toBeNull();
   });
 
-  test("Saving a user with a prexisting username fails", async () => {
+  test("Saving a user with a prexisting userName fails", async () => {
     await userRepository.save(user);
     user.email = "aDiffEmail@gmail.com";
     await expect(userRepository.save(user)).rejects.toThrow(UsernameAlreadyInUseError);
@@ -61,15 +61,15 @@ describe("Test User Repository", () => {
   test("Saving a user with a prexisting email fails", async () => {
     await userRepository.save(user);
     const newUserWithDuplicateEmail = getDummyUser();
-    newUserWithDuplicateEmail.username = "aDifferentUsername";
+    newUserWithDuplicateEmail.userName = "aDifferentUsername";
     newUserWithDuplicateEmail.email = user.email;
     await expect(userRepository.save(newUserWithDuplicateEmail)).rejects.toThrow(EmailAlreadyInUseError);
   });
 
   test("Updating user IsEmailValidated works", async () => {
     await userRepository.save(user);
-    await userRepository.updateIsEmailValidated(user.username, !user.isEmailValidated);
-    const updatedUser = await userRepository.getByUsername(user.username) as User;
+    await userRepository.updateIsEmailValidated(user.userName, !user.isEmailValidated);
+    const updatedUser = await userRepository.getByUsername(user.userName) as User;
     expect(updatedUser.isEmailValidated).toEqual(!user.isEmailValidated);
   });
 

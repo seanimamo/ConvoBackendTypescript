@@ -10,17 +10,17 @@ import { User } from './User';
  */
 export class UserUuidPointer {
   @Expose() email: string;
-  @Expose() username: string;
+  @Expose() userName: string;
   @Expose() accountType: UserAccountType;
 
-  constructor(username: string, email: string, accountType: UserAccountType) {
-    this.username = username;
+  constructor(userName: string, email: string, accountType: UserAccountType) {
+    this.userName = userName;
     this.email = email;
     this.accountType = accountType;
   }
 
   static fromUser(user: User, accountType: UserAccountType) {
-    return new UserUuidPointer(user.username, user.email, accountType);
+    return new UserUuidPointer(user.userName, user.email, accountType);
   }
 
   static validate(userEmailPointer: UserUuidPointer) {
@@ -28,7 +28,7 @@ export class UserUuidPointer {
     const validator: DataValidator = new DataValidator();
 
     validator.validate(userEmailPointer.email, 'email').notUndefined().notNull().isString().notEmpty();
-    validator.validate(userEmailPointer.username, 'username').notUndefined().notNull().isString().notEmpty();
+    validator.validate(userEmailPointer.userName, 'userName').notUndefined().notNull().isString().notEmpty();
     validator.validate(userEmailPointer.accountType, 'accountType').notUndefined().notNull().isString().notEmpty();
   }
 }

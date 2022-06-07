@@ -49,7 +49,7 @@ export class PreSignUpLambdaTrigger {
       }
     }
 
-    const username = event.userName;
+    const userName = event.userName;
     const email = event.request.userAttributes['email'];
     const rawPassword = event.request.clientMetadata!['rawPassword'];
     const firstName = event.request.userAttributes['custom:firstName'];
@@ -57,7 +57,7 @@ export class PreSignUpLambdaTrigger {
     const hideRealName = event.request.clientMetadata!['hideRealName'] === 'true'; // converts string to boolean.
 
     const user = User.builder({
-      username: username,
+      userName: userName,
       password: UserPassword.fromPlainTextPassword(rawPassword),
       email: email,
       isEmailValidated: false,
@@ -74,7 +74,7 @@ export class PreSignUpLambdaTrigger {
     });
     await this.userRepository.save(user);
 
-    console.log(`successfully created and saved new user ${username}`)
+    console.log(`successfully created and saved new user ${userName}`)
 
     // Returns response to Amazon Cognito
     callback(null, event);

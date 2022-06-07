@@ -15,7 +15,7 @@ export class UserRepository extends Repository<User> {
     #userUuidPointerRepo: UserUuidPointerRepository;
 
     createPartitionKey = (user: User) => {
-        return user.username;
+        return user.userName;
     }
 
     createSortKey = (user: User) => {
@@ -44,7 +44,7 @@ export class UserRepository extends Repository<User> {
             }
         }
 
-        const existingUser = await this.getByUsername(user.username);
+        const existingUser = await this.getByUsername(user.userName);
         if (existingUser !== null) {
             throw new UsernameAlreadyInUseError();
         }
@@ -52,23 +52,23 @@ export class UserRepository extends Repository<User> {
         return await super.saveItem({ object: user, checkForExistingCompositeKey: false });
     }
 
-    async getByUsername(username: string) {
+    async getByUsername(userName: string) {
         return await super.getUniqueItemByCompositeKey({
-            primaryKey: username,
+            primaryKey: userName,
             sortKey: UserRepository.objectIdentifier,
             shouldPartialMatchSortKey: true
         });
     }
 
-    async updateIsEmailValidated(username: string, isEmailValidated: boolean) {
-        let user = await this.getByUsername(username) as User | null;
+    async updateIsEmailValidated(userName: string, isEmailValidated: boolean) {
+        let user = await this.getByUsername(userName) as User | null;
         if (user === null) {
             throw new ObjectDoesNotExistError("User does not exist");
         }
         const params: UpdateItemCommandInput = {
             TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
             Key: {
-                [DynamoDBKeyNames.PARTITION_KEY]: { S: user.username },
+                [DynamoDBKeyNames.PARTITION_KEY]: { S: user.userName },
                 [DynamoDBKeyNames.SORT_KEY]: { S: this.createSortKey(user) }
             },
             UpdateExpression: `SET isEmailValidated = :isEmailValidated`,

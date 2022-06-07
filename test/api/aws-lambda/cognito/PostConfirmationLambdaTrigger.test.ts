@@ -1,7 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { PostConfirmationTriggerEvent } from "aws-lambda";
 import { createTables, deleteTables, startDb, stopDb } from "jest-dynalite";
-import { PostConfirmationLambdaTrigger, postConfirmationLambdaTrigger_handleRequest } from "../../../../api/aws-lambda/cognito/PostConfirmationLambdaTrigger";
+import { PostConfirmationLambdaTrigger } from "../../../../api/aws-lambda/cognito/PostConfirmationLambdaTrigger";
 import { User } from "../../../../common/objects/user/User";
 import { UserRepository } from "../../../../common/respositories/user/UserRepository";
 import { getDummyUser } from "../../../util/DummyFactory";
@@ -42,7 +42,7 @@ describe("Test PostConfirmationLambdaTrigger", () => {
       version: '1',
       region: 'us-east-1',
       userPoolId: 'us-east-1_testUserPoolId',
-      userName: user.username,
+      userName: user.userName,
       callerContext: {
         awsSdkVersion: 'aws-sdk-unknown-unknown',
         clientId: "testClientId"
