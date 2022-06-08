@@ -21,7 +21,7 @@ export class UserUuidPointerRepository extends Repository<UserUuidPointer> {
   }
 
   async save(uuidPointer: UserUuidPointer) {
-    return await super.saveItem({object: uuidPointer, checkForExistingCompositeKey: true});
+    return await super.saveItem({object: uuidPointer, checkForExistingKey: "COMPOSITE"});
   }
 
   async getByEmail(email: string) {

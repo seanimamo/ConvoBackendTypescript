@@ -1,4 +1,6 @@
 import { Category, District } from "../../common/objects/District";
+import { ParentType } from "../../common/objects/enums";
+import { TalkingPointPost } from "../../common/objects/talking-point-post/TalkingPointPost";
 import { User } from "../../common/objects/user/User";
 import { UserPassword } from "../../common/objects/user/UserPassword";
 import { ViewMode } from "../../common/objects/ViewMode";
@@ -28,8 +30,8 @@ export const getDummyUser = () => {
 
 export const getDummyDistrict = () => {
   return District.builder({
-    title: "testDistrict", 
-    authorUsername: "testusername", 
+    title: "testDistrict",
+    authorUsername: "testusername",
     createDate: new Date(),
     subscriberCount: 0,
     viewCount: 0,
@@ -39,5 +41,42 @@ export const getDummyDistrict = () => {
     isBanned: false,
     viewMode: ViewMode.PRIVATE,
     primaryCategory: Category.BUSINESS
-});
+  });
+}
+
+export const getDummyTalkingPointPost = () => {
+  return TalkingPointPost.builder({
+    id: '12345talkingPointPost',
+    parentId: '12345District',
+    parentType: ParentType.DISTRICT,
+    title: "Dummy Talking Point Post",
+    description: "Dummy Talking Point Post Description",
+    authorUserName: "testusername",
+    authorImageUrl: null,
+    createDate: new Date(),
+    isBanned: false,
+    viewMode: ViewMode.PUBLIC,
+    // chatRequests: {
+    //   viewPoint: ViewPointRequest[];
+    //   general: GeneralChatRequest[];
+    // }
+
+    // metrics
+    absoluteScore: 0,
+    timeBasedScore: 0,
+    viewCount: 0,
+    commentCount: 0,
+
+    // optional
+    linkPreview: {
+      url: "www.anonexistanturllll.com",
+      type: "video.other",
+      domain: "anonexistanturllll",
+      title: "dummy title",
+      description: "dummy link preview description",
+      videoUrl: "www.anonexistanturllll.com/video/1234"
+    },
+    customImageUrl: "www.anonexistanturllll.com/image/1234",
+    tags: ["testTag1","testTag2"],
+  });
 }

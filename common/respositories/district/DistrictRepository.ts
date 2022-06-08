@@ -1,7 +1,7 @@
 import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
 import { Repository } from "../Repository";
 import { District } from "../../objects/District";
-import { DistrictAlreadyExists } from "./error";
+import { UniqueObjectAlreadyExistsError } from "../error";
 
 export class DistrictRepository extends Repository<District> {
     static objectIdentifier = "DISTRICT";
@@ -26,10 +26,10 @@ export class DistrictRepository extends Repository<District> {
 
         const existingDistrict = await this.getByTitle(district.title);
         if (existingDistrict !== null) {
-            throw new DistrictAlreadyExists("District already exists");
+            throw new UniqueObjectAlreadyExistsError();
         }
 
-        return await super.saveItem({object: district, checkForExistingCompositeKey: false});
+        return await super.saveItem({object: district, checkForExistingKey: "PRIMARY"});
     }
 
     async getByTitle(title: string) {

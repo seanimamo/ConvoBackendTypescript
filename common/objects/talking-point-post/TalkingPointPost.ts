@@ -1,15 +1,18 @@
 import { Expose } from "class-transformer";
-import { LinkPreview } from "./LinkPreview";
-import { ParentType } from "./ParentType";
-import { ViewMode } from "./ViewMode";
+import TransformDate from "../../util/TransformDate";
+import { ParentType } from "../enums";
+import { LinkPreview } from "../LinkPreview";
+import { ViewMode } from "../ViewMode";
 
 export class TalkingPointPost {
   @Expose() id: string; // uuid
   @Expose() parentId: string; // this is a only district as of now but may change.
-  @Expose() parentType: ParentType; // potentially make this into an enum.
+  @Expose() parentType: ParentType;
   @Expose() title: string;
   @Expose() description: string;
   @Expose() authorUserName: string;
+  @Expose() authorImageUrl: string | null;
+  @TransformDate()
   @Expose() createDate: Date;
   @Expose() isBanned: boolean;
   @Expose() viewMode: ViewMode;
@@ -25,7 +28,7 @@ export class TalkingPointPost {
   @Expose() commentCount: number;
 
   // optionals
-  @Expose() authorImageUrl?: string;
+
   @Expose() linkPreview?: LinkPreview;
   @Expose() customImageUrl?: string; // overrides link preview image for non video link's
   @Expose() tags?: string[];
@@ -37,6 +40,7 @@ export class TalkingPointPost {
     title: string,
     description: string,
     authorUserName: string,
+    authorImageUrl: string | null,
     createDate: Date,
     isBanned: boolean,
     viewMode: ViewMode,
@@ -52,7 +56,6 @@ export class TalkingPointPost {
     commentCount: number,
 
     // optionals
-    authorImageUrl?: string,
     linkPreview?: LinkPreview,
     customImageUrl?: string,
     tags?: string[],
@@ -63,6 +66,7 @@ export class TalkingPointPost {
     this.title = title;
     this.description = description;
     this.authorUserName = authorUserName;
+    this.authorImageUrl = authorImageUrl;
     this.createDate = createDate;
     this.isBanned = isBanned;
     this.viewMode = viewMode;
@@ -78,7 +82,6 @@ export class TalkingPointPost {
     this.commentCount = commentCount;
 
     // optionals
-    this.authorImageUrl = authorImageUrl;
     this.linkPreview = linkPreview;
     this.customImageUrl = customImageUrl;
     this.tags = tags;
@@ -91,6 +94,7 @@ export class TalkingPointPost {
     title: string,
     description: string,
     authorUserName: string,
+    authorImageUrl: string | null,
     createDate: Date,
     isBanned: boolean,
     viewMode: ViewMode,
@@ -106,7 +110,6 @@ export class TalkingPointPost {
     commentCount: number,
 
     // optionals
-    authorImageUrl?: string,
     linkPreview?: LinkPreview,
     customImageUrl?: string,
     tags?: string[],
@@ -119,6 +122,7 @@ export class TalkingPointPost {
       props.title,
       props.description,
       props.authorUserName,
+      props.authorImageUrl,
       props.createDate,
       props.isBanned,
       props.viewMode,
@@ -134,7 +138,6 @@ export class TalkingPointPost {
       props.commentCount,
 
       // optionals
-      props.authorImageUrl,
       props.linkPreview,
       props.customImageUrl,
       props.tags

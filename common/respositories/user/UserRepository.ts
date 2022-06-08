@@ -1,13 +1,12 @@
 import { DynamoDBClient, UpdateItemCommand, UpdateItemCommandInput } from "@aws-sdk/client-dynamodb";
 import { User } from "../../objects/user/User";
 import { UserAccountType, UserUuidPointer } from "../../objects/user/UserUuidPointer";
-import { UniqueObjectAlreadyExistsError } from "../error/UniqueObjectAlreadyExistsError";
-import { ObjectDoesNotExistError } from "../error/ObjectDoesNotExistError";
 import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "./error";
 import { UserUuidPointerRepository } from "./UserUuidPointerRepository";
 import { DynamoDBKeyNames } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
 import "dotenv/config";
+import { ObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../error";
 
 export class UserRepository extends Repository<User> {
     static objectIdentifier = "USER";
@@ -49,7 +48,7 @@ export class UserRepository extends Repository<User> {
             throw new UsernameAlreadyInUseError();
         }
 
-        return await super.saveItem({ object: user, checkForExistingCompositeKey: false });
+        return await super.saveItem({ object: user, checkForExistingKey: "PRIMARY" });
     }
 
     async getByUsername(userName: string) {

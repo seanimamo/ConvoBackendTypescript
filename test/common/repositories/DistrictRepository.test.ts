@@ -4,7 +4,7 @@ import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
 import { getDummyDistrict } from "../../util/DummyFactory";
 import { District } from "../../../common/objects/District";
 import { DistrictRepository } from "../../../common/respositories/district/DistrictRepository";
-import { DistrictAlreadyExists } from "../../../common/respositories/district/error";
+import { UniqueObjectAlreadyExistsError } from "../../../common/respositories/error";
 
 let v3Client: DynamoDBClient;
 let districtRepository: DistrictRepository;
@@ -54,7 +54,7 @@ describe("Test DistrictRepository", () => {
 
   test("Saving a district with a prexisting title fails", async () => {
     await districtRepository.save(district);
-    await expect(districtRepository.save(district)).rejects.toThrow(DistrictAlreadyExists);
+    await expect(districtRepository.save(district)).rejects.toThrow(UniqueObjectAlreadyExistsError);
   });
 
 });

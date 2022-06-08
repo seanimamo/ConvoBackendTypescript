@@ -1,10 +1,10 @@
-import { ConditionalCheckFailedException, DynamoDBClient, PutItemCommand, PutItemCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/client-dynamodb";
+import { AttributeValue, ConditionalCheckFailedException, DynamoDBClient, PutItemCommand, PutItemCommandInput, PutItemInput, QueryCommand, QueryCommandInput } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { ClassConstructor } from "class-transformer";
 import { ClassSerializer } from "../util/ClassSerializer";
-import { DynamoDBKeyNames } from "./DynamoDBConstants";
-import { UniqueObjectAlreadyExistsError } from "./error/UniqueObjectAlreadyExistsError";
+import { DynamoDBKeyNames, GSIIndexNames } from "./DynamoDBConstants";
 import "dotenv/config";
+import { UniqueObjectAlreadyExistsError } from "./error";
 
 export abstract class Repository<T> {
 
@@ -24,7 +24,8 @@ export abstract class Repository<T> {
   // Saves an item and fails if an object with the same pkey and skey already exist.
   async saveItem(params: {
     object: T,
-    checkForExistingCompositeKey: boolean,
+    checkForExistingKey: "PRIMARY" | "COMPOSITE" | "NONE",
+    additionalItems?: Record<string, AttributeValue>;
   }) {
 
     const serializedUser = this.serializer.classToPlainJson(params.object);
@@ -33,12 +34,20 @@ export abstract class Repository<T> {
       Item: marshall(serializedUser),
     }
 
-    if (params.checkForExistingCompositeKey) {
+    if (params.checkForExistingKey === 'PRIMARY') {
+      commandParams.ConditionExpression = `attribute_not_exists(${DynamoDBKeyNames.PARTITION_KEY})`
+    } else if (params.checkForExistingKey === 'COMPOSITE') {
       commandParams.ConditionExpression = `attribute_not_exists(${DynamoDBKeyNames.PARTITION_KEY}) and attribute_not_exists(${DynamoDBKeyNames.SORT_KEY})`
     }
 
     commandParams.Item![DynamoDBKeyNames.PARTITION_KEY] = { S: this.createPartitionKey(params.object) }
     commandParams.Item![DynamoDBKeyNames.SORT_KEY] = { S: this.createSortKey(params.object) }
+
+    if (params.additionalItems) {
+      Object.keys(params.additionalItems).forEach(key => {
+        commandParams.Item![key] = params.additionalItems![key];
+      })
+    }
 
     try {
       return await this.client.send(new PutItemCommand(commandParams));
@@ -60,7 +69,8 @@ export abstract class Repository<T> {
   async getUniqueItemByCompositeKey(params: {
     primaryKey: string,
     sortKey: string,
-    shouldPartialMatchSortKey: boolean
+    shouldPartialMatchSortKey: boolean,
+    indexName?: GSIIndexNames
   }) {
 
     let keyConditionExpression = `${DynamoDBKeyNames.PARTITION_KEY} = :PkeyValue`;
@@ -78,6 +88,10 @@ export abstract class Repository<T> {
         ":SkeyValue": { S: params.sortKey }
       }
     }
+    if (params.indexName) {
+      commandParams.IndexName = params.indexName
+    }
+
     const response = await this.client.send(new QueryCommand(commandParams));
     if (response.Items!.length === 0) {
       return null;
