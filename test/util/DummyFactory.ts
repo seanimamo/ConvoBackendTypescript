@@ -52,7 +52,7 @@ export const getDummyTalkingPointPost = () => {
     title: "Dummy Talking Point Post",
     description: "Dummy Talking Point Post Description",
     authorUserName: "testusername",
-    authorImageUrl: null,
+    authorImageUrl: "testurl.com/image/123",
     createDate: new Date(),
     isBanned: false,
     viewMode: ViewMode.PUBLIC,

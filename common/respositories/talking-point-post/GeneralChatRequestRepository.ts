@@ -1,6 +1,6 @@
 import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { ConvoPreference, ParentType } from "../../objects/enums";
-import { GeneralChatRequest } from "../../objects/GeneralChatRequest";
+import { GeneralChatRequest } from "../../objects/talking-point-post/GeneralChatRequest";
 import { DistrictRepository } from "../district/DistrictRepository";
 import { DynamoDBKeyNames, GSIIndexNames } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
@@ -43,13 +43,13 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     const items: Record<string, AttributeValue> = {}
     items[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: chatRequest.parentId };
     items[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: GeneralChatRequestRepository.objectIdentifier };
-    items[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: chatRequest.authorUsername };
+    items[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: chatRequest.authorUserName };
     items[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: GeneralChatRequestRepository.objectIdentifier };
 
     return await super.saveItem({ object: chatRequest, checkForExistingKey: "PRIMARY" });
   }
 
-  async getByDistrictTitle(title: string, convoPreference?: ConvoPreference) {
+  async getByTalkingPointPost(postId: string, convoPreference?: ConvoPreference) {
     let sortKey = GeneralChatRequestRepository.objectIdentifier;
     if (convoPreference) {
       sortKey = [
@@ -58,8 +58,9 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
       ].join('_');
     }
 
+        // THIS WONT WORK BECAUSE MULTIPLE CHAT REQUESTS ARE PARENTED UNDER A TALKING POINT
     return await super.getUniqueItemByCompositeKey({
-      primaryKey: title,
+      primaryKey: postId,
       sortKey: sortKey,
       shouldPartialMatchSortKey: true,
       indexName: GSIIndexNames.GSI1

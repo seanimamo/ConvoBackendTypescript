@@ -1,27 +1,17 @@
 import { Expose } from "class-transformer";
-import { DataValidator } from "../util/DataValidator";
-import TransformDate from "../util/TransformDate";
-import { ConvoPreference, ParentType } from "./enums";
+import { DataValidator } from "../../util/DataValidator";
+import TransformDate from "../../util/TransformDate";
+import { ConvoPreference, ParentType } from "../enums";
 
 // A Request submitted to auto match with anyone over a Talking Point Post (No viewpoint)
-// export type GeneralChatRequest = {
-//   id: string;
-//   parentId: string;
-//   postTitle: string;
-//   authorUsername: string;
-//   authorProfileImage: string;
-//   convoPreference: ConvoPreference;
-//   relaxConvoPreferenceRequirment: boolean;
-// }
-
 export class GeneralChatRequest {
   @Expose() id: string;
   @Expose() parentId: string;
   @Expose() parentType: ParentType;
   @TransformDate()
   @Expose() createDate: Date;
-  @Expose() postTitle: string;
-  @Expose() authorUsername: string;
+  @Expose() authorUserName: string;
+  
   @Expose() convoPreference: ConvoPreference;
   @Expose() relaxConvoPreferenceRequirment: boolean;
   @Expose() authorImageUrl?: string;
@@ -31,8 +21,7 @@ export class GeneralChatRequest {
     id: string,
     parentId: string,
     parentType: ParentType,
-    postTitle: string,
-    authorUsername: string,
+    authorUserName: string,
     convoPreference: ConvoPreference,
     relaxConvoPreferenceRequirment: boolean,
     authorImageUrl?: string,
@@ -41,8 +30,7 @@ export class GeneralChatRequest {
     this.id = id;
     this.parentId = parentId;
     this.parentType = parentType,
-    this.postTitle = postTitle;
-    this.authorUsername = authorUsername;
+    this.authorUserName = authorUserName;
     this.convoPreference = convoPreference;
     this.relaxConvoPreferenceRequirment = relaxConvoPreferenceRequirment;
     this.authorImageUrl = authorImageUrl;
@@ -54,8 +42,7 @@ export class GeneralChatRequest {
     const validator: DataValidator = new DataValidator();
     validator.validate(chatRequest.id, "id").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.parentId, "parentId").notUndefined().notNull().isString().notEmpty();
-    validator.validate(chatRequest.postTitle, "postTitle").notUndefined().notNull().isString().notEmpty();
-    validator.validate(chatRequest.authorUsername, "authorUsername").notUndefined().notNull().isString().notEmpty();
+    validator.validate(chatRequest.authorUserName, "authorUserName").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.convoPreference, "convoPreference").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.relaxConvoPreferenceRequirment, "relaxConvoPreferenceRequirment")
     .notUndefined().notNull().isBoolean();
@@ -77,7 +64,7 @@ export class GeneralChatRequest {
 //   id: string;
 //   postId: string;
 //   postTitle: string;
-//   authorUsername: string;
+//   authorUserName: string;
 //   authorProfileImage: string;
 //   viewpoint: string;
 //   convoPreference: ConvoPreference;
