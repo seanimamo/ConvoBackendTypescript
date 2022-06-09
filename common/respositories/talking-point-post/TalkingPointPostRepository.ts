@@ -62,21 +62,12 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
   // Retrieve multiple Talking Point Posts under a District
   async getByDistrictTitle(params: {
     title: string,
-    convoPreference?: ConvoPreference,
     paginationToken?: Record<string, AttributeValue>,
     queryLimit?: number;
   }) {
-    let sortKey = TalkingPointPostRepository.objectIdentifier;
-    if (params.convoPreference) {
-      sortKey = [
-        TalkingPointPostRepository.objectIdentifier,
-        params.convoPreference
-      ].join('_');
-    }
-
     return await super.getItemsByCompositeKey({
       primaryKey: params.title,
-      sortKey: sortKey,
+      sortKey: TalkingPointPostRepository.objectIdentifier,
       shouldPartialMatchSortKey: true,
       indexName: GSIIndexNames.GSI1,
       paginationToken: params.paginationToken,
