@@ -1,9 +1,11 @@
 import { Category, District } from "../../common/objects/District";
 import { ParentType } from "../../common/objects/enums";
+import { GeneralChatRequest } from "../../common/objects/talking-point-post/GeneralChatRequest";
 import { TalkingPointPost } from "../../common/objects/talking-point-post/TalkingPointPost";
 import { User } from "../../common/objects/user/User";
 import { UserPassword } from "../../common/objects/user/UserPassword";
 import { ViewMode } from "../../common/objects/ViewMode";
+import { ConvoPreference } from "../../common/objects/enums";
 
 // Note that ban status was left off, an unbanned user wont have a value.
 export const getDummyUser = () => {
@@ -45,14 +47,16 @@ export const getDummyDistrict = () => {
 }
 
 export const getDummyTalkingPointPost = () => {
+  const dummyUser = getDummyUser();
+  const dummyDistrict = getDummyDistrict()
   return TalkingPointPost.builder({
     id: '12345talkingPointPost',
-    parentId: '12345District',
+    parentId: dummyDistrict.title,
     parentType: ParentType.DISTRICT,
     title: "Dummy Talking Point Post",
     description: "Dummy Talking Point Post Description",
-    authorUserName: "testusername",
-    authorImageUrl: "testurl.com/image/123",
+    authorUserName:dummyUser.userName,
+    authorImageUrl: dummyUser.thumbnail,
     createDate: new Date(),
     isBanned: false,
     viewMode: ViewMode.PUBLIC,
@@ -77,6 +81,22 @@ export const getDummyTalkingPointPost = () => {
       videoUrl: "www.anonexistanturllll.com/video/1234"
     },
     customImageUrl: "www.anonexistanturllll.com/image/1234",
-    tags: ["testTag1","testTag2"],
+    tags: ["testTag1", "testTag2"],
   });
+}
+
+export const getDummyGeneralChatRequest = () => {
+  const dummyTalkingPoint = getDummyTalkingPointPost();
+  const dummyUser = getDummyUser();
+  return new GeneralChatRequest(
+    "12345generalChatRequest",
+    dummyTalkingPoint.id,
+    ParentType.TALKING_POINT_POST,
+    new Date(),
+    dummyUser.userName,
+    ConvoPreference.CASUAL,
+    false,
+    dummyUser.thumbnail,
+    "I am an expert"
+  );
 }

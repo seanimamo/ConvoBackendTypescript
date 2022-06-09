@@ -29,8 +29,9 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
   async save(chatRequest: GeneralChatRequest, checkForExistingParent: boolean) {
     GeneralChatRequest.validate(chatRequest);
 
-    if (chatRequest.parentType !== ParentType.DISTRICT) {
-      throw new Error("General Chat Requests can only be parented under a district")
+    // This may change in the future.
+    if (chatRequest.parentType !== ParentType.TALKING_POINT_POST) {
+      throw new Error("General Chat Requests can only be parented under a talking point post")
     }
 
     if (checkForExistingParent) {

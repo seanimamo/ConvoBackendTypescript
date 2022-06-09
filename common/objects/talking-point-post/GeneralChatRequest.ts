@@ -1,5 +1,5 @@
 import { Expose } from "class-transformer";
-import { DataValidator } from "../../util/DataValidator";
+import { DataValidator, DataValidationError } from "../../util/DataValidator";
 import TransformDate from "../../util/TransformDate";
 import { ConvoPreference, ParentType } from "../enums";
 
@@ -21,6 +21,7 @@ export class GeneralChatRequest {
     id: string,
     parentId: string,
     parentType: ParentType,
+    createDate: Date,
     authorUserName: string,
     convoPreference: ConvoPreference,
     relaxConvoPreferenceRequirment: boolean,
@@ -30,6 +31,7 @@ export class GeneralChatRequest {
     this.id = id;
     this.parentId = parentId;
     this.parentType = parentType,
+    this.createDate = createDate;
     this.authorUserName = authorUserName;
     this.convoPreference = convoPreference;
     this.relaxConvoPreferenceRequirment = relaxConvoPreferenceRequirment;
@@ -42,6 +44,13 @@ export class GeneralChatRequest {
     const validator: DataValidator = new DataValidator();
     validator.validate(chatRequest.id, "id").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.parentId, "parentId").notUndefined().notNull().isString().notEmpty();
+    
+    validator.validate(chatRequest.parentType, "parentType").notUndefined().notNull();
+    if (ParentType[chatRequest.parentType] === undefined) {
+      throw new DataValidationError("parentType value is not defined in ParentType enum");
+    }
+
+    validator.validate(chatRequest.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
     validator.validate(chatRequest.authorUserName, "authorUserName").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.convoPreference, "convoPreference").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.relaxConvoPreferenceRequirment, "relaxConvoPreferenceRequirment")
@@ -57,20 +66,3 @@ export class GeneralChatRequest {
   }
 
 }
-
-
-// A Request submitted to auto match over a specific viewpoint from a Talking Point Post.
-// export type ConvoTPVPAutoRequest = {
-//   id: string;
-//   postId: string;
-//   postTitle: string;
-//   authorUserName: string;
-//   authorProfileImage: string;
-//   viewpoint: string;
-//   convoPreference: ConvoPreference;
-//   relaxConvoPreferenceRequirment: boolean;
-//   stance: ConvoStance;
-//   lookingForStance: ConvoStance;
-//   relaxLookingForRequirment: boolean;
-// }
-

@@ -1,6 +1,7 @@
 import { ClassSerializer } from "../../../../common/util/ClassSerializer";
 import { User } from "../../../../common/objects/user/User";
 import { getDummyUser } from "../../../util/DummyFactory";
+import { DataValidationError } from "../../../../common/util/DataValidator";
 
 describe("Test User", () => {
   const plainTextPassword = "test";
@@ -23,8 +24,15 @@ describe("Test User", () => {
     expect(userDeserialized).toEqual(user);
   });
 
-  test("validate method works properly", () => {
-    User.validate(user);
+  test("validate succesfully validates a valid object", () => {
+    expect(User.validate(user)).toBeUndefined();
+  });
+
+  test("validate throws error with invalid object", () => {
+    const userPlainJson = classSerializer.classToPlainJson(user);
+    userPlainJson['userName'] = undefined;
+    const userClassFromPlainJson = classSerializer.plainJsonToClass(User, userPlainJson);
+    expect(() => User.validate(userClassFromPlainJson)).toThrowError(DataValidationError);
   });
 
 });

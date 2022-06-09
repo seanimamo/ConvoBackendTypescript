@@ -1,6 +1,10 @@
+import { ClassConstructor } from "class-transformer";
+
 export class DataValidator {
   data: any;
   dataLabel: string;
+
+  
 
   validate(data: any, dataLabelContext: string) {
     this.data = data;
@@ -9,29 +13,36 @@ export class DataValidator {
   }
 
   isString() {
-    if(typeof this.data !== 'string') {
+    if (typeof this.data !== 'string') {
       throw new DataValidationError(`data is not a string`);
     }
     return this;
   }
 
   isNumber() {
-    if(typeof this.data !== 'number') {
+    if (typeof this.data !== 'number') {
       throw new DataValidationError(`data is not a number`);
     }
     return this;
   }
 
   isBoolean() {
-    if(typeof this.data !== 'boolean') {
+    if (typeof this.data !== 'boolean') {
       throw new DataValidationError(`data is not a boolean`);
     }
     return this;
   }
 
   isDate() {
-    if(!(this.data instanceof Date)) {
+    if (!(this.data instanceof Date)) {
       throw new DataValidationError(`data is not a Date`);
+    }
+    return this;
+  }
+
+  isClass<T>(classType: ClassConstructor<T>) {
+    if (!(this.data instanceof classType)) {
+      throw new DataValidationError('invalid class type');
     }
     return this;
   }
@@ -59,7 +70,7 @@ export class DataValidator {
 
   dateIsNotInFuture() {
     const currentDate = new Date();
-    if(!(this.data instanceof Date)) {
+    if (!(this.data instanceof Date)) {
       throw new InvalidDataTypeError(`dateIsNotInFuture() can only be called against Date objects`);
     }
     if (this.data > currentDate) {
@@ -71,13 +82,13 @@ export class DataValidator {
 
   dateIsNotInPast() {
     const currentDate = new Date();
-    if(!(this.data instanceof Date)) {
+    if (!(this.data instanceof Date)) {
       throw new InvalidDataTypeError(`dateIsNotInPast() can only be called against Date objects`);
     }
     if (this.data < currentDate) {
       throw new DataValidationError(`${this.dataLabel} cannot be in the past`);
     }
-    
+
     return this;
   }
 }

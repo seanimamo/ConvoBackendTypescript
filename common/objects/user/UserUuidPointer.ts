@@ -1,7 +1,7 @@
 
 import { Expose } from 'class-transformer';
 import 'reflect-metadata'; //required for class transformer to work;
-import { DataValidator } from '../../util/DataValidator';
+import { DataValidationError, DataValidator } from '../../util/DataValidator';
 import { User } from './User';
 /**
  * This class is intended to be used with DynamoDB so that an email can be found for an associated user.
@@ -29,7 +29,11 @@ export class UserUuidPointer {
 
     validator.validate(userEmailPointer.email, 'email').notUndefined().notNull().isString().notEmpty();
     validator.validate(userEmailPointer.userName, 'userName').notUndefined().notNull().isString().notEmpty();
-    validator.validate(userEmailPointer.accountType, 'accountType').notUndefined().notNull().isString().notEmpty();
+
+    validator.validate(userEmailPointer.accountType, 'accountType').notUndefined().notNull();
+    if (UserAccountType[userEmailPointer.accountType] === undefined) {
+      throw new DataValidationError("accountType value is not defined in UserAccountType enum");
+    }
   }
 }
 

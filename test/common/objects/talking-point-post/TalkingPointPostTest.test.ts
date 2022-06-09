@@ -1,6 +1,6 @@
-import { ClassSerializer } from "../../../common/util/ClassSerializer";
-import { TalkingPointPost } from "../../../common/objects/talking-point-post/TalkingPointPost";
-import { getDummyTalkingPointPost } from "../../util/DummyFactory";
+import { ClassSerializer } from "../../../../common/util/ClassSerializer";
+import { TalkingPointPost } from "../../../../common/objects/talking-point-post/TalkingPointPost";
+import { getDummyTalkingPointPost } from "../../../util/DummyFactory";
 
 describe("Test Talking Point Post", () => {
   const talkingPointPost: TalkingPointPost = getDummyTalkingPointPost();
@@ -18,5 +18,7 @@ describe("Test Talking Point Post", () => {
     const postDeserialized = classSerializer.deserialize(TalkingPointPost, postSerialized);
     expect(postDeserialized).toEqual(talkingPointPost);
   });
+
+  
 
 });
