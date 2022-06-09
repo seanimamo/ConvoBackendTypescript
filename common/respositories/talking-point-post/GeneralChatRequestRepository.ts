@@ -40,39 +40,62 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
       }
     }
 
-    const items: Record<string, AttributeValue> = {}
+    const items: Record<string, AttributeValue> = {};
     items[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: chatRequest.parentId };
-    items[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: GeneralChatRequestRepository.objectIdentifier };
+    items[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: this.createSortKey(chatRequest) };
     items[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: chatRequest.authorUserName };
-    items[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: GeneralChatRequestRepository.objectIdentifier };
+    items[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: this.createSortKey(chatRequest) };
 
     return await super.saveItem({ object: chatRequest, checkForExistingKey: "PRIMARY" });
   }
 
-  async getByTalkingPointPost(postId: string, convoPreference?: ConvoPreference) {
-    let sortKey = GeneralChatRequestRepository.objectIdentifier;
-    if (convoPreference) {
-      sortKey = [
-        GeneralChatRequestRepository.objectIdentifier,
-        convoPreference
-      ].join('_');
-    }
-
-        // THIS WONT WORK BECAUSE MULTIPLE CHAT REQUESTS ARE PARENTED UNDER A TALKING POINT
+  // Retrieve a single General Chat Request by its unique id.
+  async getById(chatRequestId: string) {
     return await super.getUniqueItemByCompositeKey({
-      primaryKey: postId,
-      sortKey: sortKey,
+      primaryKey: chatRequestId,
+      sortKey: GeneralChatRequestRepository.objectIdentifier,
       shouldPartialMatchSortKey: true,
-      indexName: GSIIndexNames.GSI1
     });
   }
 
-  async getByAuthorUsername(username: string) {
-    return await super.getUniqueItemByCompositeKey({
-      primaryKey: username,
+  // Retrieve multiple General chat requests under a Talking point post
+  async getByTalkingPointPost(params: {
+    postId: string,
+    convoPreference?: ConvoPreference,
+    paginationToken?: Record<string, AttributeValue>,
+    queryLimit?: number;
+  }) {
+    let sortKey = GeneralChatRequestRepository.objectIdentifier;
+    if (params.convoPreference) {
+      sortKey = [
+        GeneralChatRequestRepository.objectIdentifier,
+        params.convoPreference
+      ].join('_');
+    }
+
+    return await super.getItemsByCompositeKey({
+      primaryKey: params.postId,
+      sortKey: sortKey,
+      shouldPartialMatchSortKey: true,
+      indexName: GSIIndexNames.GSI1,
+      paginationToken: params.paginationToken,
+      queryLimit: params.queryLimit
+    });
+  }
+
+  // Retrieve multiple General chat requests created by a specific user.
+  async getByAuthorUsername(params: {
+    username: string,
+    paginationToken?: Record<string, AttributeValue>,
+    queryLimit?: number;
+  }) {
+    return await super.getItemsByCompositeKey({
+      primaryKey: params.username,
       sortKey: GeneralChatRequestRepository.objectIdentifier,
       shouldPartialMatchSortKey: true,
-      indexName: GSIIndexNames.GSI2
+      indexName: GSIIndexNames.GSI2,
+      paginationToken: params.paginationToken,
+      queryLimit: params.queryLimit
     });
   }
 

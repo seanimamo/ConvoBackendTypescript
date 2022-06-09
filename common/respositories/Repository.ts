@@ -5,6 +5,7 @@ import { ClassSerializer } from "../util/ClassSerializer";
 import { DynamoDBKeyNames, GSIIndexNames } from "./DynamoDBConstants";
 import "dotenv/config";
 import { UniqueObjectAlreadyExistsError } from "./error";
+import { PaginatedResponse } from "./PaginatedResponse";
 
 export abstract class Repository<T> {
 
@@ -100,6 +101,54 @@ export abstract class Repository<T> {
       return new Error("Found more than 1 user when there should not be");
     }
     return this.serializer.plainJsonToClass(this.itemType, unmarshall(response.Items![0]));
+  }
+
+  async getItemsByCompositeKey(params: {
+    primaryKey: string,
+    sortKey: string,
+    shouldPartialMatchSortKey: boolean,
+    indexName?: GSIIndexNames,
+    paginationToken?: Record<string, AttributeValue>,
+    queryLimit?: number
+  }): Promise<PaginatedResponse<T[]>> {
+
+    let keyConditionExpression = `${DynamoDBKeyNames.PARTITION_KEY} = :PkeyValue`;
+    if (params.shouldPartialMatchSortKey) {
+      keyConditionExpression += ` and begins_with(${DynamoDBKeyNames.SORT_KEY}, :SkeyValue)`;
+    } else {
+      keyConditionExpression += ` and ${DynamoDBKeyNames.SORT_KEY} = :SkeyValue)`;
+    }
+
+    const commandParams: QueryCommandInput = {
+      TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
+      KeyConditionExpression: keyConditionExpression,
+      ExpressionAttributeValues: {
+        ":PkeyValue": { S: params.primaryKey },
+        ":SkeyValue": { S: params.sortKey }
+      }
+    }
+    if (params.indexName) {
+      commandParams.IndexName = params.indexName
+    }
+    if (params.paginationToken) {
+      commandParams.ExclusiveStartKey = params.paginationToken;
+    }
+    if (params.queryLimit) {
+      commandParams.Limit = params.queryLimit;
+    }
+
+    const dynamoResponse = await this.client.send(new QueryCommand(commandParams));
+    const paginatedResponse = new PaginatedResponse<T[]>([]);
+    if (dynamoResponse.Items!.length === 0) {
+      return paginatedResponse;
+    }
+
+    paginatedResponse.data = dynamoResponse.Items!.map(item =>
+      this.serializer.plainJsonToClass(this.itemType, unmarshall(item))
+    );
+    paginatedResponse.paginationToken = dynamoResponse.LastEvaluatedKey || null;
+
+    return paginatedResponse;
   }
 
 }

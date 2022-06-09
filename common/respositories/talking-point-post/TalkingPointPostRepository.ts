@@ -50,6 +50,7 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
   }
 
 
+  // Retrieve a single Talking Point Post by its unique id.
   async getById(chatRequestId: string) {
     return await super.getUniqueItemByCompositeKey({
       primaryKey: chatRequestId,
@@ -58,35 +59,45 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     });
   }
 
-  // TODO: THIS WONT WORK BECAUSE MULTIPLE TALKINGPOINTS ARE PARENTED UNDER A DISTRICT
-  // This should return multiple
-  // TODO: Implement Pagination
-  async getByDistrictTitle(title: string, convoPreference?: ConvoPreference) {
-    // let sortKey = TalkingPointPostRepository.objectIdentifier;
-    // if (convoPreference) {
-    //   sortKey = [
-    //     TalkingPointPostRepository.objectIdentifier,
-    //     convoPreference
-    //   ].join('_');
-    // }
+  // Retrieve multiple Talking Point Posts under a District
+  async getByDistrictTitle(params: {
+    title: string,
+    convoPreference?: ConvoPreference,
+    paginationToken?: Record<string, AttributeValue>,
+    queryLimit?: number;
+  }) {
+    let sortKey = TalkingPointPostRepository.objectIdentifier;
+    if (params.convoPreference) {
+      sortKey = [
+        TalkingPointPostRepository.objectIdentifier,
+        params.convoPreference
+      ].join('_');
+    }
 
-    // return await super.getUniqueItemByCompositeKey({
-    //   primaryKey: title,
-    //   sortKey: sortKey,
-    //   shouldPartialMatchSortKey: true,
-    //   indexName: GSIIndexNames.GSI1
-    // });
+    return await super.getItemsByCompositeKey({
+      primaryKey: params.title,
+      sortKey: sortKey,
+      shouldPartialMatchSortKey: true,
+      indexName: GSIIndexNames.GSI1,
+      paginationToken: params.paginationToken,
+      queryLimit: params.queryLimit
+    });
   }
 
-  // TODO: This should return multiple
-  // TODO: Implement Pagination
-  async getByAuthorUsername(username: string) {
-    // return await super.getUniqueItemByCompositeKey({
-    //   primaryKey: username,
-    //   sortKey: TalkingPointPostRepository.objectIdentifier,
-    //   shouldPartialMatchSortKey: true,
-    //   indexName: GSIIndexNames.GSI2
-    // });
+  // Retrieve multiple Talking Point Posts created by a specific user.
+  async getByAuthorUsername(params: {
+    username: string,
+    paginationToken?: Record<string, AttributeValue>,
+    queryLimit?: number;
+  }) {
+    return await super.getItemsByCompositeKey({
+      primaryKey: params.username,
+      sortKey: TalkingPointPostRepository.objectIdentifier,
+      shouldPartialMatchSortKey: true,
+      indexName: GSIIndexNames.GSI2,
+      paginationToken: params.paginationToken,
+      queryLimit: params.queryLimit
+    });
   }
 
 }
