@@ -43,11 +43,7 @@ export class UserRepository extends Repository<User> {
             }
         }
 
-        const existingUser = await this.getByUsername(user.userName);
-        if (existingUser !== null) {
-            throw new UsernameAlreadyInUseError();
-        }
-
+        // This will throw a UniqueObjectAlreadyExistsError if the username is already in use.
         return await super.saveItem({ object: user, checkForExistingKey: "PRIMARY" });
     }
 

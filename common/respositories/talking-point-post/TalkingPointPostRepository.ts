@@ -26,27 +26,30 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     this.#districtRepository = new DistrictRepository(client);
   }
 
-  async save(post: TalkingPointPost, checkForExistingParent: boolean) {
-    TalkingPointPost.validate(post);
+  async save(params: { data: TalkingPointPost, checkParentExistence?: boolean }) {
+    TalkingPointPost.validate(params.data);
+    if (params.checkParentExistence === undefined) {
+      params.checkParentExistence = true;
+    }
 
-    if (post.parentType !== ParentType.DISTRICT) {
+    if (params.data.parentType !== ParentType.DISTRICT) {
       throw new Error("General Chat Requests can only be parented under a district")
     }
 
-    if (checkForExistingParent) {
-      const existingDistrict = await this.#districtRepository.getByTitle(post.parentId);
+    if (params.checkParentExistence) {
+      const existingDistrict = await this.#districtRepository.getByTitle(params.data.parentId);
       if (existingDistrict == null) {
         throw new ParentObjectDoesNotExistError();
       }
     }
 
     const gsiAttributes: Record<string, AttributeValue> = {}
-    gsiAttributes[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: post.parentId };
-    gsiAttributes[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: this.createSortKey(post) };
-    gsiAttributes[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: post.authorUserName };
-    gsiAttributes[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: this.createSortKey(post) };
+    gsiAttributes[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: params.data.parentId };
+    gsiAttributes[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: this.createSortKey(params.data) };
+    gsiAttributes[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: params.data.authorUserName };
+    gsiAttributes[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: this.createSortKey(params.data) };
 
-    return await super.saveItem({ object: post, checkForExistingKey: "PRIMARY", additionalItems: gsiAttributes });
+    return await super.saveItem({ object: params.data, checkForExistingKey: "PRIMARY", additionalItems: gsiAttributes });
   }
 
 

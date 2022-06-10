@@ -5,10 +5,11 @@ import { DistrictRepository } from "../district/DistrictRepository";
 import { DynamoDBKeyNames, GSIIndexNames } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
 import { ParentObjectDoesNotExistError } from "../error";
+import { TalkingPointPostRepository } from "./TalkingPointPostRepository";
 
 export class GeneralChatRequestRepository extends Repository<GeneralChatRequest> {
   static objectIdentifier = "GENERAL_CHAT_REQ";
-  #districtRepository: DistrictRepository;
+  #talkingPointPostRepo: TalkingPointPostRepository;
 
   createPartitionKey(object: GeneralChatRequest): string {
     return object.id;
@@ -23,31 +24,34 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
 
   constructor(client: DynamoDBClient) {
     super(client, GeneralChatRequest);
-    this.#districtRepository = new DistrictRepository(client);
+    this.#talkingPointPostRepo = new TalkingPointPostRepository(client);
   }
 
-  async save(chatRequest: GeneralChatRequest, checkForExistingParent: boolean) {
-    GeneralChatRequest.validate(chatRequest);
+  async save(params: { data: GeneralChatRequest, checkParentExistence?: boolean }) {
+    GeneralChatRequest.validate(params.data);
+    if (params.checkParentExistence === undefined) {
+      params.checkParentExistence = true;
+    }
 
     // This may change in the future.
-    if (chatRequest.parentType !== ParentType.TALKING_POINT_POST) {
+    if (params.data.parentType !== ParentType.TALKING_POINT_POST) {
       throw new Error("General Chat Requests can only be parented under a talking point post")
     }
 
-    if (checkForExistingParent) {
-      const existingDistrict = await this.#districtRepository.getByTitle(chatRequest.parentId);
-      if (existingDistrict == null) {
+    if (params.checkParentExistence) {
+      const existingTalkingPoint = await this.#talkingPointPostRepo.getById(params.data.parentId);
+      if (existingTalkingPoint == null) {
         throw new ParentObjectDoesNotExistError();
       }
     }
 
     const items: Record<string, AttributeValue> = {};
-    items[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: chatRequest.parentId };
-    items[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: this.createSortKey(chatRequest) };
-    items[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: chatRequest.authorUserName };
-    items[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: this.createSortKey(chatRequest) };
+    items[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: params.data.parentId };
+    items[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: this.createSortKey(params.data) };
+    items[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: params.data.authorUserName };
+    items[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: this.createSortKey(params.data) };
 
-    return await super.saveItem({ object: chatRequest, checkForExistingKey: "PRIMARY" });
+    return await super.saveItem({ object: params.data, checkForExistingKey: "PRIMARY", additionalItems: items });
   }
 
 
