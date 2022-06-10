@@ -21,7 +21,7 @@ export class UserRepository extends Repository<User> {
         return [
             UserRepository.objectIdentifier,
             user.followerCount
-        ].join('_');
+        ].join(Repository.compositeKeyDelimeter);
     }
 
     constructor(client: DynamoDBClient) {

@@ -150,17 +150,13 @@ export class TalkingPointPost {
 
     validator.validate(post.id, "id").notUndefined().notNull().isString().notEmpty();
     validator.validate(post.parentId, "parentId").notUndefined().notNull().isString().notEmpty();
-    if (ParentType[post.parentType] === undefined) {
-      throw new DataValidationError("parentType value is not defined in ParentType enum");
-    }
+    validator.validate(post.parentType, "parentType").notUndefined().notNull().isStringInEnum(ParentType);
     validator.validate(post.title, "title").notUndefined().notNull().isString().notEmpty();
     validator.validate(post.description, "description").notUndefined().notNull().isString().notEmpty();
     validator.validate(post.authorUserName, "authorUserName").notUndefined().notNull().isString().notEmpty();
     validator.validate(post.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
     validator.validate(post.isBanned, "isBanned").notUndefined().notNull().isBoolean();
-    if (ViewMode[post.viewMode] === undefined) {
-      throw new DataValidationError("viewMode value is not defined in ViewMode enum");
-    }
+    validator.validate(post.viewMode, "viewMode").notUndefined().notNull().isStringInEnum(ViewMode);
     validator.validate(post.absoluteScore, 'absoluteScore').notUndefined().notNull().isNumber().notNegative();
     validator.validate(post.timeBasedScore, 'timeBasedScore').notUndefined().notNull().isNumber().notNegative();
     validator.validate(post.viewCount, 'viewCount').notUndefined().notNull().isNumber().notNegative();

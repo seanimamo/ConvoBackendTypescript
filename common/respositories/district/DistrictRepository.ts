@@ -14,7 +14,7 @@ export class DistrictRepository extends Repository<District> {
         return [
           DistrictRepository.objectIdentifier,
           district.postCount
-        ].join('_');
+        ].join(Repository.compositeKeyDelimeter);
     }
 
     constructor(client: DynamoDBClient) {

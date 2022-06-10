@@ -97,6 +97,17 @@ export class DataValidator {
       throw new DataValidationError(`${this.dataLabel} cannot be negative`);
     }
   }
+
+  /**
+   * Source: https://stackoverflow.com/questions/17380845/how-do-i-convert-a-string-to-enum-in-typescript
+   * (See the answer by Artur A)
+   */
+  isStringInEnum<T> (enm: { [s: string]: T}) {
+    if (!(Object.values(enm) as unknown as string[]).includes(this.data)) {
+      throw new DataValidationError(`${this.dataLabel} contains a value that is not a member of its respective Enum`);
+    }
+    return this;
+  }
 }
 
 export class DataValidationError extends Error {

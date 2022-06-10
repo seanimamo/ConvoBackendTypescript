@@ -13,7 +13,7 @@ export class UserUuidPointerRepository extends Repository<UserUuidPointer> {
     return [
       UserUuidPointerRepository.UserUuidPointerIdentifier,
       emailPointer.accountType
-    ].join('_');
+    ].join(Repository.compositeKeyDelimeter);
   }
 
   constructor(client: DynamoDBClient) {

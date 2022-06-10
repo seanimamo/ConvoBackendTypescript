@@ -18,7 +18,7 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     return [
       GeneralChatRequestRepository.objectIdentifier,
       object.convoPreference
-    ].join('_');
+    ].join(Repository.compositeKeyDelimeter);
   }
 
   constructor(client: DynamoDBClient) {
@@ -80,7 +80,7 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
       sortKey = [
         GeneralChatRequestRepository.objectIdentifier,
         params.convoPreference
-      ].join('_');
+      ].join(Repository.compositeKeyDelimeter);
     }
 
     return await super.getItemsByCompositeKey({

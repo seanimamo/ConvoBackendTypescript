@@ -18,7 +18,7 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     return [
       TalkingPointPostRepository.objectIdentifier,
       object.absoluteScore
-    ].join('_');
+    ].join(Repository.compositeKeyDelimeter);
   }
 
   constructor(client: DynamoDBClient) {

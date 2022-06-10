@@ -107,27 +107,18 @@ export class District {
         validator.validate(district.authorUsername, "authorUsername").notUndefined().notNull().isString().notEmpty();
         validator.validate(district.createDate, 'createDate').notUndefined().notNull().isDate().dateIsNotInFuture();
         validator.validate(district.isBanned, 'isBanned').notUndefined().notNull().isBoolean();
-        if (ViewMode[district.viewMode] === undefined) {
-            throw new DataValidationError("viewMode value is not defined in ViewMode enum");
-        }
-        if (Category[district.primaryCategory] === undefined) {
-            throw new DataValidationError("primaryCategory value is not defined in Category enum");
-        }
+        validator.validate(district.viewMode, "viewMode").notUndefined().notNull().isStringInEnum(ViewMode);
+        validator.validate(district.primaryCategory, "primaryCategory").notUndefined().notNull().isStringInEnum(Category);
         validator.validate(district.subscriberCount, 'subscriberCount').notUndefined().notNull().isNumber().notNegative();
         validator.validate(district.viewCount, 'viewCount').notUndefined().notNull().isNumber().notNegative();
         validator.validate(district.postCount, 'postCount').notUndefined().notNull().isNumber().notNegative();
         validator.validate(district.convoCount, 'convoCount').notUndefined().notNull().isNumber().notNegative();
         validator.validate(district.talkingPointCount, 'talkingPointCount').notUndefined().notNull().isNumber().notNegative();
-
         if (district.secondaryCategory !== undefined) {
-            if (Category[district.secondaryCategory] === undefined) {
-                throw new DataValidationError("secondaryCategory value is not defined in Category enum");
-            }
+            validator.validate(district.secondaryCategory, "secondaryCategory").notUndefined().notNull().isStringInEnum(Category);
         }
         if (district.tertiaryCategory !== undefined) {
-            if (Category[district.tertiaryCategory] === undefined) {
-                throw new DataValidationError("tertiaryCategory value is not defined in Category enum");
-            }
+            validator.validate(district.tertiaryCategory, "tertiaryCategory").notUndefined().notNull().isStringInEnum(Category);
         }
         if (district.description !== undefined) {
             validator.validate(district.description, "description").notUndefined().notNull().isString().notEmpty();
@@ -136,7 +127,6 @@ export class District {
         if (district.thumbnail !== undefined) {
             validator.validate(district.thumbnail, "thumbnail").notUndefined().notNull().isString().notEmpty();
         }
-
     }
 }
 

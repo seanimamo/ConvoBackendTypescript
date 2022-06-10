@@ -6,7 +6,7 @@ import { ConvoPreference, ConvoStance, ParentType } from "../enums";
 export class ViewPointChatRequest {
   @Expose() id: string;
   @Expose() parentId: string;
-  @Expose() parentType: ParentType = ParentType.TALKING_POINT_VIEW_POINT;
+  @Expose() parentType: ParentType = ParentType.TALKING_POINT_POST_VIEW_POINT;
   @TransformDate()
   @Expose() createDate: Date;
   @Expose() authorUserName: string;

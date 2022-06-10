@@ -26,20 +26,15 @@ export class UserUuidPointer {
   static validate(userEmailPointer: UserUuidPointer) {
     // TODO: Grab validator from singleton source
     const validator: DataValidator = new DataValidator();
-
     validator.validate(userEmailPointer.email, 'email').notUndefined().notNull().isString().notEmpty();
     validator.validate(userEmailPointer.userName, 'userName').notUndefined().notNull().isString().notEmpty();
-
-    validator.validate(userEmailPointer.accountType, 'accountType').notUndefined().notNull();
-    if (UserAccountType[userEmailPointer.accountType] === undefined) {
-      throw new DataValidationError("accountType value is not defined in UserAccountType enum");
-    }
+    validator.validate(userEmailPointer.accountType, "accountType").notUndefined().notNull().isStringInEnum(UserAccountType);
   }
 }
 
 export enum UserAccountType {
-  CONVO = "CONVO",
-  GOOGLE = "GOOGLE",
-  FACEBOOK = "FACEBOOK",
-  APPLE = "APPLE",
+  CONVO = "Convo",
+  GOOGLE = "Google",
+  FACEBOOK = "Facebook",
+  APPLE = "Apple",
 }

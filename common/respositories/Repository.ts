@@ -8,6 +8,8 @@ import { UniqueObjectAlreadyExistsError } from "./error";
 import { PaginatedResponse } from "./PaginatedResponse";
 
 export abstract class Repository<T> {
+  // Used to create composite primary and sort keys.
+  static compositeKeyDelimeter = "-";
 
   client: DynamoDBClient;
   serializer: ClassSerializer;

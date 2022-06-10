@@ -12,12 +12,12 @@ export enum ConvoStance {
 
 // Enables the parent of a given object to be identified
 export enum ParentType {
-  DISTRICT,
-  TALKING_POINT_VIEW_POINT,
-  TALKING_POINT_POST
+  DISTRICT = "District",
+  TALKING_POINT_POST_VIEW_POINT = "Talking_Point_Post_View_Point",
+  TALKING_POINT_POST = "Talking_Point_Post",
 }
 
 export enum ViewMode {
-  PRIVATE,
-  PUBLIC
+  PRIVATE = "Private",
+  PUBLIC = "Public",
 }
