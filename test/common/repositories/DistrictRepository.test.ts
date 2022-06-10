@@ -44,6 +44,8 @@ describe("Test DistrictRepository", () => {
 
   test("Getting an existing district by title succeeds", async () => {
     await districtRepository.save(district);
+    const district2 = getDummyDistrict();
+    district2.title = "ADifferentTittle";
     await expect(districtRepository.getByTitle(district.title)).resolves.toEqual(district);
   });
   

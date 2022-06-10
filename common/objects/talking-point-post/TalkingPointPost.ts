@@ -1,4 +1,5 @@
 import { Expose } from "class-transformer";
+import { DataValidationError, DataValidator } from "../../util/DataValidator";
 import TransformDate from "../../util/TransformDate";
 import { ParentType, ViewMode } from "../enums";
 import { LinkPreview } from "../LinkPreview";
@@ -144,9 +145,42 @@ export class TalkingPointPost {
   }
 
   static validate(post: TalkingPointPost) {
-    // TODO: Complete post validation
-  }
+    // TODO: Grab validator from singleton source
+    const validator: DataValidator = new DataValidator();
 
+    validator.validate(post.id, "id").notUndefined().notNull().isString().notEmpty();
+    validator.validate(post.parentId, "parentId").notUndefined().notNull().isString().notEmpty();
+    if (ParentType[post.parentType] === undefined) {
+      throw new DataValidationError("parentType value is not defined in ParentType enum");
+    }
+    validator.validate(post.title, "title").notUndefined().notNull().isString().notEmpty();
+    validator.validate(post.description, "description").notUndefined().notNull().isString().notEmpty();
+    validator.validate(post.authorUserName, "authorUserName").notUndefined().notNull().isString().notEmpty();
+    validator.validate(post.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
+    validator.validate(post.isBanned, "isBanned").notUndefined().notNull().isBoolean();
+    if (ViewMode[post.viewMode] === undefined) {
+      throw new DataValidationError("viewMode value is not defined in ViewMode enum");
+    }
+    validator.validate(post.absoluteScore, 'absoluteScore').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(post.timeBasedScore, 'timeBasedScore').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(post.viewCount, 'viewCount').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(post.commentCount, 'commentCount').notUndefined().notNull().isNumber().notNegative();
 
-};
+    if (post.authorImageUrl !== undefined) {
+      // TODO: add complex user thumbnail format contraints validation
+      validator.validate(post.authorImageUrl, "authorImageUrl").notUndefined().notNull().isString().notEmpty();
+    }
+    if (post.linkPreview !== undefined) {
+      
+    }
+    if (post.customImageUrl !== undefined) {
+      // TODO: add thumbnail url format contraints validation
+      validator.validate(post.customImageUrl, "customImageUrl").notUndefined().notNull().isString().notEmpty();
+    }
+    if (post.tags !== undefined) {
+      validator.validate(post.tags, 'tags').notUndefined().notNull();
+    }
+  };
+
+}
 

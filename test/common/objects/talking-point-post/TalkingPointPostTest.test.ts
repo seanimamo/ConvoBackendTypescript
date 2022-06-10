@@ -1,6 +1,7 @@
 import { ClassSerializer } from "../../../../common/util/ClassSerializer";
 import { TalkingPointPost } from "../../../../common/objects/talking-point-post/TalkingPointPost";
 import { getDummyTalkingPointPost } from "../../../util/DummyFactory";
+import { DataValidationError } from "../../../../common/util/DataValidator";
 
 describe("Test Talking Point Post", () => {
   const talkingPointPost: TalkingPointPost = getDummyTalkingPointPost();
@@ -19,6 +20,15 @@ describe("Test Talking Point Post", () => {
     expect(postDeserialized).toEqual(talkingPointPost);
   });
 
-  
+  test("validate succesfully validates a valid object", () => {
+    expect(TalkingPointPost.validate(talkingPointPost)).toBeUndefined();
+  });
+
+  test("validate throws error with invalid object", () => {
+    const talkingPointPostPlainJson = classSerializer.classToPlainJson(talkingPointPost);
+    talkingPointPostPlainJson['id'] = undefined;
+    const talkingPointPostClassFromPlainJson = classSerializer.plainJsonToClass(TalkingPointPost, talkingPointPostPlainJson);
+    expect(() => TalkingPointPost.validate(talkingPointPostClassFromPlainJson)).toThrowError(DataValidationError);
+  });
 
 });

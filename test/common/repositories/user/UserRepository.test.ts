@@ -1,11 +1,11 @@
 
-import { User } from "../../../common/objects/user/User";
-import { UserRepository } from "../../../common/respositories/user/UserRepository";
+import { User } from "../../../../common/objects/user/User";
+import { UserRepository } from "../../../../common/respositories/user/UserRepository";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
-import { getDummyUser } from "../../util/DummyFactory";
-import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "../../../common/respositories/user/error";
-import { ObjectDoesNotExistError } from "../../../common/respositories/error";
+import { getDummyUser } from "../../../util/DummyFactory";
+import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "../../../../common/respositories/user/error";
+import { ObjectDoesNotExistError } from "../../../../common/respositories/error";
 
 let v3Client: DynamoDBClient;
 let userRepository: UserRepository;

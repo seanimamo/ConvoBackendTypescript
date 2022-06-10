@@ -50,7 +50,12 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     return await super.saveItem({ object: chatRequest, checkForExistingKey: "PRIMARY" });
   }
 
-  // Retrieve a single General Chat Request by its unique id.
+
+  /**
+   * Retrieve a single General Chat Request by its unique id.
+   * @param chatRequestId 
+   * @returns 
+   */
   async getById(chatRequestId: string) {
     return await super.getUniqueItemByCompositeKey({
       primaryKey: chatRequestId,
@@ -59,7 +64,11 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     });
   }
 
-  // Retrieve multiple General chat requests under a Talking point post
+  /**
+   * Retrieve multiple General chat requests under a Talking point post
+   * @param params 
+   * @returns 
+   */
   async getByTalkingPointPost(params: {
     postId: string,
     convoPreference?: ConvoPreference,
@@ -84,7 +93,11 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     });
   }
 
-  // Retrieve multiple General chat requests created by a specific user.
+  /**
+   * Retrieve multiple General chat requests created by a specific user.
+   * @param params 
+   * @returns 
+   */
   async getByAuthorUsername(params: {
     username: string,
     paginationToken?: Record<string, AttributeValue>,

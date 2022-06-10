@@ -5,6 +5,7 @@ import { TalkingPointPost } from "../../common/objects/talking-point-post/Talkin
 import { User } from "../../common/objects/user/User";
 import { UserPassword } from "../../common/objects/user/UserPassword";
 import { ConvoPreference } from "../../common/objects/enums";
+import { LinkPreview } from "../../common/objects/LinkPreview";
 
 // Note that ban status was left off, an unbanned user wont have a value.
 export const getDummyUser = () => {
@@ -71,17 +72,21 @@ export const getDummyTalkingPointPost = () => {
     commentCount: 0,
 
     // optional
-    linkPreview: {
-      url: "www.anonexistanturllll.com",
-      type: "video.other",
-      domain: "anonexistanturllll",
-      title: "dummy title",
-      description: "dummy link preview description",
-      videoUrl: "www.anonexistanturllll.com/video/1234"
-    },
+    linkPreview: getDummyLinkPreview(),
     customImageUrl: "www.anonexistanturllll.com/image/1234",
     tags: ["testTag1", "testTag2"],
   });
+}
+
+export const getDummyLinkPreview = () => {
+  return new LinkPreview(
+    "www.anonexistanturllll.com",
+    "video.other",
+    "anonexistanturllll",
+    "dummy title",
+    "dummy link preview description",
+    "www.anonexistanturllll.com/video/1234"
+  )
 }
 
 export const getDummyGeneralChatRequest = () => {

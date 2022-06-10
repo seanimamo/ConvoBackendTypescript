@@ -1,11 +1,11 @@
 
-import { User } from "../../../common/objects/user/User";
+import { User } from "../../../../common/objects/user/User";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
-import { getDummyUser } from "../../util/DummyFactory";
-import { UserAccountType, UserUuidPointer } from "../../../common/objects/user/UserUuidPointer";
-import { UserUuidPointerRepository } from "../../../common/respositories/user/UserUuidPointerRepository";
-import { UniqueObjectAlreadyExistsError } from "../../../common/respositories/error";
+import { getDummyUser } from "../../../util/DummyFactory";
+import { UserAccountType, UserUuidPointer } from "../../../../common/objects/user/UserUuidPointer";
+import { UserUuidPointerRepository } from "../../../../common/respositories/user/UserUuidPointerRepository";
+import { UniqueObjectAlreadyExistsError } from "../../../../common/respositories/error";
 
 let v3Client: DynamoDBClient;
 let userUuidRepo: UserUuidPointerRepository;

@@ -1,4 +1,3 @@
-
 import { getDummyGeneralChatRequest } from "../../../util/DummyFactory";
 import { GeneralChatRequest } from "../../../../common/objects/talking-point-post/GeneralChatRequest";
 import { ClassSerializer } from "../../../../common/util/ClassSerializer";

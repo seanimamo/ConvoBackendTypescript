@@ -29,10 +29,10 @@ export abstract class Repository<T> {
     additionalItems?: Record<string, AttributeValue>;
   }) {
 
-    const serializedUser = this.serializer.classToPlainJson(params.object);
+    const serializedObject = this.serializer.classToPlainJson(params.object);
     const commandParams: PutItemCommandInput = {
       TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
-      Item: marshall(serializedUser),
+      Item: marshall(serializedObject),
     }
 
     if (params.checkForExistingKey === 'PRIMARY') {
@@ -112,11 +112,32 @@ export abstract class Repository<T> {
     queryLimit?: number
   }): Promise<PaginatedResponse<T[]>> {
 
-    let keyConditionExpression = `${DynamoDBKeyNames.PARTITION_KEY} = :PkeyValue`;
+    let partitionKeyName;
+    let sortKeyName;
+    switch (params.indexName) {
+      case GSIIndexNames.GSI1:
+        partitionKeyName = DynamoDBKeyNames.GSI1_PARTITION_KEY;
+        sortKeyName = DynamoDBKeyNames.GSI1_SORT_KEY
+        break;
+      case GSIIndexNames.GSI2:
+        partitionKeyName = DynamoDBKeyNames.GSI2_PARTITION_KEY;
+        sortKeyName = DynamoDBKeyNames.GSI2_SORT_KEY
+        break;
+      case GSIIndexNames.GSI3:
+        partitionKeyName = DynamoDBKeyNames.GSI3_PARTITION_KEY;
+        sortKeyName = DynamoDBKeyNames.GSI3_SORT_KEY
+        break;
+      default:
+        partitionKeyName = DynamoDBKeyNames.PARTITION_KEY;
+        sortKeyName = DynamoDBKeyNames.SORT_KEY
+        break;
+    }
+
+    let keyConditionExpression = `${partitionKeyName} = :PkeyValue`;
     if (params.shouldPartialMatchSortKey) {
-      keyConditionExpression += ` and begins_with(${DynamoDBKeyNames.SORT_KEY}, :SkeyValue)`;
+      keyConditionExpression += ` and begins_with(${sortKeyName}, :SkeyValue)`;
     } else {
-      keyConditionExpression += ` and ${DynamoDBKeyNames.SORT_KEY} = :SkeyValue)`;
+      keyConditionExpression += ` and ${sortKeyName} = :SkeyValue)`;
     }
 
     const commandParams: QueryCommandInput = {
@@ -127,9 +148,11 @@ export abstract class Repository<T> {
         ":SkeyValue": { S: params.sortKey }
       }
     }
+
     if (params.indexName) {
-      commandParams.IndexName = params.indexName
+      commandParams.IndexName = params.indexName;
     }
+
     if (params.paginationToken) {
       commandParams.ExclusiveStartKey = params.paginationToken;
     }
@@ -138,6 +161,7 @@ export abstract class Repository<T> {
     }
 
     const dynamoResponse = await this.client.send(new QueryCommand(commandParams));
+
     const paginatedResponse = new PaginatedResponse<T[]>([]);
     if (dynamoResponse.Items!.length === 0) {
       return paginatedResponse;

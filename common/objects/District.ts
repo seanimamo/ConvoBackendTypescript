@@ -101,7 +101,7 @@ export class District {
     }
 
     static validate(district: District) {
-        // TODO: Add validation
+        // TODO: Grab validator from singleton source
         const validator = new DataValidator();
         validator.validate(district.title, "title").notUndefined().notNull().isString().notEmpty();
         validator.validate(district.authorUsername, "authorUsername").notUndefined().notNull().isString().notEmpty();
@@ -138,8 +138,6 @@ export class District {
         }
 
     }
-
-
 }
 
 export enum Category {

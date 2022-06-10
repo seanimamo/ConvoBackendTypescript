@@ -40,13 +40,13 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
       }
     }
 
-    const items: Record<string, AttributeValue> = {}
-    items[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: post.parentId };
-    items[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: TalkingPointPostRepository.objectIdentifier };
-    items[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: post.authorUserName };
-    items[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: TalkingPointPostRepository.objectIdentifier };
+    const gsiAttributes: Record<string, AttributeValue> = {}
+    gsiAttributes[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: post.parentId };
+    gsiAttributes[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: this.createSortKey(post) };
+    gsiAttributes[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: post.authorUserName };
+    gsiAttributes[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: this.createSortKey(post) };
 
-    return await super.saveItem({ object: post, checkForExistingKey: "PRIMARY" });
+    return await super.saveItem({ object: post, checkForExistingKey: "PRIMARY", additionalItems: gsiAttributes });
   }
 
 
