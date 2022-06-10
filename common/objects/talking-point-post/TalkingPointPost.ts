@@ -1,8 +1,7 @@
 import { Expose } from "class-transformer";
 import TransformDate from "../../util/TransformDate";
-import { ParentType } from "../enums";
+import { ParentType, ViewMode } from "../enums";
 import { LinkPreview } from "../LinkPreview";
-import { ViewMode } from "../ViewMode";
 
 export class TalkingPointPost {
   @Expose() id: string; // uuid

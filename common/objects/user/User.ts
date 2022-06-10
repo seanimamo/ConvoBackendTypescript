@@ -118,9 +118,9 @@ export class User {
     validator.validate(user.firstName, 'firstName').notUndefined().notNull().isString().notEmpty();
     validator.validate(user.lastName, 'lastName').notUndefined().notNull().isString().notEmpty();
     validator.validate(user.joinDate, 'joinDate').notUndefined().notNull().isDate().dateIsNotInFuture();
-    validator.validate(user.convoScore, 'convoScore').notUndefined().notNull().isNumber();
-    validator.validate(user.followerCount, 'followerCount').notUndefined().notNull().isNumber();
-    validator.validate(user.followingCount, 'followingCount').notUndefined().notNull().isNumber();
+    validator.validate(user.convoScore, 'convoScore').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(user.followerCount, 'followerCount').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(user.followingCount, 'followingCount').notUndefined().notNull().isNumber().notNegative();
     // TODO: add complex user settings contraints validation
     validator.validate(user.settings, 'settings').notUndefined().notNull();
 
@@ -129,6 +129,7 @@ export class User {
     if (user.birthDate !== undefined) {
       validator.validate(user.birthDate, 'birthDate').notNull().dateIsNotInFuture();
     }
+    // TODO: add complex user thumbnail format contraints validation
     if (user.thumbnail !== undefined) {
       validator.validate(user.thumbnail, 'thumbnail').notNull().notEmpty().isString();
     }

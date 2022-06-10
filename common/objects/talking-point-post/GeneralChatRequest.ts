@@ -44,12 +44,10 @@ export class GeneralChatRequest {
     const validator: DataValidator = new DataValidator();
     validator.validate(chatRequest.id, "id").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.parentId, "parentId").notUndefined().notNull().isString().notEmpty();
-    
     validator.validate(chatRequest.parentType, "parentType").notUndefined().notNull();
     if (ParentType[chatRequest.parentType] === undefined) {
       throw new DataValidationError("parentType value is not defined in ParentType enum");
     }
-
     validator.validate(chatRequest.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
     validator.validate(chatRequest.authorUserName, "authorUserName").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.convoPreference, "convoPreference").notUndefined().notNull().isString().notEmpty();
@@ -59,7 +57,6 @@ export class GeneralChatRequest {
     if (chatRequest.authorImageUrl !== undefined) {
       validator.validate(chatRequest.authorImageUrl, "authorImageUrl").notNull().isString().notEmpty();
     }
-
     if (chatRequest.chatReason !== undefined) {
       validator.validate(chatRequest.chatReason, "chatReason").notNull().isString().notEmpty();
     }

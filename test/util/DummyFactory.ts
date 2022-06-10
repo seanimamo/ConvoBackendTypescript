@@ -1,10 +1,9 @@
 import { Category, District } from "../../common/objects/District";
-import { ParentType } from "../../common/objects/enums";
+import { ParentType, ViewMode } from "../../common/objects/enums";
 import { GeneralChatRequest } from "../../common/objects/talking-point-post/GeneralChatRequest";
 import { TalkingPointPost } from "../../common/objects/talking-point-post/TalkingPointPost";
 import { User } from "../../common/objects/user/User";
 import { UserPassword } from "../../common/objects/user/UserPassword";
-import { ViewMode } from "../../common/objects/ViewMode";
 import { ConvoPreference } from "../../common/objects/enums";
 
 // Note that ban status was left off, an unbanned user wont have a value.
@@ -35,14 +34,14 @@ export const getDummyDistrict = () => {
     title: "testDistrict",
     authorUsername: "testusername",
     createDate: new Date(),
-    subscriberCount: 0,
-    viewCount: 0,
-    postCount: 0,
-    convoCount: 0,
-    talkingPointCount: 0,
+    subscriberCount: 123,
+    viewCount: 8300,
+    postCount: 1234,
+    convoCount: 742,
+    talkingPointCount: 1235,
     isBanned: false,
     viewMode: ViewMode.PRIVATE,
-    primaryCategory: Category.BUSINESS
+    primaryCategory: Category.ENTERTAINMENT
   });
 }
 

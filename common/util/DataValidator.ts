@@ -91,6 +91,12 @@ export class DataValidator {
 
     return this;
   }
+
+  notNegative() {
+    if (this.data < 0) {
+      throw new DataValidationError(`${this.dataLabel} cannot be negative`);
+    }
+  }
 }
 
 export class DataValidationError extends Error {

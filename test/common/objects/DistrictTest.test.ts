@@ -20,16 +20,15 @@ describe("Test District", () => {
       expect(districtDeserialized).toEqual(district);
     });
     
-    // TODO: uncomment after validation is added.
-    // test("validate succesfully validates a valid object", () => {
-    //   expect(District.validate(district)).toBeUndefined();
-    // });
+    test("validate succesfully validates a valid object", () => {
+      expect(District.validate(district)).toBeUndefined();
+    });
   
-    // test("validate throws error with invalid object", () => {
-    //   const districtPlainJson = classSerializer.classToPlainJson(district);
-    //   districtPlainJson['title'] = undefined;
-    //   const districtClassFromPlainJson = classSerializer.plainJsonToClass(District, districtPlainJson);
-    //   expect(() => District.validate(districtClassFromPlainJson)).toThrowError(DataValidationError);
-    // });
+    test("validate throws error with invalid object", () => {
+      const districtPlainJson = classSerializer.classToPlainJson(district);
+      districtPlainJson['title'] = undefined;
+      const districtClassFromPlainJson = classSerializer.plainJsonToClass(District, districtPlainJson);
+      expect(() => District.validate(districtClassFromPlainJson)).toThrowError(DataValidationError);
+    });
   
   });

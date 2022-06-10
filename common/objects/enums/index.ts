@@ -16,3 +16,8 @@ export enum ParentType {
   TALKING_POINT_VIEW_POINT,
   TALKING_POINT_POST
 }
+
+export enum ViewMode {
+  PRIVATE,
+  PUBLIC
+}
