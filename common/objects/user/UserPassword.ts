@@ -1,3 +1,4 @@
+import 'reflect-metadata'; //required for class transformer to work;
 import * as bcrypt from 'bcryptjs';
 import { Expose } from 'class-transformer';
 

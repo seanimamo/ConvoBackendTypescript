@@ -1,3 +1,4 @@
+import 'reflect-metadata'; //required for class transformer to work;
 import { Expose } from "class-transformer";
 import { DataValidator } from "../../util/DataValidator";
 import TransformDate from "../../util/TransformDate";

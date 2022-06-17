@@ -5,25 +5,32 @@ import { TalkingPointPost } from "../../common/objects/talking-point-post/Talkin
 import { User } from "../../common/objects/user/User";
 import { UserPassword } from "../../common/objects/user/UserPassword";
 import { ConvoPreference } from "../../common/objects/enums";
-import { LinkPreview } from "../../common/objects/LinkPreview";
+import { LinkPreview } from "../../common/objects/talking-point-post/LinkPreview";
+import { UserBanType } from "../../common/objects/user/UserBanStatus";
+import { ObjectBanType } from "../../common/objects/ObjectBanStatus";
 
 // Note that ban status was left off, an unbanned user wont have a value.
 export const getDummyUser = () => {
   return User.builder({
-    userName: "testusername",
+    userName: "seanimam",
     password: UserPassword.fromPlainTextPassword('test'),
     email: "test@gmail.com",
     isEmailValidated: true,
-    firstName: "string",
-    lastName: "string",
+    firstName: "sean",
+    lastName: "imam",
     joinDate: new Date('2011-04-11T10:20:30Z'),
+    banStatus: {
+      type: UserBanType.NONE,
+    },
     birthDate: new Date('2000-04-11T10:20:30Z'),
     thumbnail: "string",
     bio: "string",
     occupation: "string",
-    convoScore: 0,
-    followerCount: 0,
-    followingCount: 0,
+    metrics: {
+      convoScore: 0,
+      followerCount: 0,
+      followingCount: 0,
+    },
     settings: {
       hideRealName: false
     }
@@ -40,7 +47,9 @@ export const getDummyDistrict = () => {
     postCount: 1234,
     convoCount: 742,
     talkingPointCount: 1235,
-    isBanned: false,
+    banStatus: {
+      type: ObjectBanType.NONE,
+    },
     viewMode: ViewMode.PRIVATE,
     primaryCategory: Category.ENTERTAINMENT
   });
@@ -55,25 +64,30 @@ export const getDummyTalkingPointPost = () => {
     parentType: ParentType.DISTRICT,
     title: "Dummy Talking Point Post",
     description: "Dummy Talking Point Post Description",
-    authorUserName:dummyUser.userName,
+    authorUserName: dummyUser.userName,
     authorImageUrl: dummyUser.thumbnail,
     createDate: new Date(),
-    isBanned: false,
+    source: {
+      type: "LinkPreview",
+      data: getDummyLinkPreview(),
+    },
+    banStatus: {
+      type: ObjectBanType.NONE,
+    },
     viewMode: ViewMode.PUBLIC,
     // chatRequests: {
     //   viewPoint: ViewPointRequest[];
     //   general: GeneralChatRequest[];
     // }
 
-    // metrics
-    absoluteScore: 0,
-    timeBasedScore: 0,
-    viewCount: 0,
-    commentCount: 0,
+    metrics: {
+      absoluteScore: 123123,
+      timeBasedScore: 414512,
+      viewCount: 1231,
+      commentCount: 2344,
+    },
 
     // optional
-    linkPreview: getDummyLinkPreview(),
-    customImageUrl: "www.anonexistanturllll.com/image/1234",
     tags: ["testTag1", "testTag2"],
   });
 }
@@ -85,7 +99,8 @@ export const getDummyLinkPreview = () => {
     "anonexistanturllll",
     "dummy title",
     "dummy link preview description",
-    "www.anonexistanturllll.com/video/1234"
+    "www.anonexistanturllll.com/video/1234",
+    "www.customImageUrl.com/image/1234",
   )
 }
 

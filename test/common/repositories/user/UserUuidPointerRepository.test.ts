@@ -27,7 +27,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   await createTables();
   user = getDummyUser();
-  userPointer = new UserUuidPointer("testusername", "test@gmail.com", UserAccountType.CONVO);
+  userPointer = new UserUuidPointer("test@gmail.com", "testusername",  UserAccountType.CONVO);
 })
 
 afterEach(async () => {
@@ -46,7 +46,7 @@ describe("Test UserUuidRepository", () => {
 
   test("Saving a new user with a prexisting email fails", async () => {
     await userUuidRepo.save(userPointer);
-    const newUserPointerDuplicateEmail = new UserUuidPointer("ADifferentUsername", userPointer.email, userPointer.accountType);
+    const newUserPointerDuplicateEmail = new UserUuidPointer(userPointer.uuid, "ADifferentUsername", userPointer.accountType);
     await expect(userUuidRepo.save(newUserPointerDuplicateEmail)).rejects.toThrow(UniqueObjectAlreadyExistsError);
   });
 

@@ -9,7 +9,7 @@ import { PaginatedResponse } from "./PaginatedResponse";
 
 export abstract class Repository<T> {
   // Used to create composite primary and sort keys.
-  static compositeKeyDelimeter = "-";
+  static compositeKeyDelimeter = "#";
 
   client: DynamoDBClient;
   serializer: ClassSerializer;
@@ -28,28 +28,33 @@ export abstract class Repository<T> {
   async saveItem(params: {
     object: T,
     checkForExistingKey: "PRIMARY" | "COMPOSITE" | "NONE",
-    additionalItems?: Record<string, AttributeValue>;
+    extraItemAttributes?: Record<string, AttributeValue>,
+    denormalize?: boolean;
   }) {
 
-    const serializedObject = this.serializer.classToPlainJson(params.object);
     const commandParams: PutItemCommandInput = {
       TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
-      Item: marshall(serializedObject),
+      Item: {},
+    }
+
+    if (params.denormalize === true) {
+      commandParams.Item!['data'] = { S: this.serializer.serialize(params.object) }
+    } else {
+      commandParams.Item = marshall(this.serializer.classToPlainJson(params.object));
+    }
+
+    commandParams.Item![DynamoDBKeyNames.PARTITION_KEY] = { S: this.createPartitionKey(params.object) }
+    commandParams.Item![DynamoDBKeyNames.SORT_KEY] = { S: this.createSortKey(params.object) }
+    if (params.extraItemAttributes) {
+      Object.keys(params.extraItemAttributes).forEach(key => {
+        commandParams.Item![key] = params.extraItemAttributes![key];
+      })
     }
 
     if (params.checkForExistingKey === 'PRIMARY') {
       commandParams.ConditionExpression = `attribute_not_exists(${DynamoDBKeyNames.PARTITION_KEY})`
     } else if (params.checkForExistingKey === 'COMPOSITE') {
       commandParams.ConditionExpression = `attribute_not_exists(${DynamoDBKeyNames.PARTITION_KEY}) and attribute_not_exists(${DynamoDBKeyNames.SORT_KEY})`
-    }
-
-    commandParams.Item![DynamoDBKeyNames.PARTITION_KEY] = { S: this.createPartitionKey(params.object) }
-    commandParams.Item![DynamoDBKeyNames.SORT_KEY] = { S: this.createSortKey(params.object) }
-
-    if (params.additionalItems) {
-      Object.keys(params.additionalItems).forEach(key => {
-        commandParams.Item![key] = params.additionalItems![key];
-      })
     }
 
     try {
@@ -73,7 +78,8 @@ export abstract class Repository<T> {
     primaryKey: string,
     sortKey: string,
     shouldPartialMatchSortKey: boolean,
-    indexName?: GSIIndexNames
+    indexName?: GSIIndexNames,
+    denormalize?: boolean
   }) {
 
     let keyConditionExpression = `${DynamoDBKeyNames.PARTITION_KEY} = :PkeyValue`;
@@ -102,6 +108,11 @@ export abstract class Repository<T> {
     if (response.Items!.length > 1) {
       return new Error("Found more than 1 user when there should not be");
     }
+
+    if (params.denormalize === true) {
+      return this.serializer.deserialize(this.itemType, response.Items![0].data.S!);
+    }
+
     return this.serializer.plainJsonToClass(this.itemType, unmarshall(response.Items![0]));
   }
 
@@ -111,7 +122,8 @@ export abstract class Repository<T> {
     shouldPartialMatchSortKey: boolean,
     indexName?: GSIIndexNames,
     paginationToken?: Record<string, AttributeValue>,
-    queryLimit?: number
+    queryLimit?: number,
+    denormalize?: boolean,
   }): Promise<PaginatedResponse<T[]>> {
 
     let partitionKeyName;
@@ -165,14 +177,17 @@ export abstract class Repository<T> {
     const dynamoResponse = await this.client.send(new QueryCommand(commandParams));
 
     const paginatedResponse = new PaginatedResponse<T[]>([]);
+    paginatedResponse.paginationToken = dynamoResponse.LastEvaluatedKey || null;
     if (dynamoResponse.Items!.length === 0) {
       return paginatedResponse;
     }
 
-    paginatedResponse.data = dynamoResponse.Items!.map(item =>
-      this.serializer.plainJsonToClass(this.itemType, unmarshall(item))
-    );
-    paginatedResponse.paginationToken = dynamoResponse.LastEvaluatedKey || null;
+    paginatedResponse.data = dynamoResponse.Items!.map(item => {
+      if (params.denormalize === true) {
+        return this.serializer.deserialize(this.itemType, item.data.S!);
+      }
+      return this.serializer.plainJsonToClass(this.itemType, unmarshall(item));
+    });
 
     return paginatedResponse;
   }

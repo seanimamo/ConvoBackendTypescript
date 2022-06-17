@@ -1,32 +1,34 @@
 
 import { Expose } from 'class-transformer';
 import 'reflect-metadata'; //required for class transformer to work;
-import { DataValidationError, DataValidator } from '../../util/DataValidator';
+import { DataValidator } from '../../util/DataValidator';
 import { User } from './User';
 /**
- * This class is intended to be used with DynamoDB so that an email can be found for an associated user.
- * Without this object, a GSI would have to be maintained just on a user email.
- * This helps keeps clutter away from GSI's as well as move RCU/WCU's away from the main table.
+ * This class is intended to be used with DynamoDB for two purposes:
+ * 1) To enable users to be looked up using an email address. This enables us to confirm whether an email already exists.
+ * 2) To create a pointer for oauth logins. For example, if someone logs in with google we can see if that email is already attached to another
+ * account and, if so, link the two accounts. 
+ * 
  */
 export class UserUuidPointer {
-  @Expose() email: string;
+  @Expose() uuid: string; // This could be an email, phonenumber, or username with a different oauth account.
   @Expose() userName: string;
   @Expose() accountType: UserAccountType;
 
-  constructor(userName: string, email: string, accountType: UserAccountType) {
+  constructor(uuid: string, userName: string,accountType: UserAccountType) {
+    this.uuid = uuid;
     this.userName = userName;
-    this.email = email;
     this.accountType = accountType;
   }
 
   static fromUser(user: User, accountType: UserAccountType) {
-    return new UserUuidPointer(user.userName, user.email, accountType);
+    return new UserUuidPointer(user.email, user.userName, accountType);
   }
 
   static validate(userEmailPointer: UserUuidPointer) {
     // TODO: Grab validator from singleton source
     const validator: DataValidator = new DataValidator();
-    validator.validate(userEmailPointer.email, 'email').notUndefined().notNull().isString().notEmpty();
+    validator.validate(userEmailPointer.uuid, 'uuid').notUndefined().notNull().isString().notEmpty();
     validator.validate(userEmailPointer.userName, 'userName').notUndefined().notNull().isString().notEmpty();
     validator.validate(userEmailPointer.accountType, "accountType").notUndefined().notNull().isStringInEnum(UserAccountType);
   }

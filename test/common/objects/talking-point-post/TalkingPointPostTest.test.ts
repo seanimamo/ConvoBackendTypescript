@@ -9,7 +9,7 @@ describe("Test Talking Point Post", () => {
 
   test("Check that transforming the class to and from plain json does not change any data", () => {
     const postPlainJson = classSerializer.classToPlainJson(talkingPointPost);
-    console.log("district class turned to plain json: ", postPlainJson);
+    console.log("Talking Point Post class turned to plain json: ", postPlainJson);
     const postClassFromPlainJson = classSerializer.plainJsonToClass(TalkingPointPost, postPlainJson);
     expect(postClassFromPlainJson).toEqual(talkingPointPost);
   });

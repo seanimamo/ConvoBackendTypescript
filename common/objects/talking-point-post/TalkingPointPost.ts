@@ -1,8 +1,15 @@
+import 'reflect-metadata'; //required for class transformer to work;
 import { Expose } from "class-transformer";
 import { DataValidationError, DataValidator } from "../../util/DataValidator";
 import TransformDate from "../../util/TransformDate";
 import { ParentType, ViewMode } from "../enums";
-import { LinkPreview } from "../LinkPreview";
+import { LinkPreview } from "./LinkPreview";
+import { ObjectBanStatus } from '../ObjectBanStatus';
+
+type ConvoSource = {
+  id: string;
+  participantUsernames: string[];
+}
 
 export class TalkingPointPost {
   @Expose() id: string; // uuid
@@ -10,27 +17,32 @@ export class TalkingPointPost {
   @Expose() parentType: ParentType;
   @Expose() title: string;
   @Expose() description: string;
-  @Expose() authorUserName: string;
-
+  @Expose() authorUserName: string; // The person to create the post
   @TransformDate()
   @Expose() createDate: Date;
-  @Expose() isBanned: boolean;
+  @Expose() source?: { // A Talking point can be sourced from an existing Convo OR a link to something else
+    type: "Convo" | "LinkPreview";
+    data: ConvoSource | LinkPreview;
+  };
+  @Expose() banStatus: ObjectBanStatus;
   @Expose() viewMode: ViewMode;
+
   // chatRequests: {
   //   viewPoint: ViewPointRequest[];
   //   general: GeneralChatRequest[];
   // }
 
   // metrics
-  @Expose() absoluteScore: number;
-  @Expose() timeBasedScore: number;
-  @Expose() viewCount: number;
-  @Expose() commentCount: number;
+  @Expose()
+  metrics: {
+    absoluteScore: number;
+    timeBasedScore: number;
+    viewCount: number;
+    commentCount: number;
+  }
 
   // optionals
   @Expose() authorImageUrl?: string;
-  @Expose() linkPreview?: LinkPreview;
-  @Expose() customImageUrl?: string; // overrides link preview image for non video link's
   @Expose() tags?: string[];
 
   constructor(
@@ -41,23 +53,26 @@ export class TalkingPointPost {
     description: string,
     authorUserName: string,
     createDate: Date,
-    isBanned: boolean,
+    source: {
+      type: "Convo" | "LinkPreview";
+      data: ConvoSource | LinkPreview;
+    },
+    banStatus: ObjectBanStatus,
     viewMode: ViewMode,
     // chatRequests: {
     //   viewPoint: ViewPointRequest[];
     //   general: GeneralChatRequest[];
     // }
 
-    // metrics
-    absoluteScore: number,
-    timeBasedScore: number,
-    viewCount: number,
-    commentCount: number,
+    metrics: {
+      absoluteScore: number,
+      timeBasedScore: number,
+      viewCount: number,
+      commentCount: number,
+    },
 
     // optionals
     authorImageUrl?: string,
-    linkPreview?: LinkPreview,
-    customImageUrl?: string,
     tags?: string[],
   ) {
     this.id = id;
@@ -67,23 +82,18 @@ export class TalkingPointPost {
     this.description = description;
     this.authorUserName = authorUserName;
     this.createDate = createDate;
-    this.isBanned = isBanned;
+    this.banStatus = banStatus;
     this.viewMode = viewMode;
+    this.source = source;
     // chatRequests: {
     //   viewPoint: ViewPointRequest[];
     //   general: GeneralChatRequest[];
     // }
 
-    // metrics
-    this.absoluteScore = absoluteScore;
-    this.timeBasedScore = timeBasedScore;
-    this.viewCount = viewCount;
-    this.commentCount = commentCount;
+    this.metrics = metrics;
 
     // optionals
     this.authorImageUrl = authorImageUrl;
-    this.linkPreview = linkPreview;
-    this.customImageUrl = customImageUrl;
     this.tags = tags;
   }
 
@@ -95,23 +105,26 @@ export class TalkingPointPost {
     description: string,
     authorUserName: string,
     createDate: Date,
-    isBanned: boolean,
+    source: {
+      type: "Convo" | "LinkPreview";
+      data: ConvoSource | LinkPreview;
+    },
+    banStatus: ObjectBanStatus,
     viewMode: ViewMode,
     // chatRequests: {
     //   viewPoint: ViewPointRequest[];
     //   general: GeneralChatRequest[];
     // }
 
-    // metrics
-    absoluteScore: number,
-    timeBasedScore: number,
-    viewCount: number,
-    commentCount: number,
+    metrics: {
+      absoluteScore: number,
+      timeBasedScore: number,
+      viewCount: number,
+      commentCount: number,
+    },
 
     // optionals
     authorImageUrl?: string,
-    linkPreview?: LinkPreview,
-    customImageUrl?: string,
     tags?: string[],
   }
   ) {
@@ -123,23 +136,18 @@ export class TalkingPointPost {
       props.description,
       props.authorUserName,
       props.createDate,
-      props.isBanned,
+      props.source,
+      props.banStatus,
       props.viewMode,
       // chatRequests: {
       //   viewPoint: ViewPointRequest[];
       //   general: GeneralChatRequest[];
       // }
 
-      // metrics
-      props.absoluteScore,
-      props.timeBasedScore,
-      props.viewCount,
-      props.commentCount,
+      props.metrics,
 
       // optionals
       props.authorImageUrl,
-      props.linkPreview,
-      props.customImageUrl,
       props.tags
     );
   }
@@ -155,23 +163,33 @@ export class TalkingPointPost {
     validator.validate(post.description, "description").notUndefined().notNull().isString().notEmpty();
     validator.validate(post.authorUserName, "authorUserName").notUndefined().notNull().isString().notEmpty();
     validator.validate(post.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
-    validator.validate(post.isBanned, "isBanned").notUndefined().notNull().isBoolean();
+    ObjectBanStatus.validate(post.banStatus);
     validator.validate(post.viewMode, "viewMode").notUndefined().notNull().isStringInEnum(ViewMode);
-    validator.validate(post.absoluteScore, 'absoluteScore').notUndefined().notNull().isNumber().notNegative();
-    validator.validate(post.timeBasedScore, 'timeBasedScore').notUndefined().notNull().isNumber().notNegative();
-    validator.validate(post.viewCount, 'viewCount').notUndefined().notNull().isNumber().notNegative();
-    validator.validate(post.commentCount, 'commentCount').notUndefined().notNull().isNumber().notNegative();
+
+    validator.validate(post.metrics, 'metrics').notUndefined().notNull();
+    validator.validate(post.metrics.absoluteScore, 'metrics.absoluteScore').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(post.metrics.timeBasedScore, 'metrics.timeBasedScore').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(post.metrics.viewCount, 'metrics.viewCount').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(post.metrics.commentCount, 'metrics.commentCount').notUndefined().notNull().isNumber().notNegative();
 
     if (post.authorImageUrl !== undefined) {
       // TODO: add complex user thumbnail format contraints validation
       validator.validate(post.authorImageUrl, "authorImageUrl").notUndefined().notNull().isString().notEmpty();
     }
-    if (post.linkPreview !== undefined) {
-      
-    }
-    if (post.customImageUrl !== undefined) {
-      // TODO: add thumbnail url format contraints validation
-      validator.validate(post.customImageUrl, "customImageUrl").notUndefined().notNull().isString().notEmpty();
+    if (post.source !== undefined) {
+      validator.validate(post.source.type, "source.type").notUndefined().notNull().isString();
+      validator.validate(post.source.data, "source.data").notUndefined().notNull();
+      if (post.source.type === "Convo") {
+        const convoSource = post.source.data as ConvoSource;
+        validator.validate(convoSource, "convoSource (post.source.data)").notUndefined().notNull();
+        validator.validate(convoSource.id, "convoSource (post.source.data.id)").notUndefined().notNull().isString().notEmpty();
+        validator.validate(convoSource.participantUsernames, "convoSource (post.source.data.participantUsernames)")
+          .notUndefined().notNull().notEmpty();
+      } else if (post.source.type === "LinkPreview") {
+        LinkPreview.validate(post.source.data as LinkPreview);
+      } else {
+        throw new DataValidationError("Post source type is not Convo or LinkPreview");
+      }
     }
     if (post.tags !== undefined) {
       validator.validate(post.tags, 'tags').notUndefined().notNull();

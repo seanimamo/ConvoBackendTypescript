@@ -51,7 +51,7 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     items[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: params.data.authorUserName };
     items[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: this.createSortKey(params.data) };
 
-    return await super.saveItem({ object: params.data, checkForExistingKey: "PRIMARY", additionalItems: items });
+    return await super.saveItem({ object: params.data, checkForExistingKey: "PRIMARY", extraItemAttributes: items });
   }
 
 
@@ -99,8 +99,6 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
 
   /**
    * Retrieve multiple General chat requests created by a specific user.
-   * @param params 
-   * @returns 
    */
   async getByAuthorUsername(params: {
     username: string,
@@ -115,6 +113,18 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
+  }
+
+  /**
+   * Creates a tentaive match given two or more general chat requests
+   */
+  async createTentativeMatch(params: {
+    data: GeneralChatRequest[],
+    initialChatRequestAcceptor: GeneralChatRequest,
+    paginationToken?: Record<string, AttributeValue>,
+    queryLimit?: number;
+  }) {
+
   }
 
 }

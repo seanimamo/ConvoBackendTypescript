@@ -1,8 +1,8 @@
-// Metadata used to generate link previews
-
+import 'reflect-metadata'; //required for class transformer to work;
 import { Expose } from "class-transformer";
-import { DataValidator } from "../util/DataValidator";
+import { DataValidator } from "../../util/DataValidator";
 
+// Metadata used to generate link previews
 export class LinkPreview {
   @Expose() url: string;
   @Expose() type: string;
@@ -12,6 +12,7 @@ export class LinkPreview {
   @Expose() imageUrl?: string;
   @Expose() imageAlt?: string;
   @Expose() videoUrl?: string;
+  @Expose() customImageUrl?: string; // overrides link preview image for non video link's
 
   constructor(
     url: string,
@@ -22,6 +23,7 @@ export class LinkPreview {
     imageUrl?: string,
     imageAlt?: string,
     videoUrl?: string,
+    customImageUrl?: string,
   ) {
     this.url = url;
     this.type = type;
@@ -31,6 +33,7 @@ export class LinkPreview {
     this.imageUrl = imageUrl;
     this.imageAlt = imageAlt;
     this.videoUrl = videoUrl;
+    this.customImageUrl = customImageUrl;
   }
 
   static validate(linkPreview: LinkPreview) {
@@ -45,6 +48,7 @@ export class LinkPreview {
     if (linkPreview.description !== undefined) {
       validator.validate(linkPreview.description, "description").notUndefined().notNull().isString();
     }
+    // TODO: add  url format contraints validation
     if (linkPreview.imageUrl !== undefined) {
       validator.validate(linkPreview.imageUrl, "imageUrl").notUndefined().notNull().isString();
     }
@@ -53,6 +57,9 @@ export class LinkPreview {
     }
     if (linkPreview.videoUrl !== undefined) {
       validator.validate(linkPreview.videoUrl, "videoUrl").notUndefined().notNull().isString();
+    }
+    if (linkPreview.customImageUrl !== undefined) {
+      validator.validate(linkPreview.customImageUrl, "customImageUrl").notUndefined().notNull().isString();
     }
   }
 }

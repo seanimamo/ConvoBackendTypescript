@@ -86,14 +86,12 @@ describe("Test DistrictRepository", () => {
 
   test("Retrieve multiple taking points by district title succeeds and only gets posts under the given district title",
     async () => {
-
       await districtRepo.save(district);
       const talkingPoint1 = getDummyTalkingPointPost();
       const talkingPoint2 = getDummyTalkingPointPost();
       talkingPoint2.id = "aDifftalkingPointId";
       await talkingPointRepo.save({ data: talkingPoint1 });
       await talkingPointRepo.save({ data: talkingPoint2 });
-
 
       const chatRequest1 = getDummyGeneralChatRequest();
       const chatRequest2 = getDummyGeneralChatRequest();
@@ -118,7 +116,7 @@ describe("Test DistrictRepository", () => {
       expect(retrievedDistrict1Posts.data).not.toContainEqual(chatRequest4);
     });
 
-    test("Retrieve multiple taking points by author username succeeds and only gets posts under the given author username",
+  test("Retrieve multiple taking points by author username succeeds and only gets posts under the given author username",
     async () => {
       await districtRepo.save(district);
       await talkingPointRepo.save({ data: talkingPoint });
@@ -129,7 +127,7 @@ describe("Test DistrictRepository", () => {
       chatRequest3.id = "2357034622";
       const chatRequest4 = getDummyGeneralChatRequest();
       chatRequest4.id = "1248590543";
-      chatRequest4.authorUserName = "someOtherUsrename11"
+      chatRequest4.authorUserName = "someOtherUsrename11";
       await chatRequestRepo.save({ data: chatRequest1 });
       await chatRequestRepo.save({ data: chatRequest2 });
       await chatRequestRepo.save({ data: chatRequest3 });
@@ -144,5 +142,4 @@ describe("Test DistrictRepository", () => {
       expect(retrievedDistrict1Posts.data).toContainEqual(chatRequest3);
       expect(retrievedDistrict1Posts.data).not.toContainEqual(chatRequest4);
     });
-
 });

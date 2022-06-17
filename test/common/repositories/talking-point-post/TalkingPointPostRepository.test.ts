@@ -109,13 +109,13 @@ describe("Test DistrictRepository", () => {
     async () => {
       await districtRepo.save(district);
       const post1 = getDummyTalkingPointPost();
-      post1.absoluteScore = 1;
+      post1.metrics.absoluteScore = 1;
       const post2 = getDummyTalkingPointPost();
       post2.id = "634636738";
-      post2.absoluteScore = 2;
+      post2.metrics.absoluteScore = 2;
       const post3 = getDummyTalkingPointPost();
       post3.id = "2357034622";
-      post3.absoluteScore = 3;
+      post3.metrics.absoluteScore = 3;
       const post4 = getDummyTalkingPointPost();
       post4.id = "1248590543";
       post4.authorUserName = "someOtherduede1231";

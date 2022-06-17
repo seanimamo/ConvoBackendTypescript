@@ -1,7 +1,9 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Context, PreSignUpTriggerEvent, PreSignUpTriggerHandler } from "aws-lambda";
 import { User } from "../../../common/objects/user/User";
+import { UserBanStatus, UserBanType } from "../../../common/objects/user/UserBanStatus";
 import { UserPassword } from "../../../common/objects/user/UserPassword";
+import { UniqueObjectAlreadyExistsError } from "../../../common/respositories/error";
 import { UserRepository } from "../../../common/respositories/user/UserRepository";
 import { DataValidator, InvalidDataTypeError } from '../../../common/util/DataValidator';
 import { InvalidRequestException } from "../../error";
@@ -24,7 +26,7 @@ export class PreSignUpLambdaTrigger {
           region: "us-east-1",
         })
       );
-    } 
+    }
     else {
       this.userRepository = new UserRepository(dynamoDBClient);
     }
@@ -56,6 +58,8 @@ export class PreSignUpLambdaTrigger {
     const lastName = event.request.userAttributes['custom:lastName'];
     const hideRealName = event.request.clientMetadata!['hideRealName'] === 'true'; // converts string to boolean.
 
+
+
     const user = User.builder({
       userName: userName,
       password: UserPassword.fromPlainTextPassword(rawPassword),
@@ -64,10 +68,15 @@ export class PreSignUpLambdaTrigger {
       firstName: firstName,
       lastName: lastName,
       joinDate: new Date(),
-      birthDate: new Date(),
-      convoScore: 0,
-      followerCount: 0,
-      followingCount: 0,
+      banStatus: {
+        type: UserBanType.NONE
+      },
+      birthDate: new Date('2000-04-11T10:20:30Z'),
+      metrics: {
+        convoScore: 0,
+        followerCount: 0,
+        followingCount: 0,
+      },
       settings: {
         hideRealName: hideRealName
       }

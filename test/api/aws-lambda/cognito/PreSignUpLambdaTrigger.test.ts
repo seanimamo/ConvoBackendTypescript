@@ -63,14 +63,12 @@ describe("Test PreSignUpLambdaTrigger", () => {
       }
     }
 
-    console.log(JSON.stringify(cognitoPreSignupTriggerEvent))
-
     const handler = new PreSignUpLambdaTrigger(dynamoDBClient);
     // @ts-ignore
     await handler.handleRequest(cognitoPreSignupTriggerEvent, null, (e: any, c: any) => { });
 
     const user = await userRepository.getByUsername(cognitoPreSignupTriggerEvent.userName) as User;
-    expect(user).toBeDefined();
+    expect(user).not.toBeNull();
     expect(user.userName).toEqual(cognitoPreSignupTriggerEvent.userName);
     expect(user.password.isPasswordCorrect(cognitoPreSignupTriggerEvent.request.clientMetadata!['rawPassword'])).toEqual(true);
     expect(user.settings.hideRealName).toEqual(cognitoPreSignupTriggerEvent.request.clientMetadata!['hideRealName'] === 'true');

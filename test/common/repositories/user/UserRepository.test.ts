@@ -6,11 +6,15 @@ import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
 import { getDummyUser } from "../../../util/DummyFactory";
 import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "../../../../common/respositories/user/error";
 import { ObjectDoesNotExistError } from "../../../../common/respositories/error";
+import { UserPassword } from "../../../../common/objects/user/UserPassword";
+import { UserBanType } from "../../../../common/objects/user/UserBanStatus";
+import { marshall } from "@aws-sdk/util-dynamodb";
+import { ClassSerializer } from "../../../../common/util/ClassSerializer";
 
 let v3Client: DynamoDBClient;
 let userRepository: UserRepository;
 let user: User;
-jest.setTimeout(10000);
+jest.setTimeout(1000000);
 
 beforeAll(async () => {
   await startDb();
@@ -46,7 +50,7 @@ describe("Test User Repository", () => {
     await userRepository.save(user);
     await expect(userRepository.getByUsername(user.userName)).resolves.toEqual(user);
   });
-  
+
   test("Getting a nonexistant user by userName returns null", async () => {
     await userRepository.save(user);
     await expect(userRepository.getByUsername(user.userName + 'asd')).resolves.toBeNull();

@@ -5,8 +5,8 @@ import { Repository } from "../Repository";
 export class UserUuidPointerRepository extends Repository<UserUuidPointer> {
   static UserUuidPointerIdentifier = "USER_UUID_POINTER";
 
-  createPartitionKey = (emailPointer: UserUuidPointer) => {
-    return emailPointer.email;
+  createPartitionKey = (pointer: UserUuidPointer) => {
+    return pointer.uuid;
   }
 
   createSortKey = (emailPointer: UserUuidPointer) => {
@@ -24,9 +24,9 @@ export class UserUuidPointerRepository extends Repository<UserUuidPointer> {
     return await super.saveItem({object: uuidPointer, checkForExistingKey: "COMPOSITE"});
   }
 
-  async getByEmail(email: string) {
+  async getByUuid(uuid: string) {
     return await super.getUniqueItemByCompositeKey({
-      primaryKey: email,
+      primaryKey: uuid,
       sortKey: UserUuidPointerRepository.UserUuidPointerIdentifier,
       shouldPartialMatchSortKey: true
     });

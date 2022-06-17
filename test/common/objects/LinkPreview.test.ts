@@ -1,5 +1,5 @@
 import { ClassSerializer } from "../../../common/util/ClassSerializer";
-import { LinkPreview } from "../../../common/objects/LinkPreview";
+import { LinkPreview } from "../../../common/objects/talking-point-post/LinkPreview";
 import { getDummyLinkPreview } from "../../util/DummyFactory";
 import { DataValidationError } from "../../../common/util/DataValidator";
 

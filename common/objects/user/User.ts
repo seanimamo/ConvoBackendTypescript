@@ -1,5 +1,6 @@
 import 'reflect-metadata'; //required for class transformer to work;
 import { UserPassword } from "./UserPassword";
+import { UserBanStatus } from "./UserBanStatus";
 import { Expose, Type } from 'class-transformer';
 import { DataValidator } from '../../util/DataValidator';
 import TransformDate from '../../util/TransformDate';
@@ -14,11 +15,13 @@ export class User {
   @Expose() lastName: string;
   @TransformDate()
   @Expose() joinDate: Date;
-  @Expose() convoScore: number;
-  @Expose() followerCount: number;
-  @Expose() followingCount: number;
+  @Expose() metrics: {
+    convoScore: number;
+    followerCount: number;
+    followingCount: number;
+  };
   @Expose() settings: UserSettings;
-  // @Expose() banStatus?: UserBanStatus; uncomment when ready to add functionality
+  @Expose() banStatus: UserBanStatus;
   @TransformDate()
   @Expose() birthDate?: Date;
   @Expose() thumbnail?: string;
@@ -33,11 +36,13 @@ export class User {
     firstName: string,
     lastName: string,
     joinDate: Date,
-    convoScore: number,
-    followerCount: number,
-    followingCount: number,
+    metrics: {
+      convoScore: number;
+      followerCount: number;
+      followingCount: number;
+    },
     settings: UserSettings,
-    // banStatus?: UserBanStatus, uncomment when ready to add functionality
+    banStatus: UserBanStatus,
     birthDate?: Date,
     thumbnail?: string,
     bio?: string,
@@ -51,11 +56,9 @@ export class User {
     this.lastName = lastName;
     this.joinDate = joinDate;
     this.birthDate = birthDate;
-    this.convoScore = convoScore;
-    this.followerCount = followerCount;
-    this.followingCount = followingCount;
+    this.metrics = metrics;
     this.settings = settings;
-    // this.banStatus = banStatus; uncomment when ready to add functionality
+    this.banStatus = banStatus;
     this.thumbnail = thumbnail;
     this.bio = bio;
     this.occupation = occupation;
@@ -71,11 +74,13 @@ export class User {
       firstName: string,
       lastName: string,
       joinDate: Date,
-      convoScore: number,
-      followerCount: number,
-      followingCount: number,
+      metrics: {
+        convoScore: number;
+        followerCount: number;
+        followingCount: number;
+      },
       settings: UserSettings,
-      // banStatus?: UserBanStatus; uncomment when ready to add functionality
+      banStatus: UserBanStatus,
       birthDate?: Date,
       thumbnail?: string,
       bio?: string,
@@ -91,11 +96,9 @@ export class User {
       props.firstName,
       props.lastName,
       props.joinDate,
-      props.convoScore,
-      props.followerCount,
-      props.followingCount,
+      props.metrics,
       props.settings,
-      // props.banStatus, uncomment when ready to add functionality
+      props.banStatus,
       props.birthDate,
       props.thumbnail,
       props.bio,
@@ -118,9 +121,12 @@ export class User {
     validator.validate(user.firstName, 'firstName').notUndefined().notNull().isString().notEmpty();
     validator.validate(user.lastName, 'lastName').notUndefined().notNull().isString().notEmpty();
     validator.validate(user.joinDate, 'joinDate').notUndefined().notNull().isDate().dateIsNotInFuture();
-    validator.validate(user.convoScore, 'convoScore').notUndefined().notNull().isNumber().notNegative();
-    validator.validate(user.followerCount, 'followerCount').notUndefined().notNull().isNumber().notNegative();
-    validator.validate(user.followingCount, 'followingCount').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(user.metrics.convoScore, 'metrics.convoScore').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(user.metrics.followerCount, 'metrics.followerCount').notUndefined().notNull().isNumber().notNegative();
+    validator.validate(user.metrics.followingCount, 'metrics.followingCount').notUndefined().notNull().isNumber().notNegative();
+
+    UserBanStatus.validate(user.banStatus);
+
     // TODO: add complex user settings contraints validation
     validator.validate(user.settings, 'settings').notUndefined().notNull();
 
@@ -148,9 +154,3 @@ export class User {
 export type UserSettings = {
   hideRealName: boolean;
 }
-
-// uncomment when ready to add functionality
-// export type UserBanStatus = {
-//   type: "BASIC" | "SHADOW";
-//   expirationDate: Date;
-// }

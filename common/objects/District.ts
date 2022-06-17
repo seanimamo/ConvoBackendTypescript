@@ -1,16 +1,16 @@
+import 'reflect-metadata'; //required for class transformer to work;
 import { Expose } from 'class-transformer';
-import { DataValidationError, DataValidator } from '../util/DataValidator';
+import { DataValidator } from '../util/DataValidator';
 import TransformDate from '../util/TransformDate';
 import { ViewMode } from './enums';
-
-
+import { ObjectBanStatus } from './ObjectBanStatus';
 
 export class District {
     @Expose() title: string; // This is also the UUID for a district.
     @Expose() authorUsername: string;
     @TransformDate()
     @Expose() createDate: Date;
-    @Expose() isBanned: boolean;
+    @Expose() banStatus: ObjectBanStatus;
     @Expose() viewMode: ViewMode;
     @Expose() primaryCategory: Category;
 
@@ -30,7 +30,7 @@ export class District {
     constructor(title: string,
         authorUsername: string,
         createDate: Date,
-        isBanned: boolean,
+        banStatus: ObjectBanStatus,
         viewMode: ViewMode,
         primaryCategory: Category,
         subscriberCount: number,
@@ -46,7 +46,7 @@ export class District {
         this.title = title;
         this.authorUsername = authorUsername;
         this.createDate = createDate;
-        this.isBanned = isBanned;
+        this.banStatus = banStatus;
         this.viewMode = viewMode;
         this.primaryCategory = primaryCategory
 
@@ -67,7 +67,7 @@ export class District {
             title: string,
             authorUsername: string,
             createDate: Date,
-            isBanned: boolean,
+            banStatus: ObjectBanStatus,
             viewMode: ViewMode,
             primaryCategory: Category,
             subscriberCount: number,
@@ -85,7 +85,7 @@ export class District {
             props.title,
             props.authorUsername,
             props.createDate,
-            props.isBanned,
+            props.banStatus,
             props.viewMode,
             props.primaryCategory,
             props.subscriberCount,
@@ -106,7 +106,7 @@ export class District {
         validator.validate(district.title, "title").notUndefined().notNull().isString().notEmpty();
         validator.validate(district.authorUsername, "authorUsername").notUndefined().notNull().isString().notEmpty();
         validator.validate(district.createDate, 'createDate').notUndefined().notNull().isDate().dateIsNotInFuture();
-        validator.validate(district.isBanned, 'isBanned').notUndefined().notNull().isBoolean();
+        ObjectBanStatus.validate(district.banStatus);
         validator.validate(district.viewMode, "viewMode").notUndefined().notNull().isStringInEnum(ViewMode);
         validator.validate(district.primaryCategory, "primaryCategory").notUndefined().notNull().isStringInEnum(Category);
         validator.validate(district.subscriberCount, 'subscriberCount').notUndefined().notNull().isNumber().notNegative();

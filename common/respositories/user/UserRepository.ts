@@ -20,7 +20,7 @@ export class UserRepository extends Repository<User> {
     createSortKey = (user: User) => {
         return [
             UserRepository.objectIdentifier,
-            user.followerCount
+            user.metrics.followerCount
         ].join(Repository.compositeKeyDelimeter);
     }
 
@@ -41,10 +41,18 @@ export class UserRepository extends Repository<User> {
             if (error instanceof UniqueObjectAlreadyExistsError) {
                 throw new EmailAlreadyInUseError();
             }
+            throw error;
         }
 
-        // This will throw a UniqueObjectAlreadyExistsError if the username is already in use.
-        return await super.saveItem({ object: user, checkForExistingKey: "PRIMARY" });
+        try {
+            return await super.saveItem({ object: user, checkForExistingKey: "PRIMARY" });
+        } catch (error) {
+            // This will throw a UniqueObjectAlreadyExistsError if the username is already in use.
+            if (error instanceof UniqueObjectAlreadyExistsError) {
+                throw new UsernameAlreadyInUseError();
+            }
+            throw error;
+        }
     }
 
     async getByUsername(userName: string) {
