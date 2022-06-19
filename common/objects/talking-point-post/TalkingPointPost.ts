@@ -54,9 +54,9 @@ export class TalkingPointPost {
 
   static createId(params: { parentId: string, title: string, authorUserName: string } | TalkingPointPost) {
     if (params instanceof TalkingPointPost) {
-      return [params.parentId, params.title.replace(/\s/g, '_'), params.authorUserName].join('-');
+      return [params.parentId, params.title.replace(/\s/g, '_'), params.authorUserName].join('#');
     }
-    return [params.parentId, params.title.replace(/\s/g, '_'), params.authorUserName].join('-');
+    return [params.parentId, params.title.replace(/\s/g, '_'), params.authorUserName].join('#');
   }
 
   get title() { return this._title; }
@@ -196,7 +196,7 @@ export class TalkingPointPost {
     const validator: DataValidator = new DataValidator();
 
     validator.validate(post.id, "id").notUndefined().notNull().isString().notEmpty();
-    const partitionedId = post.id.split('-');
+    const partitionedId = post.id.split('#');
     if (partitionedId[0] !== post.parentId) {
       throw new DataValidationError("parentId is not first value in provided id");
     }
