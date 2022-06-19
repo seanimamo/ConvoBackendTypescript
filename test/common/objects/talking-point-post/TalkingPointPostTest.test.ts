@@ -31,4 +31,16 @@ describe("Test Talking Point Post", () => {
     expect(() => TalkingPointPost.validate(talkingPointPostClassFromPlainJson)).toThrowError(DataValidationError);
   });
 
+    test("Changing the title, authorUserName or parentId automatically updates the object id", () => {
+      const originalId = talkingPointPost.id;
+      talkingPointPost.title = "new title";
+      expect(talkingPointPost.id).not.toEqual(originalId);
+      const changedId1 = talkingPointPost.id;
+      talkingPointPost.authorUserName = "newUsername";
+      expect(talkingPointPost.id).not.toEqual(changedId1);
+      const changedId2 = talkingPointPost.id;
+      talkingPointPost.parentId = "aDiffParentIddd";
+      expect(talkingPointPost.id).not.toEqual(changedId2);
+  });
+
 });

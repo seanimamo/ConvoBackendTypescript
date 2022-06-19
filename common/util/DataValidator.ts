@@ -61,6 +61,13 @@ export class DataValidator {
     return this;
   }
 
+  isUndefined() {
+    if (this.data != undefined) {
+      throw new DataValidationError(`${this.dataLabel} must be undefined`)
+    }
+    return this;
+  }
+
   notUndefined() {
     if (this.data === undefined) {
       throw new DataValidationError(`${this.dataLabel} cannot be undefined`)

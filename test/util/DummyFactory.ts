@@ -1,7 +1,7 @@
 import { Category, District } from "../../common/objects/District";
 import { ParentType, ViewMode } from "../../common/objects/enums";
 import { GeneralChatRequest } from "../../common/objects/talking-point-post/GeneralChatRequest";
-import { TalkingPointPost } from "../../common/objects/talking-point-post/TalkingPointPost";
+import { TalkingPointPost, TalkingPointPostSourceType } from "../../common/objects/talking-point-post/TalkingPointPost";
 import { User } from "../../common/objects/user/User";
 import { UserPassword } from "../../common/objects/user/UserPassword";
 import { ConvoPreference } from "../../common/objects/enums";
@@ -59,7 +59,7 @@ export const getDummyTalkingPointPost = () => {
   const dummyUser = getDummyUser();
   const dummyDistrict = getDummyDistrict()
   return TalkingPointPost.builder({
-    id: '12345talkingPointPost',
+    id: null,
     parentId: dummyDistrict.title,
     parentType: ParentType.DISTRICT,
     title: "Dummy Talking Point Post",
@@ -68,7 +68,7 @@ export const getDummyTalkingPointPost = () => {
     authorImageUrl: dummyUser.thumbnail,
     createDate: new Date(),
     source: {
-      type: "LinkPreview",
+      type: TalkingPointPostSourceType.CLASSIC,
       data: getDummyLinkPreview(),
     },
     banStatus: {

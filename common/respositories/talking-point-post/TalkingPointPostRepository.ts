@@ -1,63 +1,70 @@
 import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { ParentType } from "../../objects/enums";
+import { ParentType, ViewMode } from "../../objects/enums";
 import { DistrictRepository } from "../district/DistrictRepository";
 import { DynamoDBKeyNames, GSIIndexNames } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
 import { ParentObjectDoesNotExistError } from "../error";
 import { TalkingPointPost } from "../../objects/talking-point-post/TalkingPointPost";
+import { ObjectBanType } from "../../objects/ObjectBanStatus";
 
 
 /**
  * (Get post by id)
  * PKEY: id
- * SKEY: POST_TALKING_POINT
- * 
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT
  * 
  * 
  * (Get all posts, sorted by absolute score)
- * GSI1: POST_TALKING_POINT
+ * GSI1: <viewMode>#<banStatus>#POST_TALKING_POINT
  * SKEY: <absoluteScore>
  * 
  * (Get all posts, sorted by time based score)
- * GSI2: POST_TALKING_POINT
+ * GSI2: <viewMode>#<banStatus>#POST_TALKING_POINT
  * SKEY: <timeBasedScore>
+ * 
+ *  
+ * 
+ * (Get post by reply to / parent post id
+ * GSI3: parent post id
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<absoluteScore>
+ * 
  * 
  * 
  * (Note there are multiple gsi's here to account for participants in a convo.)
  * (Get posts by author username, sorted by create date)
- * GSI3: authorUserName
- * SKEY: POST_TALKING_POINT-<createDate>
+ * GSI4: authorUserName
+ * SKEY: POST_TALKING_POINT#<createDate>
  * 
  * (Get posts by author username, sorted by create date)
- * GSI4: authorUserName 2
- * SKEY: POST_TALKING_POINT-<createDate>
+ * GSI5: authorUserName 2
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<createDate>
  * 
  * (Get posts by author username, sorted by create date)
- * GSI5: authorUserName 3
- * SKEY: POST_TALKING_POINT-<createDate>
+ * GSI6: authorUserName 3
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<createDate>
  * 
  * (Get posts by author username, sorted by create date)
- * GSI6: authorUserName 4
- * SKEY: POST_TALKING_POINT-<createDate>
+ * GSI7: authorUserName 4
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<createDate>
  * 
  * 
  * 
  * (Get posts by district, sorted by absolute score) 
- * GSI7: parentId
- * SKEY: POST_TALKING_POINT-<absoluteScore>
+ * GSI8: parentId
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<absoluteScore>
  * 
  * (Get posts by district, sorted by time based score)
- * GSI8: parentId
- * SKEY: POST_TALKING_POINT-<timeBasedScore>
+ * GSI9: parentId
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<timeBasedScore>
  * 
  * (Get posts by district, sorted by Positive Trait timed based scoring -
  * Funny, Knowledgeable, Upbeat, High Quality, Impactful):
- * GSI9 to GSI13 : parentId
- * SKEY: POST_TALKING_POINT-<Trait Name>-<TraitTimeBasedScore>
+ * GSI10 to GSI14 : parentId
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<Trait Name>#<TraitTimeBasedScore>
  * 
  * (Get posts by district, sorted by Negative Trait timed based scoring - Offensive, Disturbing):
- * GSI13 to GSI15: parentId
- * SKEY: POST_TALKING_POINT-<Trait Name>-<TraitTimeBasedScore>
+ * GSI14 to GSI16: parentId
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<Trait Name>#<TraitTimeBasedScore>
  * 
  */
 export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
@@ -70,9 +77,11 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
 
   createSortKey(object: TalkingPointPost): string {
     return [TalkingPointPostRepository.objectIdentifier,
-    `${object.banStatus.type}`, object.viewMode, object.metrics.absoluteScore
+    object.viewMode, object.banStatus.type, object.metrics.absoluteScore,
     ].join(Repository.compositeKeyDelimeter);
   }
+
+  // GSi key for replys should include the source type
 
   constructor(client: DynamoDBClient) {
     super(client, TalkingPointPost);
@@ -111,10 +120,18 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
 
 
   // Retrieve a single Talking Point Post by its unique id.
-  async getById(chatRequestId: string) {
+  async getById(chatRequestId: string, banType?: ObjectBanType, viewMode?: ViewMode) {
+    let sortKey = TalkingPointPostRepository.objectIdentifier;
+    if (viewMode) {
+      sortKey = [sortKey, viewMode].join(TalkingPointPostRepository.objectIdentifier);
+    }
+    if (banType) {
+      sortKey = [sortKey, banType].join(TalkingPointPostRepository.objectIdentifier);
+    }
+
     return await super.getUniqueItemByCompositeKey({
       primaryKey: chatRequestId,
-      sortKey: TalkingPointPostRepository.objectIdentifier,
+      sortKey: sortKey,
       shouldPartialMatchSortKey: true,
     });
   }
@@ -122,12 +139,23 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
   // Retrieve multiple Talking Point Posts under a District
   async getByDistrictTitle(params: {
     title: string,
+    banType?: ObjectBanType,
+    viewMode?: ViewMode,
     paginationToken?: Record<string, AttributeValue>,
     queryLimit?: number;
   }) {
+
+    let sortKey = TalkingPointPostRepository.objectIdentifier;
+    if (params.viewMode) {
+      sortKey = [sortKey, params.viewMode].join(TalkingPointPostRepository.objectIdentifier);
+    }
+    if (params.banType) {
+      sortKey = [sortKey, params.banType].join(TalkingPointPostRepository.objectIdentifier);
+    }
+
     return await super.getItemsByCompositeKey({
       primaryKey: params.title,
-      sortKey: TalkingPointPostRepository.objectIdentifier,
+      sortKey: sortKey,
       shouldPartialMatchSortKey: true,
       indexName: GSIIndexNames.GSI1,
       paginationToken: params.paginationToken,
@@ -138,12 +166,23 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
   // Retrieve multiple Talking Point Posts created by a specific user.
   async getByAuthorUsername(params: {
     username: string,
+    banType?: ObjectBanType,
+    viewMode?: ViewMode,
     paginationToken?: Record<string, AttributeValue>,
     queryLimit?: number;
   }) {
+
+    let sortKey = TalkingPointPostRepository.objectIdentifier;
+    if (params.viewMode) {
+      sortKey = [sortKey, params.viewMode].join(TalkingPointPostRepository.objectIdentifier);
+    }
+    if (params.banType) {
+      sortKey = [sortKey, params.banType].join(TalkingPointPostRepository.objectIdentifier);
+    }
+
     return await super.getItemsByCompositeKey({
       primaryKey: params.username,
-      sortKey: TalkingPointPostRepository.objectIdentifier,
+      sortKey: sortKey,
       shouldPartialMatchSortKey: true,
       indexName: GSIIndexNames.GSI2,
       paginationToken: params.paginationToken,

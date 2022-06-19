@@ -1,6 +1,7 @@
 import 'reflect-metadata'; //required for class transformer to work;
 import { Expose } from 'class-transformer';
 import { ViewMode } from '../objects/enums';
+import { ObjectBanStatus } from './ObjectBanStatus';
 
 
 export class Convo {
@@ -11,7 +12,7 @@ export class Convo {
   @Expose() participantUsernames: string[];
   @Expose() videoUrl: string;
   @Expose() viewMode: ViewMode;
-  @Expose() isBanned: boolean;
+  @Expose() banStatus: ObjectBanStatus;
   @Expose() isAgeRestricted: boolean;
 
   // Metrics

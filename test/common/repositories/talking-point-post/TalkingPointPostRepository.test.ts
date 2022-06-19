@@ -84,11 +84,13 @@ describe("Test DistrictRepository", () => {
       await districtRepo.save(district2);
       const post1 = getDummyTalkingPointPost();
       const post2 = getDummyTalkingPointPost();
-      post2.id = "634636738";
+      post2.title = "My second post";
+      // post2.id = TalkingPointPost.createId(post2);
       const post3 = getDummyTalkingPointPost();
-      post3.id = "2357034622";
+      post3.title = "My third post";
+      // post3.id = TalkingPointPost.createId(post3);
       const post4 = getDummyTalkingPointPost();
-      post4.id = "1248590543";
+      // post4.id = TalkingPointPost.createId(post4);
       post4.parentId = district2.title
       await talkingPointRepo.save({ data: post1 });
       await talkingPointRepo.save({ data: post2 });
@@ -111,13 +113,12 @@ describe("Test DistrictRepository", () => {
       const post1 = getDummyTalkingPointPost();
       post1.metrics.absoluteScore = 1;
       const post2 = getDummyTalkingPointPost();
-      post2.id = "634636738";
+      post2.title = "My second post";
       post2.metrics.absoluteScore = 2;
       const post3 = getDummyTalkingPointPost();
-      post3.id = "2357034622";
+      post3.title = "My third post";
       post3.metrics.absoluteScore = 3;
       const post4 = getDummyTalkingPointPost();
-      post4.id = "1248590543";
       post4.authorUserName = "someOtherduede1231";
       await talkingPointRepo.save({ data: post1 });
       await talkingPointRepo.save({ data: post2 });

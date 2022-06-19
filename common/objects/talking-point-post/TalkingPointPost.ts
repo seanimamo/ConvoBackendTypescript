@@ -6,23 +6,29 @@ import { ParentType, ViewMode } from "../enums";
 import { LinkPreview } from "./LinkPreview";
 import { ObjectBanStatus } from '../ObjectBanStatus';
 
-type ConvoSource = {
+export type TalkingPointPostConvoSource = {
   id: string;
   participantUsernames: string[];
 }
 
+export enum TalkingPointPostSourceType {
+  CONVO = "Convo",
+  CLASSIC = "Classic" // A classic source type is either a link preview or nothing
+}
+
 export class TalkingPointPost {
   @Expose() id: string; // uuid
-  @Expose() parentId: string; // this is a only district as of now but may change.
+  @Expose() private _parentId: string; // this is a only district as of now but may change.
   @Expose() parentType: ParentType;
-  @Expose() title: string;
+  @Expose() private _title: string;
+
   @Expose() description: string;
-  @Expose() authorUserName: string; // The person to create the post
+  @Expose() private _authorUserName: string; // The person to create the post
   @TransformDate()
   @Expose() createDate: Date;
-  @Expose() source?: { // A Talking point can be sourced from an existing Convo OR a link to something else
-    type: "Convo" | "LinkPreview";
-    data: ConvoSource | LinkPreview;
+  @Expose() source: { // A Talking point can be sourced from an existing Convo OR a link to something else
+    type: TalkingPointPostSourceType;
+    data?: TalkingPointPostConvoSource | LinkPreview;
   };
   @Expose() banStatus: ObjectBanStatus;
   @Expose() viewMode: ViewMode;
@@ -42,11 +48,37 @@ export class TalkingPointPost {
   }
 
   // optionals
+  @Expose() replyToPostId?: string; // A Talking point post can be created as a reply to another 
   @Expose() authorImageUrl?: string;
   @Expose() tags?: string[];
 
+  static createId(params: { parentId: string, title: string, authorUserName: string } | TalkingPointPost) {
+    if (params instanceof TalkingPointPost) {
+      return [params.parentId, params.title.replace(/\s/g, '_'), params.authorUserName].join('-');
+    }
+    return [params.parentId, params.title.replace(/\s/g, '_'), params.authorUserName].join('-');
+  }
+
+  get title() { return this._title; }
+  get authorUserName() { return this._authorUserName; }
+  get parentId() { return this._parentId; }
+
+  set title(title: string) {
+    this._title = title;
+    this.id = TalkingPointPost.createId(this);
+  }
+  set authorUserName(authorUserName: string) {
+    this._authorUserName = authorUserName;
+    this.id = TalkingPointPost.createId(this);
+  }
+  set parentId(parentId: string) {
+    this._parentId = parentId;
+    this.id = TalkingPointPost.createId(this);
+    // this.id = TalkingPointPost.createId({parentId: this._parentId, title: this._authorUserName, authorUserName: this._authorUserName});
+  }
+
   constructor(
-    id: string,
+    id: string | null, // Leaving the id as null will let be automatically created as expected
     parentId: string,
     parentType: ParentType,
     title: string,
@@ -54,8 +86,8 @@ export class TalkingPointPost {
     authorUserName: string,
     createDate: Date,
     source: {
-      type: "Convo" | "LinkPreview";
-      data: ConvoSource | LinkPreview;
+      type: TalkingPointPostSourceType;
+      data?: TalkingPointPostConvoSource | LinkPreview;
     },
     banStatus: ObjectBanStatus,
     viewMode: ViewMode,
@@ -72,19 +104,23 @@ export class TalkingPointPost {
     },
 
     // optionals
+    replyToPostId?: string,
     authorImageUrl?: string,
     tags?: string[],
   ) {
+    if (id === null) {
+      id = TalkingPointPost.createId({parentId, title, authorUserName});
+    }
     this.id = id;
-    this.parentId = parentId;
+    this._parentId = parentId;
     this.parentType = parentType;
-    this.title = title;
+    this._title = title;
     this.description = description;
-    this.authorUserName = authorUserName;
+    this._authorUserName = authorUserName;
     this.createDate = createDate;
+    this.source = source;
     this.banStatus = banStatus;
     this.viewMode = viewMode;
-    this.source = source;
     // chatRequests: {
     //   viewPoint: ViewPointRequest[];
     //   general: GeneralChatRequest[];
@@ -93,12 +129,13 @@ export class TalkingPointPost {
     this.metrics = metrics;
 
     // optionals
+    this.replyToPostId = replyToPostId;
     this.authorImageUrl = authorImageUrl;
     this.tags = tags;
   }
 
   static builder(props: {
-    id: string,
+    id: string | null, // Leaving the id as null will let be automatically created as expected
     parentId: string,
     parentType: ParentType,
     title: string,
@@ -106,8 +143,8 @@ export class TalkingPointPost {
     authorUserName: string,
     createDate: Date,
     source: {
-      type: "Convo" | "LinkPreview";
-      data: ConvoSource | LinkPreview;
+      type: TalkingPointPostSourceType;
+      data?: TalkingPointPostConvoSource | LinkPreview;
     },
     banStatus: ObjectBanStatus,
     viewMode: ViewMode,
@@ -124,6 +161,7 @@ export class TalkingPointPost {
     },
 
     // optionals
+    replyToPostId?: string,
     authorImageUrl?: string,
     tags?: string[],
   }
@@ -147,6 +185,7 @@ export class TalkingPointPost {
       props.metrics,
 
       // optionals
+      props.replyToPostId,
       props.authorImageUrl,
       props.tags
     );
@@ -157,6 +196,17 @@ export class TalkingPointPost {
     const validator: DataValidator = new DataValidator();
 
     validator.validate(post.id, "id").notUndefined().notNull().isString().notEmpty();
+    const partitionedId = post.id.split('-');
+    if (partitionedId[0] !== post.parentId) {
+      throw new DataValidationError("parentId is not first value in provided id");
+    }
+    if (partitionedId[1] !== post.title.replace(/\s/g, '_')) {
+      throw new DataValidationError("title is not second value in provided id");
+    }
+    if (partitionedId[2] !== post.authorUserName) {
+      throw new DataValidationError("authorUserName is not third value in provided id");
+    }
+
     validator.validate(post.parentId, "parentId").notUndefined().notNull().isString().notEmpty();
     validator.validate(post.parentType, "parentType").notUndefined().notNull().isStringInEnum(ParentType);
     validator.validate(post.title, "title").notUndefined().notNull().isString().notEmpty();
@@ -172,24 +222,34 @@ export class TalkingPointPost {
     validator.validate(post.metrics.viewCount, 'metrics.viewCount').notUndefined().notNull().isNumber().notNegative();
     validator.validate(post.metrics.commentCount, 'metrics.commentCount').notUndefined().notNull().isNumber().notNegative();
 
+    if (post.source !== undefined) {
+      validator.validate(post.source.type, "source.type").notUndefined().notNull().isStringInEnum(TalkingPointPostSourceType);
+      switch (post.source.type) {
+        case TalkingPointPostSourceType.CONVO:
+          validator.validate(post.source.data, "source.data").notUndefined().notNull();
+          const convoSource = post.source.data as TalkingPointPostConvoSource;
+          validator.validate(convoSource, "convoSource (source.data)").notUndefined().notNull();
+          validator.validate(convoSource.id, "convoSource (source.data.id)").notUndefined().notNull().isString().notEmpty();
+          validator.validate(convoSource.participantUsernames, "convoSource (source.data.participantUsernames)")
+            .notUndefined().notNull().notEmpty();
+          break;
+        case TalkingPointPostSourceType.CLASSIC:
+          // A classic source type is either a link preview or undefined
+          if (post.source.data !== undefined) {
+            LinkPreview.validate(post.source.data as LinkPreview);
+          }
+          break;
+        default:
+          throw new DataValidationError("Unexpected Post source type.");
+      }
+    }
+
+    if (post.replyToPostId !== undefined) {
+      validator.validate(post.replyToPostId, "replyToPostId").notUndefined().notNull().isString().notEmpty();
+    }
     if (post.authorImageUrl !== undefined) {
       // TODO: add complex user thumbnail format contraints validation
       validator.validate(post.authorImageUrl, "authorImageUrl").notUndefined().notNull().isString().notEmpty();
-    }
-    if (post.source !== undefined) {
-      validator.validate(post.source.type, "source.type").notUndefined().notNull().isString();
-      validator.validate(post.source.data, "source.data").notUndefined().notNull();
-      if (post.source.type === "Convo") {
-        const convoSource = post.source.data as ConvoSource;
-        validator.validate(convoSource, "convoSource (post.source.data)").notUndefined().notNull();
-        validator.validate(convoSource.id, "convoSource (post.source.data.id)").notUndefined().notNull().isString().notEmpty();
-        validator.validate(convoSource.participantUsernames, "convoSource (post.source.data.participantUsernames)")
-          .notUndefined().notNull().notEmpty();
-      } else if (post.source.type === "LinkPreview") {
-        LinkPreview.validate(post.source.data as LinkPreview);
-      } else {
-        throw new DataValidationError("Post source type is not Convo or LinkPreview");
-      }
     }
     if (post.tags !== undefined) {
       validator.validate(post.tags, 'tags').notUndefined().notNull();
