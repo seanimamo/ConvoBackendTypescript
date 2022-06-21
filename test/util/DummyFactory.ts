@@ -1,13 +1,14 @@
 import { Category, District } from "../../common/objects/District";
 import { ParentType, ViewMode } from "../../common/objects/enums";
 import { GeneralChatRequest } from "../../common/objects/talking-point-post/GeneralChatRequest";
-import { TalkingPointPost, TalkingPointPostSourceType } from "../../common/objects/talking-point-post/TalkingPointPost";
+import { AgeRating, TalkingPointPost, TalkingPointPostSourceType } from "../../common/objects/talking-point-post/TalkingPointPost";
 import { User } from "../../common/objects/user/User";
 import { UserPassword } from "../../common/objects/user/UserPassword";
 import { ConvoPreference } from "../../common/objects/enums";
 import { LinkPreview } from "../../common/objects/talking-point-post/LinkPreview";
 import { UserBanType } from "../../common/objects/user/UserBanStatus";
-import { ObjectBanType } from "../../common/objects/ObjectBanStatus";
+import { ObjectBanStatus, ObjectBanType } from "../../common/objects/ObjectBanStatus";
+import { Convo, ConvoStatus } from "../../common/objects/Convo";
 
 // Note that ban status was left off, an unbanned user wont have a value.
 export const getDummyUser = () => {
@@ -79,7 +80,7 @@ export const getDummyTalkingPointPost = () => {
     //   viewPoint: ViewPointRequest[];
     //   general: GeneralChatRequest[];
     // }
-
+    ageRating: AgeRating.EVERYONE,
     metrics: {
       absoluteScore: 123123,
       timeBasedScore: 414512,
@@ -119,3 +120,18 @@ export const getDummyGeneralChatRequest = () => {
     "I am an expert"
   );
 }
+
+
+export const getDummyConvo = () => {
+  const dummyTalkingPoint = getDummyTalkingPointPost();
+  const dummyUser = getDummyUser();
+  return new Convo(
+    null,
+    ConvoStatus.NOT_ACCEPTED,
+    new Date(),
+    "dummy Convo Title",
+    [dummyUser.userName],
+    new ObjectBanStatus(ObjectBanType.NONE),
+  );
+}
+

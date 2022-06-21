@@ -22,8 +22,8 @@ export class ObjectBanStatus {
 
   constructor(
     type: ObjectBanType,
-    createDate: Date,
-    expirationDate: Date,
+    createDate?: Date,
+    expirationDate?: Date,
   ) {
     this.type = type;
     this.createDate = createDate;

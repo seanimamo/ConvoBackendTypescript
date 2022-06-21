@@ -16,6 +16,13 @@ export enum TalkingPointPostSourceType {
   CLASSIC = "Classic" // A classic source type is either a link preview or nothing
 }
 
+export enum AgeRating {
+  EVERYONE = "Everyone",
+  TEEN = "Teen",
+  MATURE = "Mature",
+  ADULT = "Adult (+18)"
+}
+
 export class TalkingPointPost {
   @Expose() id: string; // uuid
   @Expose() private _parentId: string; // this is a only district as of now but may change.
@@ -32,6 +39,7 @@ export class TalkingPointPost {
   };
   @Expose() banStatus: ObjectBanStatus;
   @Expose() viewMode: ViewMode;
+  @Expose() ageRating: AgeRating;
 
   // chatRequests: {
   //   viewPoint: ViewPointRequest[];
@@ -91,6 +99,7 @@ export class TalkingPointPost {
     },
     banStatus: ObjectBanStatus,
     viewMode: ViewMode,
+    ageRating: AgeRating,
     // chatRequests: {
     //   viewPoint: ViewPointRequest[];
     //   general: GeneralChatRequest[];
@@ -110,8 +119,9 @@ export class TalkingPointPost {
   ) {
     if (id === null) {
       id = TalkingPointPost.createId({parentId, title, authorUserName});
+    } else {
+      this.id = id;
     }
-    this.id = id;
     this._parentId = parentId;
     this.parentType = parentType;
     this._title = title;
@@ -121,6 +131,7 @@ export class TalkingPointPost {
     this.source = source;
     this.banStatus = banStatus;
     this.viewMode = viewMode;
+    this.ageRating = ageRating;
     // chatRequests: {
     //   viewPoint: ViewPointRequest[];
     //   general: GeneralChatRequest[];
@@ -152,7 +163,7 @@ export class TalkingPointPost {
     //   viewPoint: ViewPointRequest[];
     //   general: GeneralChatRequest[];
     // }
-
+    ageRating: AgeRating,
     metrics: {
       absoluteScore: number,
       timeBasedScore: number,
@@ -181,7 +192,7 @@ export class TalkingPointPost {
       //   viewPoint: ViewPointRequest[];
       //   general: GeneralChatRequest[];
       // }
-
+      props.ageRating,
       props.metrics,
 
       // optionals

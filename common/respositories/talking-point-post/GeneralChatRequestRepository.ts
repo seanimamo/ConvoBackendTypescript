@@ -1,7 +1,6 @@
 import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { ConvoPreference, ParentType } from "../../objects/enums";
 import { GeneralChatRequest } from "../../objects/talking-point-post/GeneralChatRequest";
-import { DistrictRepository } from "../district/DistrictRepository";
 import { DynamoDBKeyNames, GSIIndexNames } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
 import { ParentObjectDoesNotExistError } from "../error";
