@@ -3,32 +3,20 @@ import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 import { Stage } from '../util/Stage';
 import { createStageBasedId } from '../util/cdkUtils';
+import { DYNAMODB_INDEXES } from '../../common/respositories/DynamoDBConstants';
 
 type DynamoDBStackProps = {
   stage: Stage
 } & StackProps;
 
 export class DynamoDBStack extends Stack {
-  public static PARTITION_KEY: string = "PKEY";
-  public static SORT_KEY: string = "SKEY";
-
-  public static GSI1_INDEX_NAME: string = "GSI1";
-  public static GSI1_PARTITION_KEY: string = "GSI1PKEY";
-  public static GSI1_SORT_KEY: string = "GSI1SKEY";
-
-  public static GSI2_INDEX_NAME: string = "GSI2";
-  public static GSI2_PARTITION_KEY: string = "GSI2PKEY";
-  public static GSI2_SORT_KEY: string = "GSI2SKEY";
-
-  public static GSI3_INDEX_NAME: string = "GSI3";
-  public static GSI3_PARTITION_KEY: string = "GSI3PKEY";
-  public static GSI3_SORT_KEY: string = "GSI3SKEY";
-
   public mainTableName: string;
   public mainTableArn: string;
   public mainTableArnGsi1Arn: string;
   public mainTableArnGsi2Arn: string;
   public mainTableArnGsi3Arn: string;
+  public mainTableArnGsi4Arn: string;
+  public mainTableArnGsi5Arn: string;
 
   constructor(scope: Construct, id: string, props: DynamoDBStackProps) {
     super(scope, id, props);
@@ -40,11 +28,11 @@ export class DynamoDBStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
       tableName: this.mainTableName,
       partitionKey: {
-        name: DynamoDBStack.PARTITION_KEY,
+        name: DYNAMODB_INDEXES.PRIMARY.partitionKeyName,
         type: AttributeType.STRING
       },
       sortKey: {
-        name: DynamoDBStack.SORT_KEY,
+        name: DYNAMODB_INDEXES.PRIMARY.sortKeyName,
         type: AttributeType.STRING
       }
     });
@@ -52,44 +40,72 @@ export class DynamoDBStack extends Stack {
 
     // GSI 1
     mainTable.addGlobalSecondaryIndex({
-      indexName: DynamoDBStack.GSI1_INDEX_NAME,
+      indexName: DYNAMODB_INDEXES.GSI1.indexName!,
       partitionKey: {
-        name: DynamoDBStack.GSI1_PARTITION_KEY,
+        name: DYNAMODB_INDEXES.GSI1.partitionKeyName,
         type: AttributeType.STRING
       },
       sortKey: {
-        name: DynamoDBStack.GSI1_SORT_KEY,
+        name: DYNAMODB_INDEXES.GSI1.sortKeyName,
         type: AttributeType.STRING
       }
     })
-    this.mainTableArnGsi1Arn = `${mainTable.tableArn}/index/${DynamoDBStack.GSI1_INDEX_NAME}`;
+    this.mainTableArnGsi1Arn = `${mainTable.tableArn}/index/${DYNAMODB_INDEXES.GSI1.indexName!}`;
 
     // GSI 2
     mainTable.addGlobalSecondaryIndex({
-      indexName: DynamoDBStack.GSI2_INDEX_NAME,
+      indexName: DYNAMODB_INDEXES.GSI2.indexName!,
       partitionKey: {
-        name: DynamoDBStack.GSI2_PARTITION_KEY,
+        name: DYNAMODB_INDEXES.GSI2.partitionKeyName,
         type: AttributeType.STRING
       },
       sortKey: {
-        name: DynamoDBStack.GSI2_SORT_KEY,
+        name: DYNAMODB_INDEXES.GSI2.sortKeyName,
         type: AttributeType.STRING
       }
     })
-    this.mainTableArnGsi2Arn = `${mainTable.tableArn}/index/${DynamoDBStack.GSI2_INDEX_NAME}`;
+    this.mainTableArnGsi2Arn = `${mainTable.tableArn}/index/${DYNAMODB_INDEXES.GSI2.indexName!}`;
 
     // GSI 3
     mainTable.addGlobalSecondaryIndex({
-      indexName: DynamoDBStack.GSI3_INDEX_NAME,
+      indexName: DYNAMODB_INDEXES.GSI3.indexName!,
       partitionKey: {
-        name: DynamoDBStack.GSI3_PARTITION_KEY,
+        name: DYNAMODB_INDEXES.GSI3.partitionKeyName,
         type: AttributeType.STRING
       },
       sortKey: {
-        name: DynamoDBStack.GSI3_SORT_KEY,
+        name: DYNAMODB_INDEXES.GSI3.sortKeyName,
         type: AttributeType.STRING
       }
     })
-    this.mainTableArnGsi3Arn = `${mainTable.tableArn}/index/${DynamoDBStack.GSI3_INDEX_NAME}`;
+    this.mainTableArnGsi3Arn = `${mainTable.tableArn}/index/${DYNAMODB_INDEXES.GSI3.indexName!}`;
+
+    // GSI 4
+    mainTable.addGlobalSecondaryIndex({
+      indexName: DYNAMODB_INDEXES.GSI4.indexName!,
+      partitionKey: {
+        name: DYNAMODB_INDEXES.GSI4.partitionKeyName,
+        type: AttributeType.STRING
+      },
+      sortKey: {
+        name: DYNAMODB_INDEXES.GSI4.sortKeyName,
+        type: AttributeType.STRING
+      }
+    })
+    this.mainTableArnGsi4Arn = `${mainTable.tableArn}/index/${DYNAMODB_INDEXES.GSI4.indexName!}`;
+
+    // GSI 5
+    mainTable.addGlobalSecondaryIndex({
+      indexName: DYNAMODB_INDEXES.GSI5.indexName!,
+      partitionKey: {
+        name: DYNAMODB_INDEXES.GSI5.partitionKeyName,
+        type: AttributeType.STRING
+      },
+      sortKey: {
+        name: DYNAMODB_INDEXES.GSI5.sortKeyName,
+        type: AttributeType.STRING
+      }
+    })
+    this.mainTableArnGsi5Arn = `${mainTable.tableArn}/index/${DYNAMODB_INDEXES.GSI5.indexName!}`;
   }
 }

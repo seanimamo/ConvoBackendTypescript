@@ -1,21 +1,45 @@
-export enum DynamoDBKeyNames {
-  PARTITION_KEY = "PKEY",
-  SORT_KEY = "SKEY",
-  
-  GSI1_PARTITION_KEY = "GSI1PKEY",
-  GSI1_SORT_KEY = "GSI1SKEY",
-  
-  GSI2_PARTITION_KEY = "GSI2PKEY",
-  GSI2_SORT_KEY = "GSI2SKEY",
-  
-  GSI3_PARTITION_KEY = "GSI3PKEY",
-  GSI3_SORT_KEY = "GSI3SKEY",  
+export type DynamoDbIndex = {
+  partitionKeyName: string;
+  sortKeyName: string;
+  indexName?: string;
 }
 
-export enum GSIIndexNames {
-  GSI1 = "GSI1",
-  GSI2 = "GSI2",
-  GSI3 = "GSI3",
+/**
+ * Enum for dynamodb indexes (Typescript only supports numerical or string based enums.) 
+ */
+export class DYNAMODB_INDEXES {
+  static readonly PRIMARY: DynamoDbIndex = {
+    partitionKeyName: "PKEY",
+    sortKeyName: "SKEY",
+  };
+  
+  static readonly GSI1: DynamoDbIndex = {
+    partitionKeyName: "GSI1PKEY",
+    sortKeyName: "GSI1SKEY",
+    indexName: "GSI1"
+  }
+  
+  static readonly GSI2: DynamoDbIndex = {
+    partitionKeyName: "GSI2PKEY",
+    sortKeyName: "GSI2SKEY",
+    indexName: "GSI2"
+  }
+
+  static readonly GSI3: DynamoDbIndex = {
+    partitionKeyName: "GSI3PKEY",
+    sortKeyName: "GSI3SKEY",
+    indexName: "GSI3"
+  }
+
+  static readonly GSI4: DynamoDbIndex = {
+    partitionKeyName: "GSI4PKEY",
+    sortKeyName: "GSI41SKEY",
+    indexName: "GSI4"
+  }
+
+  static readonly GSI5: DynamoDbIndex = {
+    partitionKeyName: "GSI5PKEY",
+    sortKeyName: "GSI5SKEY",
+    indexName: "GSI5"
+  }
 }
-
-

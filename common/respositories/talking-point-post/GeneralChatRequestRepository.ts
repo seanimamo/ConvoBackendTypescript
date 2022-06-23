@@ -1,10 +1,10 @@
 import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { ConvoPreference, ParentType } from "../../objects/enums";
 import { GeneralChatRequest } from "../../objects/talking-point-post/GeneralChatRequest";
-import { DynamoDBKeyNames, GSIIndexNames } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
 import { ParentObjectDoesNotExistError } from "../error";
 import { TalkingPointPostRepository } from "./TalkingPointPostRepository";
+import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 
 export class GeneralChatRequestRepository extends Repository<GeneralChatRequest> {
   static objectIdentifier = "GENERAL_CHAT_REQ";
@@ -45,10 +45,10 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     }
 
     const items: Record<string, AttributeValue> = {};
-    items[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: params.data.parentId };
-    items[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: this.createSortKey(params.data) };
-    items[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: params.data.authorUserName };
-    items[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: this.createSortKey(params.data) };
+    items[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: params.data.parentId };
+    items[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(params.data) };
+    items[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: params.data.authorUserName };
+    items[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(params.data) };
 
     return await super.saveItem({ object: params.data, checkForExistingKey: "PRIMARY", extraItemAttributes: items });
   }
@@ -90,7 +90,7 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
       primaryKey: params.postId,
       sortKey: sortKey,
       shouldPartialMatchSortKey: true,
-      indexName: GSIIndexNames.GSI1,
+      index: DYNAMODB_INDEXES.GSI1,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
@@ -108,22 +108,10 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
       primaryKey: params.username,
       sortKey: GeneralChatRequestRepository.objectIdentifier,
       shouldPartialMatchSortKey: true,
-      indexName: GSIIndexNames.GSI2,
+      index: DYNAMODB_INDEXES.GSI2,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
-  }
-
-  /**
-   * Creates a tentaive match given two or more general chat requests
-   */
-  async createTentativeMatch(params: {
-    data: GeneralChatRequest[],
-    initialChatRequestAcceptor: GeneralChatRequest,
-    paginationToken?: Record<string, AttributeValue>,
-    queryLimit?: number;
-  }) {
-
   }
 
 }

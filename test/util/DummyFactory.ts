@@ -76,10 +76,6 @@ export const getDummyTalkingPointPost = () => {
       type: ObjectBanType.NONE,
     },
     viewMode: ViewMode.PUBLIC,
-    // chatRequests: {
-    //   viewPoint: ViewPointRequest[];
-    //   general: GeneralChatRequest[];
-    // }
     ageRating: AgeRating.EVERYONE,
     metrics: {
       absoluteScore: 123123,
@@ -123,15 +119,14 @@ export const getDummyGeneralChatRequest = () => {
 
 
 export const getDummyConvo = () => {
-  const dummyTalkingPoint = getDummyTalkingPointPost();
   const dummyUser = getDummyUser();
-  return new Convo(
-    null,
-    ConvoStatus.NOT_ACCEPTED,
-    new Date(),
-    "dummy Convo Title",
-    [dummyUser.userName],
-    new ObjectBanStatus(ObjectBanType.NONE),
-  );
+  return Convo.builder({
+    id: null,
+    status: ConvoStatus.NOT_ACCEPTED,
+    createDate: new Date(),
+    title: "dummy Convo Title",
+    participantUsernames: [dummyUser.userName],
+    banStatus: new ObjectBanStatus(ObjectBanType.NONE),
+  })
 }
 

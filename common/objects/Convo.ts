@@ -58,6 +58,34 @@ export class Convo {
     this.tags = tags;
   }
 
+  static builder(params: {
+    id: string | null,
+    status: ConvoStatus,
+    createDate: Date,
+    title: string,
+    participantUsernames: string[],
+    banStatus: ObjectBanStatus,
+    videoUrl?: string,
+    sourceChatRequests?: GeneralChatRequest[] | ViewPointChatRequest[],
+    thumbnail?: string,
+    scheduledStartDate?: Date,
+    tags?: string[]
+  }) {
+    return new Convo(
+      params.id,
+      params.status,
+      params.createDate,
+      params.title,
+      params.participantUsernames,
+      params.banStatus,
+      params.videoUrl,
+      params.sourceChatRequests,
+      params.thumbnail,
+      params.scheduledStartDate,
+      params.tags
+    )
+  }
+
   static validate(convo: Convo) {
     // TODO: Grab validator from singleton source
     const validator: DataValidator = new DataValidator();

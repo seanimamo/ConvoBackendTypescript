@@ -3,10 +3,10 @@ import { User } from "../../objects/user/User";
 import { UserAccountType, UserUuidPointer } from "../../objects/user/UserUuidPointer";
 import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "./error";
 import { UserUuidPointerRepository } from "./UserUuidPointerRepository";
-import { DynamoDBKeyNames } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
 import "dotenv/config";
 import { ObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../error";
+import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 
 export class UserRepository extends Repository<User> {
     static objectIdentifier = "USER";
@@ -71,8 +71,8 @@ export class UserRepository extends Repository<User> {
         const params: UpdateItemCommandInput = {
             TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
             Key: {
-                [DynamoDBKeyNames.PARTITION_KEY]: { S: user.userName },
-                [DynamoDBKeyNames.SORT_KEY]: { S: this.createSortKey(user) }
+                [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: user.userName },
+                [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: this.createSortKey(user) }
             },
             UpdateExpression: `SET isEmailValidated = :isEmailValidated`,
             ExpressionAttributeValues: {

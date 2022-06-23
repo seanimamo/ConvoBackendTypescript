@@ -45,7 +45,6 @@ export class GeneralChatRequest {
     const validator: DataValidator = new DataValidator();
     validator.validate(chatRequest.id, "id").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.parentId, "parentId").notUndefined().notNull().isString().notEmpty();
-    validator.validate(chatRequest.parentType, "parentType").notUndefined().notNull();
     validator.validate(chatRequest.parentType, "parentType").notUndefined().notNull().isStringInEnum(ParentType);
     validator.validate(chatRequest.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
     validator.validate(chatRequest.authorUserName, "authorUserName").notUndefined().notNull().isString().notEmpty();

@@ -26,11 +26,11 @@ export enum AgeRating {
 export class TalkingPointPost {
   @Expose() id: string; // uuid
   @Expose() private _parentId: string; // this is a only district as of now but may change.
-  @Expose() parentType: ParentType;
   @Expose() private _title: string;
-
-  @Expose() description: string;
   @Expose() private _authorUserName: string; // The person to create the post
+
+  @Expose() parentType: ParentType;
+  @Expose() description: string;
   @TransformDate()
   @Expose() createDate: Date;
   @Expose() source: { // A Talking point can be sourced from an existing Convo OR a link to something else
@@ -40,13 +40,10 @@ export class TalkingPointPost {
   @Expose() banStatus: ObjectBanStatus;
   @Expose() viewMode: ViewMode;
   @Expose() ageRating: AgeRating;
-
   // chatRequests: {
   //   viewPoint: ViewPointRequest[];
   //   general: GeneralChatRequest[];
   // }
-
-  // metrics
   @Expose()
   metrics: {
     absoluteScore: number;
@@ -54,8 +51,6 @@ export class TalkingPointPost {
     viewCount: number;
     commentCount: number;
   }
-
-  // optionals
   @Expose() replyToPostId?: string; // A Talking point post can be created as a reply to another 
   @Expose() authorImageUrl?: string;
   @Expose() tags?: string[];
@@ -82,7 +77,6 @@ export class TalkingPointPost {
   set parentId(parentId: string) {
     this._parentId = parentId;
     this.id = TalkingPointPost.createId(this);
-    // this.id = TalkingPointPost.createId({parentId: this._parentId, title: this._authorUserName, authorUserName: this._authorUserName});
   }
 
   constructor(
@@ -100,11 +94,6 @@ export class TalkingPointPost {
     banStatus: ObjectBanStatus,
     viewMode: ViewMode,
     ageRating: AgeRating,
-    // chatRequests: {
-    //   viewPoint: ViewPointRequest[];
-    //   general: GeneralChatRequest[];
-    // }
-
     metrics: {
       absoluteScore: number,
       timeBasedScore: number,
@@ -118,7 +107,7 @@ export class TalkingPointPost {
     tags?: string[],
   ) {
     if (id === null) {
-      id = TalkingPointPost.createId({parentId, title, authorUserName});
+      this.id = TalkingPointPost.createId({parentId, title, authorUserName});
     } else {
       this.id = id;
     }
@@ -132,13 +121,7 @@ export class TalkingPointPost {
     this.banStatus = banStatus;
     this.viewMode = viewMode;
     this.ageRating = ageRating;
-    // chatRequests: {
-    //   viewPoint: ViewPointRequest[];
-    //   general: GeneralChatRequest[];
-    // }
-
     this.metrics = metrics;
-
     // optionals
     this.replyToPostId = replyToPostId;
     this.authorImageUrl = authorImageUrl;
@@ -159,10 +142,6 @@ export class TalkingPointPost {
     },
     banStatus: ObjectBanStatus,
     viewMode: ViewMode,
-    // chatRequests: {
-    //   viewPoint: ViewPointRequest[];
-    //   general: GeneralChatRequest[];
-    // }
     ageRating: AgeRating,
     metrics: {
       absoluteScore: number,
@@ -188,10 +167,6 @@ export class TalkingPointPost {
       props.source,
       props.banStatus,
       props.viewMode,
-      // chatRequests: {
-      //   viewPoint: ViewPointRequest[];
-      //   general: GeneralChatRequest[];
-      // }
       props.ageRating,
       props.metrics,
 

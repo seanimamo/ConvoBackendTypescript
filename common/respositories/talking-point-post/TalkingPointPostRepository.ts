@@ -1,7 +1,7 @@
 import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { ParentType, ViewMode } from "../../objects/enums";
 import { DistrictRepository } from "../district/DistrictRepository";
-import { DynamoDBKeyNames, GSIIndexNames } from "../DynamoDBConstants";
+import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
 import { ParentObjectDoesNotExistError } from "../error";
 import { TalkingPointPost } from "../../objects/talking-point-post/TalkingPointPost";
@@ -13,57 +13,61 @@ import { ObjectBanType } from "../../objects/ObjectBanStatus";
  * PKEY: id
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT
  * 
+ * (Get post by title)
+ * GSI1: title
+ * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT
+ * 
  * 
  * (Get all posts, sorted by absolute score)
- * GSI1: <viewMode>#<banStatus>#POST_TALKING_POINT
+ * GSI2: <viewMode>#<banStatus>#POST_TALKING_POINT
  * SKEY: <absoluteScore>
  * 
  * (Get all posts, sorted by time based score)
- * GSI2: <viewMode>#<banStatus>#POST_TALKING_POINT
+ * GSI3: <viewMode>#<banStatus>#POST_TALKING_POINT
  * SKEY: <timeBasedScore>
  * 
  *  
  * 
  * (Get post by reply to / parent post id
- * GSI3: parent post id
+ * GSI4: parent post id
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<absoluteScore>
  * 
  * 
  * 
  * (Note there are multiple gsi's here to account for participants in a convo.)
  * (Get posts by author username, sorted by create date)
- * GSI4: authorUserName
+ * GSI5: authorUserName
  * SKEY: POST_TALKING_POINT#<createDate>
  * 
  * (Get posts by author username, sorted by create date)
- * GSI5: authorUserName 2
+ * GSI6: authorUserName 2
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<createDate>
  * 
  * (Get posts by author username, sorted by create date)
- * GSI6: authorUserName 3
+ * GSI7: authorUserName 3
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<createDate>
  * 
  * (Get posts by author username, sorted by create date)
- * GSI7: authorUserName 4
+ * GSI8: authorUserName 4
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<createDate>
  * 
  * 
  * 
  * (Get posts by district, sorted by absolute score) 
- * GSI8: parentId
+ * GSI9: parentId
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<absoluteScore>
  * 
  * (Get posts by district, sorted by time based score)
- * GSI9: parentId
+ * GSI10: parentId
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<timeBasedScore>
  * 
  * (Get posts by district, sorted by Positive Trait timed based scoring -
  * Funny, Knowledgeable, Upbeat, High Quality, Impactful):
- * GSI10 to GSI14 : parentId
+ * GSI11 to GSI15 : parentId
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<Trait Name>#<TraitTimeBasedScore>
  * 
  * (Get posts by district, sorted by Negative Trait timed based scoring - Offensive, Disturbing):
- * GSI14 to GSI16: parentId
+ * GSI15 to GSI17: parentId
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<Trait Name>#<TraitTimeBasedScore>
  * 
  */
@@ -106,10 +110,10 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     }
 
     const gsiAttributes: Record<string, AttributeValue> = {}
-    gsiAttributes[`${DynamoDBKeyNames.GSI1_PARTITION_KEY}`] = { S: params.data.parentId };
-    gsiAttributes[`${DynamoDBKeyNames.GSI1_SORT_KEY}`] = { S: this.createSortKey(params.data) };
-    gsiAttributes[`${DynamoDBKeyNames.GSI2_PARTITION_KEY}`] = { S: params.data.authorUserName };
-    gsiAttributes[`${DynamoDBKeyNames.GSI2_SORT_KEY}`] = { S: this.createSortKey(params.data) };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: params.data.parentId };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(params.data) };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: params.data.authorUserName };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(params.data) };
 
     return await super.saveItem({
       object: params.data,
@@ -157,7 +161,7 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
       primaryKey: params.title,
       sortKey: sortKey,
       shouldPartialMatchSortKey: true,
-      indexName: GSIIndexNames.GSI1,
+      index: DYNAMODB_INDEXES.GSI1,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
@@ -184,7 +188,7 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
       primaryKey: params.username,
       sortKey: sortKey,
       shouldPartialMatchSortKey: true,
-      indexName: GSIIndexNames.GSI2,
+      index: DYNAMODB_INDEXES.GSI2,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });

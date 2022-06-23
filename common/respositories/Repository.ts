@@ -2,7 +2,7 @@ import { AttributeValue, ConditionalCheckFailedException, DynamoDBClient, PutIte
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { ClassConstructor } from "class-transformer";
 import { ClassSerializer } from "../util/ClassSerializer";
-import { DynamoDBKeyNames, GSIIndexNames } from "./DynamoDBConstants";
+import { DynamoDbIndex, DYNAMODB_INDEXES } from "./DynamoDBConstants";
 import "dotenv/config";
 import { UniqueObjectAlreadyExistsError } from "./error";
 import { PaginatedResponse } from "./PaginatedResponse";
@@ -43,8 +43,11 @@ export abstract class Repository<T> {
       commandParams.Item = marshall(this.serializer.classToPlainJson(params.object));
     }
 
-    commandParams.Item![DynamoDBKeyNames.PARTITION_KEY] = { S: this.createPartitionKey(params.object) }
-    commandParams.Item![DynamoDBKeyNames.SORT_KEY] = { S: this.createSortKey(params.object) }
+    const primaryKeyName = DYNAMODB_INDEXES.PRIMARY.partitionKeyName;
+    const sortKeyName = DYNAMODB_INDEXES.PRIMARY.sortKeyName;
+
+    commandParams.Item![primaryKeyName] = { S: this.createPartitionKey(params.object) }
+    commandParams.Item![sortKeyName] = { S: this.createSortKey(params.object) }
     if (params.extraItemAttributes) {
       Object.keys(params.extraItemAttributes).forEach(key => {
         commandParams.Item![key] = params.extraItemAttributes![key];
@@ -52,9 +55,9 @@ export abstract class Repository<T> {
     }
 
     if (params.checkForExistingKey === 'PRIMARY') {
-      commandParams.ConditionExpression = `attribute_not_exists(${DynamoDBKeyNames.PARTITION_KEY})`
+      commandParams.ConditionExpression = `attribute_not_exists(${primaryKeyName})`
     } else if (params.checkForExistingKey === 'COMPOSITE') {
-      commandParams.ConditionExpression = `attribute_not_exists(${DynamoDBKeyNames.PARTITION_KEY}) and attribute_not_exists(${DynamoDBKeyNames.SORT_KEY})`
+      commandParams.ConditionExpression = `attribute_not_exists(${primaryKeyName}) and attribute_not_exists(${sortKeyName})`
     }
 
     try {
@@ -78,15 +81,15 @@ export abstract class Repository<T> {
     primaryKey: string,
     sortKey: string,
     shouldPartialMatchSortKey: boolean,
-    indexName?: GSIIndexNames,
+    index?: DynamoDbIndex,
     denormalize?: boolean
   }) {
 
-    let keyConditionExpression = `${DynamoDBKeyNames.PARTITION_KEY} = :PkeyValue`;
+    let keyConditionExpression = `${DYNAMODB_INDEXES.PRIMARY.partitionKeyName} = :PkeyValue`;
     if (params.shouldPartialMatchSortKey) {
-      keyConditionExpression += ` and begins_with(${DynamoDBKeyNames.SORT_KEY}, :SkeyValue)`;
+      keyConditionExpression += ` and begins_with(${DYNAMODB_INDEXES.PRIMARY.sortKeyName}, :SkeyValue)`;
     } else {
-      keyConditionExpression += ` and ${DynamoDBKeyNames.SORT_KEY} = :SkeyValue)`;
+      keyConditionExpression += ` and ${DYNAMODB_INDEXES.PRIMARY.sortKeyName} = :SkeyValue)`;
     }
 
     const commandParams: QueryCommandInput = {
@@ -97,8 +100,8 @@ export abstract class Repository<T> {
         ":SkeyValue": { S: params.sortKey }
       }
     }
-    if (params.indexName) {
-      commandParams.IndexName = params.indexName
+    if (params.index?.indexName) {
+      commandParams.IndexName = params.index!.indexName!;
     }
 
     const response = await this.client.send(new QueryCommand(commandParams));
@@ -120,7 +123,7 @@ export abstract class Repository<T> {
     primaryKey: string,
     sortKey: string,
     shouldPartialMatchSortKey: boolean,
-    indexName?: GSIIndexNames,
+    index?: DynamoDbIndex,
     paginationToken?: Record<string, AttributeValue>,
     queryLimit?: number,
     denormalize?: boolean,
@@ -128,24 +131,6 @@ export abstract class Repository<T> {
 
     let partitionKeyName;
     let sortKeyName;
-    switch (params.indexName) {
-      case GSIIndexNames.GSI1:
-        partitionKeyName = DynamoDBKeyNames.GSI1_PARTITION_KEY;
-        sortKeyName = DynamoDBKeyNames.GSI1_SORT_KEY
-        break;
-      case GSIIndexNames.GSI2:
-        partitionKeyName = DynamoDBKeyNames.GSI2_PARTITION_KEY;
-        sortKeyName = DynamoDBKeyNames.GSI2_SORT_KEY
-        break;
-      case GSIIndexNames.GSI3:
-        partitionKeyName = DynamoDBKeyNames.GSI3_PARTITION_KEY;
-        sortKeyName = DynamoDBKeyNames.GSI3_SORT_KEY
-        break;
-      default:
-        partitionKeyName = DynamoDBKeyNames.PARTITION_KEY;
-        sortKeyName = DynamoDBKeyNames.SORT_KEY
-        break;
-    }
 
     let keyConditionExpression = `${partitionKeyName} = :PkeyValue`;
     if (params.shouldPartialMatchSortKey) {
@@ -163,8 +148,8 @@ export abstract class Repository<T> {
       }
     }
 
-    if (params.indexName) {
-      commandParams.IndexName = params.indexName;
+    if (params.index?.indexName) {
+      commandParams.IndexName = params.index!.indexName!;
     }
 
     if (params.paginationToken) {
@@ -175,7 +160,6 @@ export abstract class Repository<T> {
     }
 
     const dynamoResponse = await this.client.send(new QueryCommand(commandParams));
-
     const paginatedResponse = new PaginatedResponse<T[]>([]);
     paginatedResponse.paginationToken = dynamoResponse.LastEvaluatedKey || null;
     if (dynamoResponse.Items!.length === 0) {
