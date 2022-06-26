@@ -46,34 +46,37 @@ export class ConvoRepository extends Repository<Convo> {
     super(client, Convo);
   }
 
-  async save(params: { data: Convo, checkParentExistence?: boolean }) {
-    Convo.validate(params.data);
+  async save(convo: Convo) {
+    Convo.validate(convo);
 
     const gsiAttributes: Record<string, AttributeValue> = {}
-    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: this.createPartitionKey(params.data) };
-    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(params.data) };
-    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: params.data.participantUsernames[0] };
-    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(params.data) };
-    if (params.data.participantUsernames.length > 1) {
-      gsiAttributes[`${DYNAMODB_INDEXES.GSI3.partitionKeyName}`] = { S: params.data.participantUsernames[1] };
-      gsiAttributes[`${DYNAMODB_INDEXES.GSI3.sortKeyName}`] = { S: this.createSortKey(params.data) };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: this.createPartitionKey(convo) };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(convo) };
+    // GSI2: (Get posts by participant username, sorted by create date)
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: convo.participantUsernames[0] };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(convo) };
+    if (convo.participantUsernames.length > 1) {
+      // GSI3: (Get posts by participant username, sorted by create date)
+      gsiAttributes[`${DYNAMODB_INDEXES.GSI3.partitionKeyName}`] = { S: convo.participantUsernames[1] };
+      gsiAttributes[`${DYNAMODB_INDEXES.GSI3.sortKeyName}`] = { S: this.createSortKey(convo) };
     }
-    if (params.data.participantUsernames.length > 2) {
-      gsiAttributes[`${DYNAMODB_INDEXES.GSI4.partitionKeyName}`] = { S: params.data.participantUsernames[2] };
-      gsiAttributes[`${DYNAMODB_INDEXES.GSI4.sortKeyName}`] = { S: this.createSortKey(params.data) };
+    if (convo.participantUsernames.length > 2) {
+      // GSI4: (Get posts by participant username, sorted by create date)
+      gsiAttributes[`${DYNAMODB_INDEXES.GSI4.partitionKeyName}`] = { S: convo.participantUsernames[2] };
+      gsiAttributes[`${DYNAMODB_INDEXES.GSI4.sortKeyName}`] = { S: this.createSortKey(convo) };
     }
-    if (params.data.participantUsernames.length > 3) {
-      gsiAttributes[`${DYNAMODB_INDEXES.GSI5.partitionKeyName}`] = { S: params.data.participantUsernames[3] };
-      gsiAttributes[`${DYNAMODB_INDEXES.GSI5.sortKeyName}`] = { S: this.createSortKey(params.data) };
+    if (convo.participantUsernames.length > 3) {
+      // GSI5: (Get posts by participant username, sorted by create date)
+      gsiAttributes[`${DYNAMODB_INDEXES.GSI5.partitionKeyName}`] = { S: convo.participantUsernames[3] };
+      gsiAttributes[`${DYNAMODB_INDEXES.GSI5.sortKeyName}`] = { S: this.createSortKey(convo) };
     }
 
     return await super.saveItem({
-      object: params.data,
+      object: convo,
       checkForExistingKey: "PRIMARY",
       extraItemAttributes: gsiAttributes
     });
   }
-
 
   /**
    * Retrieve a single Talking Point Post by its unique id.

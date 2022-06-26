@@ -28,8 +28,8 @@ import { ObjectBanType } from "../../objects/ObjectBanStatus";
  * 
  *  
  * 
- * (Get post by reply to / parent post id
- * GSI4: parent post id
+ * (Get post by reply to / reply post id
+ * GSI4: reply post id
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<absoluteScore>
  * 
  * 
