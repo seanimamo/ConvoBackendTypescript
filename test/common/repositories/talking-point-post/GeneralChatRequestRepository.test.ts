@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
-import { getDummyDistrict, getDummyGeneralChatRequest, getDummyTalkingPointPost } from "../../../util/DummyFactory";
+import { getDummyDistrict, getDummyGeneralChatRequest, getDummyTalkingPointPost, getDummyTalkingPointPostProps } from "../../../util/DummyFactory";
 import { District } from "../../../../common/objects/District";
 import { ParentObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../../../../common/respositories/error";
 import { TalkingPointPost } from "../../../../common/objects/talking-point-post/TalkingPointPost";
@@ -47,7 +47,7 @@ afterAll(async () => {
   stopDb();
 })
 
-describe("Test DistrictRepository", () => {
+describe("GeneralChatRequestRepository", () => {
 
   test("Saving new GeneralChatRequest succeeds when not checking for parent and the parent does not exist", async () => {
     await chatRequestRepo.save({ data: chatRequest, checkParentExistence: false });
@@ -84,12 +84,16 @@ describe("Test DistrictRepository", () => {
     expect(retrievedPost).toEqual(talkingPoint);
   });
 
-  test("Retrieve multiple taking points by district title succeeds and only gets posts under the given district title",
+  test("getByTalkingPointPost - Retrieve multiple taking points by district title succeeds and only gets posts under the given district title",
     async () => {
       await districtRepo.save(district);
       const talkingPoint1 = getDummyTalkingPointPost();
-      const talkingPoint2 = getDummyTalkingPointPost();
-      talkingPoint2.id = "aDifftalkingPointId";
+      const talkingPoint2 = TalkingPointPost.builder(
+        {
+          ...getDummyTalkingPointPostProps(),
+          createDate: new Date('2022-01-02'),
+        }
+      )
       await talkingPointRepo.save({ data: talkingPoint1 });
       await talkingPointRepo.save({ data: talkingPoint2 });
 
@@ -116,7 +120,7 @@ describe("Test DistrictRepository", () => {
       expect(retrievedDistrict1Posts.data).not.toContainEqual(chatRequest4);
     });
 
-  test("Retrieve multiple taking points by author username succeeds and only gets posts under the given author username",
+  test("getByTalkingPointPost - Retrieve multiple taking points by author username succeeds and only gets posts under the given author username",
     async () => {
       await districtRepo.save(district);
       await talkingPointRepo.save({ data: talkingPoint });

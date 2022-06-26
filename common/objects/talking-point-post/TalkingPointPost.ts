@@ -5,6 +5,7 @@ import TransformDate from "../../util/TransformDate";
 import { ParentType, ViewMode } from "../enums";
 import { LinkPreview } from "./LinkPreview";
 import { ObjectBanStatus } from '../ObjectBanStatus';
+import { TalkingPointPostRepository } from '../../respositories/talking-point-post/TalkingPointPostRepository';
 
 export type TalkingPointPostConvoSource = {
   id: string;
@@ -24,15 +25,14 @@ export enum AgeRating {
 }
 
 export class TalkingPointPost {
-  @Expose() id: string; // uuid
-  @Expose() private _parentId: string; // this is a only district as of now but may change.
-  @Expose() private _title: string;
-  @Expose() private _authorUserName: string; // The person to create the post
-
-  @Expose() parentType: ParentType;
+  @Expose() readonly id: string; // uuid
+  @Expose() readonly parentId: string; // this is a only district as of now but may change.
+  @Expose() title: string;
+  @Expose() readonly authorUserName: string; // The person to create the post
+  @Expose() readonly parentType: ParentType;
   @Expose() description: string;
   @TransformDate()
-  @Expose() createDate: Date;
+  @Expose() readonly createDate: Date;
   @Expose() source: { // A Talking point can be sourced from an existing Convo OR a link to something else
     type: TalkingPointPostSourceType;
     data?: TalkingPointPostConvoSource | LinkPreview;
@@ -55,28 +55,11 @@ export class TalkingPointPost {
   @Expose() authorImageUrl?: string;
   @Expose() tags?: string[];
 
-  static createId(params: { parentId: string, title: string, authorUserName: string } | TalkingPointPost) {
+  static createId(params: { parentId: string, authorUserName: string, createDate: Date, } | TalkingPointPost) {
     if (params instanceof TalkingPointPost) {
-      return [params.parentId, params.title.replace(/\s/g, '_'), params.authorUserName].join('#');
+      return [TalkingPointPostRepository.objectIdentifier, params.parentId, params.authorUserName, params.createDate.toISOString()].join('#');
     }
-    return [params.parentId, params.title.replace(/\s/g, '_'), params.authorUserName].join('#');
-  }
-
-  get title() { return this._title; }
-  get authorUserName() { return this._authorUserName; }
-  get parentId() { return this._parentId; }
-
-  set title(title: string) {
-    this._title = title;
-    this.id = TalkingPointPost.createId(this);
-  }
-  set authorUserName(authorUserName: string) {
-    this._authorUserName = authorUserName;
-    this.id = TalkingPointPost.createId(this);
-  }
-  set parentId(parentId: string) {
-    this._parentId = parentId;
-    this.id = TalkingPointPost.createId(this);
+    return [TalkingPointPostRepository.objectIdentifier, params.parentId, params.authorUserName, params.createDate.toISOString()].join('#');
   }
 
   constructor(
@@ -107,15 +90,15 @@ export class TalkingPointPost {
     tags?: string[],
   ) {
     if (id === null) {
-      this.id = TalkingPointPost.createId({parentId, title, authorUserName});
+      this.id = TalkingPointPost.createId({parentId, authorUserName, createDate});
     } else {
       this.id = id;
     }
-    this._parentId = parentId;
+    this.parentId = parentId;
     this.parentType = parentType;
-    this._title = title;
+    this.title = title;
     this.description = description;
-    this._authorUserName = authorUserName;
+    this.authorUserName = authorUserName;
     this.createDate = createDate;
     this.source = source;
     this.banStatus = banStatus;
@@ -183,14 +166,17 @@ export class TalkingPointPost {
 
     validator.validate(post.id, "id").notUndefined().notNull().isString().notEmpty();
     const partitionedId = post.id.split('#');
-    if (partitionedId[0] !== post.parentId) {
-      throw new DataValidationError("parentId is not first value in provided id");
+    if (partitionedId[0] !== TalkingPointPostRepository.objectIdentifier) {
+      throw new DataValidationError("TalkingPointPost objectIdentifier is not first value in provided id");
     }
-    if (partitionedId[1] !== post.title.replace(/\s/g, '_')) {
-      throw new DataValidationError("title is not second value in provided id");
+    if (partitionedId[1] !== post.parentId) {
+      throw new DataValidationError("parentId is not second value in provided id");
     }
     if (partitionedId[2] !== post.authorUserName) {
       throw new DataValidationError("authorUserName is not third value in provided id");
+    }
+    if (partitionedId[3] !== post.createDate.toISOString()) {
+      throw new DataValidationError("createDate is not fourth value in provided id");
     }
 
     validator.validate(post.parentId, "parentId").notUndefined().notNull().isString().notEmpty();

@@ -23,9 +23,8 @@ export class Convo {
   @Expose() scheduledStartDate?: Date;
   @Expose() tags?: string[];
 
-  static createId(convo: Convo) {
-    return convo.participantUsernames.join('#')
-      + convo.createDate.toISOString().replace(/\s/g, '_');
+  static createId(params: Convo | {createDate: Date, participantUsernames: string[]}) {
+    return [...params.participantUsernames, params.createDate.toISOString()].join('#')
   }
 
   constructor(id: string | null,
@@ -41,7 +40,7 @@ export class Convo {
     tags?: string[]) {
 
     if (id === null) {
-      this.id = Convo.createId(this);
+      this.id = Convo.createId({createDate, participantUsernames});
     } else {
       this.id = id;
     }
@@ -103,7 +102,8 @@ export class Convo {
     validator.validate(convo.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
     try {
       const createDate = new Date(partitionedId[partitionedId.length - 1]);
-      if (createDate != convo.createDate) {
+      // equality operators (===, ==) don't work with date objects so we use getTime()
+      if (createDate.getTime() !== convo.createDate.getTime()) {
         throw new DataValidationError("createDate in Id is not equal to object create createDate.")
       }
     } catch (error) {

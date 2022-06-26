@@ -76,7 +76,7 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
   #districtRepository: DistrictRepository;
 
   createPartitionKey(object: TalkingPointPost): string {
-    return object.id;
+    return TalkingPointPost.createId(object);
   }
 
   createSortKey(object: TalkingPointPost): string {
@@ -114,6 +114,23 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(params.data) };
     gsiAttributes[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: params.data.authorUserName };
     gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(params.data) };
+
+    // * (Get post by id)
+    // * PKEY: id
+    // * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT
+    // * 
+    // * (Get post by title)
+    // * GSI1: title
+    // * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT
+    // * 
+    // * 
+    // * (Get all posts, sorted by absolute score)
+    // * GSI2: <viewMode>#<banStatus>#POST_TALKING_POINT
+    // * SKEY: <absoluteScore>
+    // * 
+    // * (Get all posts, sorted by time based score)
+    // * GSI3: <viewMode>#<banStatus>#POST_TALKING_POINT
+    // * SKEY: <timeBasedScore>
 
     return await super.saveItem({
       object: params.data,

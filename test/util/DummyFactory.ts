@@ -19,11 +19,11 @@ export const getDummyUser = () => {
     isEmailValidated: true,
     firstName: "sean",
     lastName: "imam",
-    joinDate: new Date('2011-04-11T10:20:30Z'),
+    joinDate: new Date('2011-04-11'),
     banStatus: {
       type: UserBanType.NONE,
     },
-    birthDate: new Date('2000-04-11T10:20:30Z'),
+    birthDate: new Date('2000-04-11'),
     thumbnail: "string",
     bio: "string",
     occupation: "string",
@@ -42,7 +42,7 @@ export const getDummyDistrict = () => {
   return District.builder({
     title: "testDistrict",
     authorUsername: "testusername",
-    createDate: new Date(),
+    createDate: new Date('2021-01-01'),
     subscriberCount: 123,
     viewCount: 8300,
     postCount: 1234,
@@ -56,10 +56,10 @@ export const getDummyDistrict = () => {
   });
 }
 
-export const getDummyTalkingPointPost = () => {
+export const getDummyTalkingPointPostProps = () => {
   const dummyUser = getDummyUser();
   const dummyDistrict = getDummyDistrict()
-  return TalkingPointPost.builder({
+  return {
     id: null,
     parentId: dummyDistrict.title,
     parentType: ParentType.DISTRICT,
@@ -67,7 +67,7 @@ export const getDummyTalkingPointPost = () => {
     description: "Dummy Talking Point Post Description",
     authorUserName: dummyUser.userName,
     authorImageUrl: dummyUser.thumbnail,
-    createDate: new Date(),
+    createDate: new Date('2021-01-01'),
     source: {
       type: TalkingPointPostSourceType.CLASSIC,
       data: getDummyLinkPreview(),
@@ -86,7 +86,10 @@ export const getDummyTalkingPointPost = () => {
 
     // optional
     tags: ["testTag1", "testTag2"],
-  });
+  }
+}
+export const getDummyTalkingPointPost = () => {
+  return TalkingPointPost.builder(getDummyTalkingPointPostProps());
 }
 
 export const getDummyLinkPreview = () => {
@@ -108,7 +111,7 @@ export const getDummyGeneralChatRequest = () => {
     "12345generalChatRequest",
     dummyTalkingPoint.id,
     ParentType.TALKING_POINT_POST,
-    new Date(),
+    new Date('2021-01-01'),
     dummyUser.userName,
     ConvoPreference.CASUAL,
     false,
@@ -117,16 +120,18 @@ export const getDummyGeneralChatRequest = () => {
   );
 }
 
-
-export const getDummyConvo = () => {
+export const getDummyConvoProps = () => {
   const dummyUser = getDummyUser();
-  return Convo.builder({
+  return {
     id: null,
     status: ConvoStatus.NOT_ACCEPTED,
-    createDate: new Date(),
+    createDate: new Date('2021-01-01'),
     title: "dummy Convo Title",
     participantUsernames: [dummyUser.userName],
     banStatus: new ObjectBanStatus(ObjectBanType.NONE),
-  })
+  }
+}
+export const getDummyConvo = () => {
+  return Convo.builder(getDummyConvoProps());
 }
 

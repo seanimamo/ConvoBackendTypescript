@@ -1,7 +1,7 @@
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
-import { getDummyDistrict, getDummyTalkingPointPost } from "../../../util/DummyFactory";
+import { getDummyDistrict, getDummyTalkingPointPost, getDummyTalkingPointPostProps } from "../../../util/DummyFactory";
 import { District } from "../../../../common/objects/District";
 import { ParentObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../../../../common/respositories/error";
 import { TalkingPointPost } from "../../../../common/objects/talking-point-post/TalkingPointPost";
@@ -42,7 +42,7 @@ afterAll(async () => {
   stopDb();
 })
 
-describe("Test DistrictRepository", () => {
+describe("TalkingPointPostRepository", () => {
 
   test("Saving new talkingPoint succeeds when not checking for parent and the parent doesnt exist", async () => {
     await talkingPointRepo.save({ data: talkingPoint, checkParentExistence: false });
@@ -82,16 +82,21 @@ describe("Test DistrictRepository", () => {
       district2.title = "theSecondDistrict";
       await districtRepo.save(district1);
       await districtRepo.save(district2);
-      const post1 = getDummyTalkingPointPost();
-      const post2 = getDummyTalkingPointPost();
-      post2.title = "My second post";
-      // post2.id = TalkingPointPost.createId(post2);
-      const post3 = getDummyTalkingPointPost();
-      post3.title = "My third post";
-      // post3.id = TalkingPointPost.createId(post3);
-      const post4 = getDummyTalkingPointPost();
-      // post4.id = TalkingPointPost.createId(post4);
-      post4.parentId = district2.title
+      const post1 = TalkingPointPost.builder(getDummyTalkingPointPostProps());
+      // Note that changing the createDate changes the uuid of the post.
+      const post2 = TalkingPointPost.builder({
+        ...getDummyTalkingPointPostProps(),
+        createDate: new Date('2022-01-01')
+      });
+      const post3 = TalkingPointPost.builder({
+        ...getDummyTalkingPointPostProps(),
+        createDate: new Date('2022-01-02')
+      });
+      const post4 = TalkingPointPost.builder({
+        ...getDummyTalkingPointPostProps(),
+        parentId: district2.title,
+        createDate: new Date('2022-01-03')
+      });
       await talkingPointRepo.save({ data: post1 });
       await talkingPointRepo.save({ data: post2 });
       await talkingPointRepo.save({ data: post3 });
@@ -110,16 +115,34 @@ describe("Test DistrictRepository", () => {
   test("Retrieve multiple taking points by author username succeeds and only gets posts under the given author username",
     async () => {
       await districtRepo.save(district);
-      const post1 = getDummyTalkingPointPost();
-      post1.metrics.absoluteScore = 1;
-      const post2 = getDummyTalkingPointPost();
-      post2.title = "My second post";
-      post2.metrics.absoluteScore = 2;
-      const post3 = getDummyTalkingPointPost();
-      post3.title = "My third post";
-      post3.metrics.absoluteScore = 3;
-      const post4 = getDummyTalkingPointPost();
-      post4.authorUserName = "someOtherduede1231";
+      const post1 = TalkingPointPost.builder({
+        ...getDummyTalkingPointPostProps(),
+        metrics: {
+          ...getDummyTalkingPointPostProps().metrics,
+          absoluteScore: 1
+        }
+      });
+      // Note that changing the createDate changes the uuid of the post.
+      const post2 = TalkingPointPost.builder({
+        ...getDummyTalkingPointPostProps(),
+        createDate: new Date('2022-01-01'),
+        metrics: {
+          ...getDummyTalkingPointPostProps().metrics,
+          absoluteScore: 2
+        }
+      });
+      const post3 = TalkingPointPost.builder({
+        ...getDummyTalkingPointPostProps(),
+        createDate: new Date('2022-01-02'),
+        metrics: {
+          ...getDummyTalkingPointPostProps().metrics,
+          absoluteScore: 3
+        }
+      });
+      const post4 = TalkingPointPost.builder({
+        ...getDummyTalkingPointPostProps(),
+        authorUserName: "someOtherduede1231",
+      })
       await talkingPointRepo.save({ data: post1 });
       await talkingPointRepo.save({ data: post2 });
       await talkingPointRepo.save({ data: post3 });

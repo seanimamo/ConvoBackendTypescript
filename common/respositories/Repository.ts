@@ -129,8 +129,17 @@ export abstract class Repository<T> {
     denormalize?: boolean,
   }): Promise<PaginatedResponse<T[]>> {
 
-    let partitionKeyName;
-    let sortKeyName;
+    const commandParams: QueryCommandInput = {
+      TableName: process.env.DYNAMO_MAIN_TABLE_NAME!
+    };
+
+    let partitionKeyName = DYNAMODB_INDEXES.PRIMARY.partitionKeyName;
+    let sortKeyName = DYNAMODB_INDEXES.PRIMARY.sortKeyName;
+    if (params.index?.indexName) {
+      commandParams.IndexName = params.index!.indexName!;
+      partitionKeyName = params.index!.partitionKeyName!;
+      sortKeyName = params.index!.sortKeyName!;
+    }
 
     let keyConditionExpression = `${partitionKeyName} = :PkeyValue`;
     if (params.shouldPartialMatchSortKey) {
@@ -139,18 +148,22 @@ export abstract class Repository<T> {
       keyConditionExpression += ` and ${sortKeyName} = :SkeyValue)`;
     }
 
-    const commandParams: QueryCommandInput = {
-      TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
-      KeyConditionExpression: keyConditionExpression,
-      ExpressionAttributeValues: {
-        ":PkeyValue": { S: params.primaryKey },
-        ":SkeyValue": { S: params.sortKey }
-      }
+    commandParams.KeyConditionExpression = keyConditionExpression;
+    commandParams.ExpressionAttributeValues = {
+      ":PkeyValue": { S: params.primaryKey },
+      ":SkeyValue": { S: params.sortKey }
     }
 
-    if (params.index?.indexName) {
-      commandParams.IndexName = params.index!.indexName!;
-    }
+
+
+    // const commandParams: QueryCommandInput = {
+    //   TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
+    //   KeyConditionExpression: keyConditionExpression,
+    //   ExpressionAttributeValues: {
+    //     ":PkeyValue": { S: params.primaryKey },
+    //     ":SkeyValue": { S: params.sortKey }
+    //   }
+    // }
 
     if (params.paginationToken) {
       commandParams.ExclusiveStartKey = params.paginationToken;
