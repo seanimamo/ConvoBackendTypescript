@@ -1,5 +1,5 @@
 import 'reflect-metadata'; //required for class transformer to work;
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { ObjectBanStatus } from './ObjectBanStatus';
 import { GeneralChatRequest } from './talking-point-post/GeneralChatRequest';
 import { ViewPointChatRequest } from './talking-point-post/ViewPointChatRequest';
@@ -14,6 +14,7 @@ export class Convo {
   @Expose() createDate: Date;
   @Expose() title: string;
   @Expose() participantUsernames: string[];
+  @Type(() => ObjectBanStatus)
   @Expose() banStatus: ObjectBanStatus;
 
   // Optionals

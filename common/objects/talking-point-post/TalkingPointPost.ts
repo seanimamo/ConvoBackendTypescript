@@ -1,5 +1,5 @@
 import 'reflect-metadata'; //required for class transformer to work;
-import { Expose } from "class-transformer";
+import { Expose, Type } from "class-transformer";
 import { DataValidationError, DataValidator } from "../../util/DataValidator";
 import TransformDate from "../../util/TransformDate";
 import { ParentType, ViewMode } from "../enums";
@@ -37,6 +37,7 @@ export class TalkingPointPost {
     type: TalkingPointPostSourceType;
     data?: TalkingPointPostConvoSource | LinkPreview;
   };
+  @Type(() => ObjectBanStatus)
   @Expose() banStatus: ObjectBanStatus;
   @Expose() viewMode: ViewMode;
   @Expose() ageRating: AgeRating;

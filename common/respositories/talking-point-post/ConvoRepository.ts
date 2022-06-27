@@ -52,21 +52,17 @@ export class ConvoRepository extends Repository<Convo> {
     const gsiAttributes: Record<string, AttributeValue> = {}
     gsiAttributes[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: this.createPartitionKey(convo) };
     gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(convo) };
-    // GSI2: (Get posts by participant username, sorted by create date)
     gsiAttributes[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: convo.participantUsernames[0] };
     gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(convo) };
     if (convo.participantUsernames.length > 1) {
-      // GSI3: (Get posts by participant username, sorted by create date)
       gsiAttributes[`${DYNAMODB_INDEXES.GSI3.partitionKeyName}`] = { S: convo.participantUsernames[1] };
       gsiAttributes[`${DYNAMODB_INDEXES.GSI3.sortKeyName}`] = { S: this.createSortKey(convo) };
     }
     if (convo.participantUsernames.length > 2) {
-      // GSI4: (Get posts by participant username, sorted by create date)
       gsiAttributes[`${DYNAMODB_INDEXES.GSI4.partitionKeyName}`] = { S: convo.participantUsernames[2] };
       gsiAttributes[`${DYNAMODB_INDEXES.GSI4.sortKeyName}`] = { S: this.createSortKey(convo) };
     }
     if (convo.participantUsernames.length > 3) {
-      // GSI5: (Get posts by participant username, sorted by create date)
       gsiAttributes[`${DYNAMODB_INDEXES.GSI5.partitionKeyName}`] = { S: convo.participantUsernames[3] };
       gsiAttributes[`${DYNAMODB_INDEXES.GSI5.sortKeyName}`] = { S: this.createSortKey(convo) };
     }
@@ -110,21 +106,21 @@ export class ConvoRepository extends Repository<Convo> {
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
-    if (attempt1 !== null) {
+    if (attempt1.data.length !== 0) {
       attempt1.queryHint = {index: index!}
       return attempt1;
     }
 
     index = DYNAMODB_INDEXES.GSI3;
     const attempt2 = await super.getItemsByCompositeKey({
-      primaryKey: params.username,
-      sortKey: sortKey,
+        primaryKey: params.username,
+        sortKey: sortKey,
       shouldPartialMatchSortKey: true,
       index: index,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
-    if (attempt2 !== null) {
+    if (attempt2.data.length !== 0) {
       attempt2.queryHint = {index: index!}
       return attempt2;
     }
@@ -138,9 +134,23 @@ export class ConvoRepository extends Repository<Convo> {
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
-    if (attempt3 !== null) {
+    if (attempt3.data.length !== 0) {
       attempt3.queryHint = {index: index!}
       return attempt3;
+    }
+
+    index = DYNAMODB_INDEXES.GSI5;
+    const attempt4 = await super.getItemsByCompositeKey({
+      primaryKey: params.username,
+      sortKey: sortKey,
+      shouldPartialMatchSortKey: true,
+      index: index,
+      paginationToken: params.paginationToken,
+      queryLimit: params.queryLimit
+    });
+    if (attempt4.data.length !== 0) {
+      attempt4.queryHint = {index: index!}
+      return attempt4;
     }
 
     return null;

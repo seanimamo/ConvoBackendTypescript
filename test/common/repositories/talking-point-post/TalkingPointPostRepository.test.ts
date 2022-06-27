@@ -44,38 +44,37 @@ afterAll(async () => {
 
 describe("TalkingPointPostRepository", () => {
 
-  test("Saving new talkingPoint succeeds when not checking for parent and the parent doesnt exist", async () => {
+  test("save() - Saving new talkingPoint succeeds when not checking for parent and the parent doesnt exist", async () => {
     await talkingPointRepo.save({ data: talkingPoint, checkParentExistence: false });
   });
 
-  test("Saving new talkingPoint succeeds when not checking for parent and the parent exists", async () => {
+  test("save() - Saving new talkingPoint succeeds when not checking for parent and the parent exists", async () => {
     await districtRepo.save(district);
     await talkingPointRepo.save({ data: talkingPoint, checkParentExistence: false });
   });
 
-  test("Saving new talkingPoint succeeds when checking for parent and the parent exists", async () => {
+  test("save() - Saving new talkingPoint succeeds when checking for parent and the parent exists", async () => {
     await districtRepo.save(district);
     await talkingPointRepo.save({ data: talkingPoint });
   });
 
-  test("Saving new talkingPoint fails when checking for parent and the parent doesnt exist", async () => {
+  test("save() - Saving new talkingPoint fails when checking for parent and the parent doesnt exist", async () => {
     await expect(talkingPointRepo.save({ data: talkingPoint })).rejects.toThrow(ParentObjectDoesNotExistError);
   });
 
-  test("Saving new talkingPoint fails when another talking point with the same id already exists", async () => {
+  test("save() - Saving new talkingPoint fails when another talking point with the same id already exists", async () => {
     await districtRepo.save(district);
     await talkingPointRepo.save({ data: talkingPoint });
     await expect(talkingPointRepo.save({ data: talkingPoint })).rejects.toThrow(UniqueObjectAlreadyExistsError);
   });
 
-  test("Retrieve a single Talking Point Post by its unique id succeeds", async () => {
+  test("getById() - Retrieve a single Talking Point Post by its unique id succeeds", async () => {
     await districtRepo.save(district);
     await talkingPointRepo.save({ data: talkingPoint });
-    const retrievedPost = await talkingPointRepo.getById(talkingPoint.id);
-    expect(retrievedPost).toEqual(talkingPoint);
+    await expect(talkingPointRepo.getById(talkingPoint.id)).resolves.toEqual(talkingPoint);
   });
 
-  test("Retrieve multiple taking points by district title succeeds and only gets posts under the given district title",
+  test("getByDistrictTitle() - Retrieve multiple taking points by district title succeeds and only gets posts under the given district title",
     async () => {
       const district1 = getDummyDistrict();
       const district2 = getDummyDistrict();
@@ -112,7 +111,7 @@ describe("TalkingPointPostRepository", () => {
       expect(retrievedDistrict1Posts.data).not.toContainEqual(post4);
     });
 
-  test("Retrieve multiple taking points by author username succeeds and only gets posts under the given author username",
+  test("getByAuthorUsername() - Retrieve multiple taking points by author username succeeds and only gets posts under the given author username",
     async () => {
       await districtRepo.save(district);
       const post1 = TalkingPointPost.builder({

@@ -10,9 +10,9 @@ import { UserBanType } from "../../common/objects/user/UserBanStatus";
 import { ObjectBanStatus, ObjectBanType } from "../../common/objects/ObjectBanStatus";
 import { Convo, ConvoStatus } from "../../common/objects/Convo";
 
-// Note that ban status was left off, an unbanned user wont have a value.
-export const getDummyUser = () => {
-  return User.builder({
+
+export const getDummyUserProps = () => {
+  return {
     userName: "seanimam",
     password: UserPassword.fromPlainTextPassword('test'),
     email: "test@gmail.com",
@@ -35,7 +35,11 @@ export const getDummyUser = () => {
     settings: {
       hideRealName: false
     }
-  });
+  }
+}
+
+export const getDummyUser = () => {
+  return User.builder(getDummyUserProps());
 }
 
 export const getDummyDistrict = () => {

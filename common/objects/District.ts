@@ -1,5 +1,5 @@
 import 'reflect-metadata'; //required for class transformer to work;
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { DataValidator } from '../util/DataValidator';
 import TransformDate from '../util/TransformDate';
 import { ViewMode } from './enums';
@@ -10,6 +10,7 @@ export class District {
     @Expose() authorUsername: string;
     @TransformDate()
     @Expose() createDate: Date;
+    @Type(() => ObjectBanStatus)
     @Expose() banStatus: ObjectBanStatus;
     @Expose() viewMode: ViewMode;
     @Expose() primaryCategory: Category;

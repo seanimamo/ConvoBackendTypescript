@@ -33,7 +33,7 @@ export class DYNAMODB_INDEXES {
 
   static readonly GSI4: DynamoDbIndex = {
     partitionKeyName: "GSI4PKEY",
-    sortKeyName: "GSI41SKEY",
+    sortKeyName: "GSI4SKEY",
     indexName: "GSI4"
   }
 
