@@ -58,8 +58,10 @@ export class UserRepository extends Repository<User> {
     async getByUsername(userName: string) {
         return await super.getUniqueItemByCompositeKey({
             primaryKey: userName,
-            sortKey: UserRepository.objectIdentifier,
-            shouldPartialMatchSortKey: true
+            sortKey: {
+                value: UserRepository.objectIdentifier,
+                conditionExpressionType: "BEGINS_WITH",
+            },
         });
     }
 

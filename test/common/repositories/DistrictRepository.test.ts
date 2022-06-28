@@ -1,7 +1,7 @@
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
-import { getDummyDistrict } from "../../util/DummyFactory";
+import { getDummyDistrict, getDummyDistrictProps } from "../../util/DummyFactory";
 import { District } from "../../../common/objects/District";
 import { DistrictRepository } from "../../../common/respositories/district/DistrictRepository";
 import { UniqueObjectAlreadyExistsError } from "../../../common/respositories/error";
@@ -36,27 +36,47 @@ afterAll(async () => {
   stopDb();
 })
 
-describe("Test DistrictRepository", () => {
+describe("DistrictRepository", () => {
 
-  test("Saving new district succeeds", async () => {
+  test("save() - Saving new district succeeds", async () => {
     await districtRepository.save(district);
   });
 
-  test("Getting an existing district by title succeeds", async () => {
+  test("save() - Saving a district with a prexisting title fails", async () => {
+    await districtRepository.save(district);
+    await expect(districtRepository.save(district)).rejects.toThrow(UniqueObjectAlreadyExistsError);
+  });
+
+  test("getByTitle() - Getting an existing district by title succeeds", async () => {
     await districtRepository.save(district);
     const district2 = getDummyDistrict();
     district2.title = "ADifferentTittle";
     await expect(districtRepository.getByTitle(district.title)).resolves.toEqual(district);
   });
-  
-  test("Getting a nonexistant district returns null", async () => {
+
+  test("getByTitle() - Getting a nonexistant district returns null", async () => {
     await districtRepository.save(district);
     await expect(districtRepository.getByTitle(district.title+ 'asd')).resolves.toBeNull();
   });
 
-  test("Saving a district with a prexisting title fails", async () => {
+
+  test("getAll", async () => {
     await districtRepository.save(district);
-    await expect(districtRepository.save(district)).rejects.toThrow(UniqueObjectAlreadyExistsError);
+    await districtRepository.save(
+      District.builder({
+        ...getDummyDistrictProps(),
+        title: "theSecondDistrict"
+      })
+    );
+    await districtRepository.save(
+      District.builder({
+        ...getDummyDistrictProps(),
+        title: "theThirdDistrict"
+      })
+    );
+    const districts = await districtRepository.listDistricts();
+    expect(districts.data).toBeDefined();
+    expect(districts.data.length).toEqual(3);
   });
 
 });

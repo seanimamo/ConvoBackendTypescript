@@ -1,4 +1,4 @@
-import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { UserUuidPointer } from "../../objects/user/UserUuidPointer";
 import { Repository } from "../Repository";
 
@@ -21,14 +21,16 @@ export class UserUuidPointerRepository extends Repository<UserUuidPointer> {
   }
 
   async save(uuidPointer: UserUuidPointer) {
-    return await super.saveItem({object: uuidPointer, checkForExistingKey: "COMPOSITE"});
+    return await super.saveItem({ object: uuidPointer, checkForExistingKey: "COMPOSITE" });
   }
 
   async getByUuid(uuid: string) {
     return await super.getUniqueItemByCompositeKey({
       primaryKey: uuid,
-      sortKey: UserUuidPointerRepository.UserUuidPointerIdentifier,
-      shouldPartialMatchSortKey: true
+      sortKey: {
+        value: UserUuidPointerRepository.UserUuidPointerIdentifier,
+        conditionExpressionType: "BEGINS_WITH",
+      },
     });
   }
 }

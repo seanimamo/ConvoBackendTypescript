@@ -80,8 +80,10 @@ export class ConvoRepository extends Repository<Convo> {
   async getById(id: string) {
     return await super.getUniqueItemByCompositeKey({
       primaryKey: id,
-      sortKey: ConvoRepository.objectIdentifier,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: ConvoRepository.objectIdentifier,
+        conditionExpressionType: "BEGINS_WITH",
+      },
     });
   }
 
@@ -95,61 +97,69 @@ export class ConvoRepository extends Repository<Convo> {
     paginationToken?: Record<string, AttributeValue>,
     queryLimit?: number;
   }) {
-    const sortKey = ConvoRepository.objectIdentifier;
-    
+    const sortKeyValue = ConvoRepository.objectIdentifier;
+
     let index = DYNAMODB_INDEXES.GSI2;
     const attempt1 = await super.getItemsByCompositeKey({
       primaryKey: params.username,
-      sortKey: sortKey,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: sortKeyValue,
+        conditionExpressionType: "BEGINS_WITH"
+      },
       index: index,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
     if (attempt1.data.length !== 0) {
-      attempt1.queryHint = {index: index!}
+      attempt1.queryHint = { index: index! }
       return attempt1;
     }
 
     index = DYNAMODB_INDEXES.GSI3;
     const attempt2 = await super.getItemsByCompositeKey({
-        primaryKey: params.username,
-        sortKey: sortKey,
-      shouldPartialMatchSortKey: true,
+      primaryKey: params.username,
+      sortKey: {
+        value: sortKeyValue,
+        conditionExpressionType: "BEGINS_WITH"
+      },
       index: index,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
     if (attempt2.data.length !== 0) {
-      attempt2.queryHint = {index: index!}
+      attempt2.queryHint = { index: index! }
       return attempt2;
     }
 
     index = DYNAMODB_INDEXES.GSI4;
     const attempt3 = await super.getItemsByCompositeKey({
       primaryKey: params.username,
-      sortKey: sortKey,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: sortKeyValue,
+        conditionExpressionType: "BEGINS_WITH"
+      },
       index: index,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
     if (attempt3.data.length !== 0) {
-      attempt3.queryHint = {index: index!}
+      attempt3.queryHint = { index: index! }
       return attempt3;
     }
 
     index = DYNAMODB_INDEXES.GSI5;
     const attempt4 = await super.getItemsByCompositeKey({
       primaryKey: params.username,
-      sortKey: sortKey,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: sortKeyValue,
+        conditionExpressionType: "BEGINS_WITH"
+      },
       index: index,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
     });
     if (attempt4.data.length !== 0) {
-      attempt4.queryHint = {index: index!}
+      attempt4.queryHint = { index: index! }
       return attempt4;
     }
 

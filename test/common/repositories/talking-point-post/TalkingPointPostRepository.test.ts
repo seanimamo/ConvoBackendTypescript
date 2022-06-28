@@ -1,7 +1,7 @@
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
-import { getDummyDistrict, getDummyTalkingPointPost, getDummyTalkingPointPostProps } from "../../../util/DummyFactory";
+import { getDummyDistrict, getDummyDistrictProps, getDummyTalkingPointPost, getDummyTalkingPointPostProps } from "../../../util/DummyFactory";
 import { District } from "../../../../common/objects/District";
 import { ParentObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../../../../common/respositories/error";
 import { TalkingPointPost } from "../../../../common/objects/talking-point-post/TalkingPointPost";
@@ -76,39 +76,73 @@ describe("TalkingPointPostRepository", () => {
 
   test("getByDistrictTitle() - Retrieve multiple taking points by district title succeeds and only gets posts under the given district title",
     async () => {
-      const district1 = getDummyDistrict();
-      const district2 = getDummyDistrict();
-      district2.title = "theSecondDistrict";
-      await districtRepo.save(district1);
-      await districtRepo.save(district2);
-      const post1 = TalkingPointPost.builder(getDummyTalkingPointPostProps());
-      // Note that changing the createDate changes the uuid of the post.
-      const post2 = TalkingPointPost.builder({
-        ...getDummyTalkingPointPostProps(),
-        createDate: new Date('2022-01-01')
-      });
-      const post3 = TalkingPointPost.builder({
-        ...getDummyTalkingPointPostProps(),
-        createDate: new Date('2022-01-02')
-      });
-      const post4 = TalkingPointPost.builder({
-        ...getDummyTalkingPointPostProps(),
-        parentId: district2.title,
-        createDate: new Date('2022-01-03')
-      });
-      await talkingPointRepo.save({ data: post1 });
-      await talkingPointRepo.save({ data: post2 });
-      await talkingPointRepo.save({ data: post3 });
-      await talkingPointRepo.save({ data: post4 });
+    // 1. create districts
+    const districts = [];
+    districts.push(getDummyDistrict());
+    districts.push(District.builder({
+      ...getDummyDistrictProps(),
+      title: "TheSecondDistrict"
+    }));
+    districts.push(District.builder({
+      ...getDummyDistrictProps(),
+      title: "TheThirdDistrict"
+    }));
+    await districtRepo.save(districts[0]);
+    await districtRepo.save(districts[1]);
+    await districtRepo.save(districts[2]);
 
-      const retrievedDistrict1Posts = await talkingPointRepo.getByDistrictTitle({
-        title: district1.title
-      });
+    // 2. create talking point posts
+    const talkingPoints = [];
+    talkingPoints.push(TalkingPointPost.builder({
+      ...getDummyTalkingPointPostProps(),
+      parentId: districts[0].title,
+      metrics: {
+        ...getDummyTalkingPointPostProps().metrics,
+        absoluteScore: 1,
+      }
+    }));
+    talkingPoints.push(TalkingPointPost.builder({
+      ...getDummyTalkingPointPostProps(),
+      parentId: districts[0].title,
+      createDate: new Date(talkingPoints[0].createDate.getDate() - 1),
+      metrics: {
+        ...getDummyTalkingPointPostProps().metrics,
+        absoluteScore: 2
+      }
+    }));
+    talkingPoints.push(TalkingPointPost.builder({
+      ...getDummyTalkingPointPostProps(),
+      parentId: districts[0].title,
+      createDate: new Date(talkingPoints[0].createDate.getDate() - 2),
+      metrics: {
+        ...getDummyTalkingPointPostProps().metrics,
+        absoluteScore: 3
+      }
+    }));
+    talkingPoints.push(TalkingPointPost.builder({
+      ...getDummyTalkingPointPostProps(),
+      parentId: districts[1].title
+    }));
 
-      expect(retrievedDistrict1Posts.data).toContainEqual(post1);
-      expect(retrievedDistrict1Posts.data).toContainEqual(post2);
-      expect(retrievedDistrict1Posts.data).toContainEqual(post3);
-      expect(retrievedDistrict1Posts.data).not.toContainEqual(post4);
+    // purposely saved out of order to prove they return in order of absolute score
+    await talkingPointRepo.save({ data: talkingPoints[0] });
+    await talkingPointRepo.save({ data: talkingPoints[1] });
+    await talkingPointRepo.save({ data: talkingPoints[3] });
+    await talkingPointRepo.save({ data: talkingPoints[2] });
+
+    // 3. Retrieve districts
+    const retrievedDistrictsDynamoResp = await districtRepo.listDistricts();
+    expect(retrievedDistrictsDynamoResp.data).toBeDefined();
+    expect(retrievedDistrictsDynamoResp.data.length).toEqual(3);
+
+    // 4. get talkingPoints under a district
+    const retrievedPostDynamoResp = await talkingPointRepo.getByDistrictTitle({ title: districts[0].title });
+    const retrievedPosts = retrievedPostDynamoResp.data;
+    expect(retrievedPosts.length).toEqual(3);
+    // Confirm posts are sorted by absolute score
+    expect(retrievedPosts[0]).toEqual(talkingPoints[2]);
+    expect(retrievedPosts[1]).toEqual(talkingPoints[1]);
+    expect(retrievedPosts[2]).toEqual(talkingPoints[0]);
     });
 
   test("getByAuthorUsername() - Retrieve multiple taking points by author username succeeds and only gets posts under the given author username",

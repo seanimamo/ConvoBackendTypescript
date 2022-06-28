@@ -73,32 +73,35 @@ export abstract class Repository<T> {
   /**
    * Attempts to retrieve an item using a composite key. 
    * @param primaryKey DynamoDB Partition/Primary Key
-   * @param sortKey DynamoDB Sort Key
-   * @param shouldPartialMatchSortKey Enables partial match a sort key instead of a complete match (partial match only based on what the sort key begins with.)
+   * @param sortKey DynamoDB Sort Key, the conditionExpressionType field enables partial match a sort key
+   * instead of a complete match (partial match only based on what the sort key begins with.)
    * @returns null if not found, an error if more than 1 of the item is found, or the item if it is found.
    */
   async getUniqueItemByCompositeKey(params: {
     primaryKey: string,
-    sortKey: string,
-    shouldPartialMatchSortKey: boolean,
+    sortKey?: {
+      value: string,
+      conditionExpressionType: "BEGINS_WITH" | "COMPLETE",
+    },
     index?: DynamoDbIndex,
     denormalize?: boolean
   }) {
 
     let keyConditionExpression = `${DYNAMODB_INDEXES.PRIMARY.partitionKeyName} = :PkeyValue`;
-    if (params.shouldPartialMatchSortKey) {
-      keyConditionExpression += ` and begins_with(${DYNAMODB_INDEXES.PRIMARY.sortKeyName}, :SkeyValue)`;
-    } else {
-      keyConditionExpression += ` and ${DYNAMODB_INDEXES.PRIMARY.sortKeyName} = :SkeyValue)`;
+    let expressionAttributeValues: Record<string, AttributeValue> = { ":PkeyValue": { S: params.primaryKey } };
+    if (params.sortKey !== undefined) {
+      expressionAttributeValues[":SkeyValue"] = { S: params.sortKey.value };
+      if (params.sortKey.conditionExpressionType === "BEGINS_WITH") {
+        keyConditionExpression += ` and begins_with(${DYNAMODB_INDEXES.PRIMARY.sortKeyName}, :SkeyValue)`;
+      } else if (params.sortKey.conditionExpressionType === "COMPLETE") {
+        keyConditionExpression += ` and ${DYNAMODB_INDEXES.PRIMARY.sortKeyName} = :SkeyValue)`;
+      }
     }
 
     const commandParams: QueryCommandInput = {
       TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
       KeyConditionExpression: keyConditionExpression,
-      ExpressionAttributeValues: {
-        ":PkeyValue": { S: params.primaryKey },
-        ":SkeyValue": { S: params.sortKey }
-      }
+      ExpressionAttributeValues: expressionAttributeValues,
     }
     if (params.index?.indexName) {
       commandParams.IndexName = params.index!.indexName!;
@@ -121,11 +124,14 @@ export abstract class Repository<T> {
 
   async getItemsByCompositeKey(params: {
     primaryKey: string,
-    sortKey: string,
-    shouldPartialMatchSortKey: boolean,
+    sortKey?: {
+      value: string,
+      conditionExpressionType: "BEGINS_WITH" | "COMPLETE",
+    },
     index?: DynamoDbIndex,
     paginationToken?: Record<string, AttributeValue>,
     queryLimit?: number,
+    sortDirection?: "ASCENDING" | "DESCENDING",
     denormalize?: boolean,
   }): Promise<PaginatedResponse<T[]>> {
 
@@ -142,34 +148,27 @@ export abstract class Repository<T> {
     }
 
     let keyConditionExpression = `${partitionKeyName} = :PkeyValue`;
-    if (params.shouldPartialMatchSortKey) {
-      keyConditionExpression += ` and begins_with(${sortKeyName}, :SkeyValue)`;
-    } else {
-      keyConditionExpression += ` and ${sortKeyName} = :SkeyValue)`;
+    let expressionAttributeValues: Record<string, AttributeValue> = { ":PkeyValue": { S: params.primaryKey } };
+    if (params.sortKey) {
+      expressionAttributeValues[":SkeyValue"] = { S: params.sortKey.value };
+      if (params.sortKey.conditionExpressionType === "BEGINS_WITH") {
+        keyConditionExpression += ` and begins_with(${sortKeyName}, :SkeyValue)`;
+      } else if ((params.sortKey.conditionExpressionType === "COMPLETE")) {
+        keyConditionExpression += ` and ${sortKeyName} = :SkeyValue)`;
+      }
     }
 
     commandParams.KeyConditionExpression = keyConditionExpression;
-    commandParams.ExpressionAttributeValues = {
-      ":PkeyValue": { S: params.primaryKey },
-      ":SkeyValue": { S: params.sortKey }
-    }
-
-
-
-    // const commandParams: QueryCommandInput = {
-    //   TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
-    //   KeyConditionExpression: keyConditionExpression,
-    //   ExpressionAttributeValues: {
-    //     ":PkeyValue": { S: params.primaryKey },
-    //     ":SkeyValue": { S: params.sortKey }
-    //   }
-    // }
+    commandParams.ExpressionAttributeValues = expressionAttributeValues;
 
     if (params.paginationToken) {
       commandParams.ExclusiveStartKey = params.paginationToken;
     }
     if (params.queryLimit) {
       commandParams.Limit = params.queryLimit;
+    }
+    if (params.sortDirection) {
+      commandParams.ScanIndexForward = params.sortDirection === "ASCENDING";
     }
 
     const dynamoResponse = await this.client.send(new QueryCommand(commandParams));

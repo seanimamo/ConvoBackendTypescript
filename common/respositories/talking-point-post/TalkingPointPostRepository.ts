@@ -142,18 +142,20 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
 
   // Retrieve a single Talking Point Post by its unique id.
   async getById(chatRequestId: string, banType?: ObjectBanType, viewMode?: ViewMode) {
-    let sortKey = TalkingPointPostRepository.objectIdentifier;
+    let sortKeyValue = TalkingPointPostRepository.objectIdentifier;
     if (viewMode) {
-      sortKey = [sortKey, viewMode].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, viewMode].join(TalkingPointPostRepository.objectIdentifier);
     }
     if (banType) {
-      sortKey = [sortKey, banType].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, banType].join(TalkingPointPostRepository.objectIdentifier);
     }
 
     return await super.getUniqueItemByCompositeKey({
       primaryKey: chatRequestId,
-      sortKey: sortKey,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: sortKeyValue,
+        conditionExpressionType: "BEGINS_WITH",
+      },
     });
   }
 
@@ -166,21 +168,24 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     queryLimit?: number;
   }) {
 
-    let sortKey = TalkingPointPostRepository.objectIdentifier;
+    let sortKeyValue = TalkingPointPostRepository.objectIdentifier;
     if (params.viewMode) {
-      sortKey = [sortKey, params.viewMode].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, params.viewMode].join(TalkingPointPostRepository.objectIdentifier);
     }
     if (params.banType) {
-      sortKey = [sortKey, params.banType].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, params.banType].join(TalkingPointPostRepository.objectIdentifier);
     }
 
     return await super.getItemsByCompositeKey({
       primaryKey: params.title,
-      sortKey: sortKey,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: sortKeyValue,
+        conditionExpressionType: "BEGINS_WITH"
+      },
       index: DYNAMODB_INDEXES.GSI1,
       paginationToken: params.paginationToken,
-      queryLimit: params.queryLimit
+      queryLimit: params.queryLimit,
+      sortDirection: "DESCENDING"
     });
   }
 
@@ -193,18 +198,20 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     queryLimit?: number;
   }) {
 
-    let sortKey = TalkingPointPostRepository.objectIdentifier;
+    let sortKeyValue = TalkingPointPostRepository.objectIdentifier;
     if (params.viewMode) {
-      sortKey = [sortKey, params.viewMode].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, params.viewMode].join(TalkingPointPostRepository.objectIdentifier);
     }
     if (params.banType) {
-      sortKey = [sortKey, params.banType].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, params.banType].join(TalkingPointPostRepository.objectIdentifier);
     }
 
     return await super.getItemsByCompositeKey({
       primaryKey: params.username,
-      sortKey: sortKey,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: sortKeyValue,
+        conditionExpressionType: "BEGINS_WITH"
+      },
       index: DYNAMODB_INDEXES.GSI2,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit

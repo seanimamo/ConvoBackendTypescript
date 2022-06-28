@@ -42,10 +42,11 @@ export const getDummyUser = () => {
   return User.builder(getDummyUserProps());
 }
 
-export const getDummyDistrict = () => {
-  return District.builder({
+export const getDummyDistrictProps = () => {
+  const dummyUser = getDummyUser();
+  return {
     title: "testDistrict",
-    authorUsername: "testusername",
+    authorUsername: dummyUser.userName,
     createDate: new Date('2021-01-01'),
     subscriberCount: 123,
     viewCount: 8300,
@@ -57,7 +58,11 @@ export const getDummyDistrict = () => {
     },
     viewMode: ViewMode.PRIVATE,
     primaryCategory: Category.ENTERTAINMENT
-  });
+  }
+}
+
+export const getDummyDistrict = () => {
+  return District.builder(getDummyDistrictProps());
 }
 
 export const getDummyTalkingPointPostProps = () => {

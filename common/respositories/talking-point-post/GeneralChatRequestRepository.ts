@@ -62,8 +62,10 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
   async getById(chatRequestId: string) {
     return await super.getUniqueItemByCompositeKey({
       primaryKey: chatRequestId,
-      sortKey: GeneralChatRequestRepository.objectIdentifier,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: GeneralChatRequestRepository.objectIdentifier,
+        conditionExpressionType: "BEGINS_WITH",
+      },
     });
   }
 
@@ -78,9 +80,9 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     paginationToken?: Record<string, AttributeValue>,
     queryLimit?: number;
   }) {
-    let sortKey = GeneralChatRequestRepository.objectIdentifier;
+    let sortKeyValue = GeneralChatRequestRepository.objectIdentifier;
     if (params.convoPreference) {
-      sortKey = [
+      sortKeyValue = [
         GeneralChatRequestRepository.objectIdentifier,
         params.convoPreference
       ].join(Repository.compositeKeyDelimeter);
@@ -88,8 +90,10 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
 
     return await super.getItemsByCompositeKey({
       primaryKey: params.postId,
-      sortKey: sortKey,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: sortKeyValue,
+        conditionExpressionType: "BEGINS_WITH"
+      },
       index: DYNAMODB_INDEXES.GSI1,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
@@ -106,8 +110,10 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
   }) {
     return await super.getItemsByCompositeKey({
       primaryKey: params.username,
-      sortKey: GeneralChatRequestRepository.objectIdentifier,
-      shouldPartialMatchSortKey: true,
+      sortKey: {
+        value: GeneralChatRequestRepository.objectIdentifier,
+        conditionExpressionType: "BEGINS_WITH"
+      },
       index: DYNAMODB_INDEXES.GSI2,
       paginationToken: params.paginationToken,
       queryLimit: params.queryLimit
