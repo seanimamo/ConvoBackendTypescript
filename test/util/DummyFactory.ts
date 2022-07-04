@@ -8,7 +8,7 @@ import { ConvoPreference } from "../../common/objects/enums";
 import { LinkPreview } from "../../common/objects/talking-point-post/LinkPreview";
 import { UserBanType } from "../../common/objects/user/UserBanStatus";
 import { ObjectBanStatus, ObjectBanType } from "../../common/objects/ObjectBanStatus";
-import { Convo, ConvoStatus } from "../../common/objects/Convo";
+import { Convo, ConvoSource, ConvoStatus } from "../../common/objects/Convo";
 
 
 export const getDummyUserProps = () => {
@@ -45,6 +45,7 @@ export const getDummyUser = () => {
 export const getDummyDistrictProps = () => {
   const dummyUser = getDummyUser();
   return {
+    id: null,
     title: "testDistrict",
     authorUsername: dummyUser.userName,
     createDate: new Date('2021-01-01'),
@@ -113,20 +114,24 @@ export const getDummyLinkPreview = () => {
   )
 }
 
-export const getDummyGeneralChatRequest = () => {
+export const getDummyGeneralChatRequestProps = () => {
   const dummyTalkingPoint = getDummyTalkingPointPost();
   const dummyUser = getDummyUser();
-  return new GeneralChatRequest(
-    "12345generalChatRequest",
-    dummyTalkingPoint.id,
-    ParentType.TALKING_POINT_POST,
-    new Date('2021-01-01'),
-    dummyUser.userName,
-    ConvoPreference.CASUAL,
-    false,
-    dummyUser.thumbnail,
-    "I am an expert"
-  );
+  return {
+    id: null,
+    parentId: dummyTalkingPoint.id,
+    parentType: ParentType.TALKING_POINT_POST,
+    createDate: new Date(dummyTalkingPoint.createDate.getDate() + 1),
+    authorUserName: dummyUser.userName,
+    convoPreference: ConvoPreference.CASUAL,
+    relaxConvoPreferenceRequirment: false,
+    authorImageUrl: dummyUser.thumbnail,
+    chatReason: "I am an expert"
+  };
+}
+
+export const getDummyGeneralChatRequest = () => {
+  return GeneralChatRequest.builder(getDummyGeneralChatRequestProps());
 }
 
 export const getDummyConvoProps = () => {
@@ -136,8 +141,9 @@ export const getDummyConvoProps = () => {
     status: ConvoStatus.NOT_ACCEPTED,
     createDate: new Date('2021-01-01'),
     title: "dummy Convo Title",
-    participantUsernames: [dummyUser.userName],
+    participantUsernames: [dummyUser.userName, 'user2'],
     banStatus: new ObjectBanStatus(ObjectBanType.NONE),
+    sourcedFrom: ConvoSource.GENERAL_CHAT_REQUEST,
   }
 }
 export const getDummyConvo = () => {

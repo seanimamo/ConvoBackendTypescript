@@ -141,19 +141,11 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
 
 
   // Retrieve a single Talking Point Post by its unique id.
-  async getById(chatRequestId: string, banType?: ObjectBanType, viewMode?: ViewMode) {
-    let sortKeyValue = TalkingPointPostRepository.objectIdentifier;
-    if (viewMode) {
-      sortKeyValue = [sortKeyValue, viewMode].join(TalkingPointPostRepository.objectIdentifier);
-    }
-    if (banType) {
-      sortKeyValue = [sortKeyValue, banType].join(TalkingPointPostRepository.objectIdentifier);
-    }
-
+  async getById(chatRequestId: string) {
     return await super.getUniqueItemByCompositeKey({
       primaryKey: chatRequestId,
       sortKey: {
-        value: sortKeyValue,
+        value: TalkingPointPostRepository.objectIdentifier,
         conditionExpressionType: "BEGINS_WITH",
       },
     });

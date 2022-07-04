@@ -31,4 +31,5 @@ describe("Test General Chat Request ", () => {
     expect(() => GeneralChatRequest.validate(chatRequestClassFromPlainJson)).toThrowError(DataValidationError);
   });
 
+
 });

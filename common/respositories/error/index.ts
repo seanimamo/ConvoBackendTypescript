@@ -18,3 +18,10 @@ export class UniqueObjectAlreadyExistsError extends Error {
     this.name = "UniqueObjectAlreadyExistsError";
   }
 }
+
+export class InvalidParametersError extends Error {
+  constructor(message: string = "The provided parameters are invalid") {
+    super(message);
+    this.name = "InvalidParametersError";
+  }
+}

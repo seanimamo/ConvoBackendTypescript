@@ -6,6 +6,7 @@ import { ParentType, ViewMode } from "../enums";
 import { LinkPreview } from "./LinkPreview";
 import { ObjectBanStatus } from '../ObjectBanStatus';
 import { TalkingPointPostRepository } from '../../respositories/talking-point-post/TalkingPointPostRepository';
+import { IdFactory } from '../../util/IdFactory';
 
 export type TalkingPointPostConvoSource = {
   id: string;
@@ -56,11 +57,8 @@ export class TalkingPointPost {
   @Expose() authorImageUrl?: string;
   @Expose() tags?: string[];
 
-  static createId(params: { parentId: string, authorUserName: string, createDate: Date, } | TalkingPointPost) {
-    if (params instanceof TalkingPointPost) {
-      return [TalkingPointPostRepository.objectIdentifier, params.parentId, params.authorUserName, params.createDate.toISOString()].join('#');
-    }
-    return [TalkingPointPostRepository.objectIdentifier, params.parentId, params.authorUserName, params.createDate.toISOString()].join('#');
+  static createId(params: { authorUserName: string, createDate: Date }) {
+    return IdFactory.createId([TalkingPointPostRepository.objectIdentifier, params.authorUserName, params.createDate]);
   }
 
   constructor(
@@ -91,7 +89,7 @@ export class TalkingPointPost {
     tags?: string[],
   ) {
     if (id === null) {
-      this.id = TalkingPointPost.createId({parentId, authorUserName, createDate});
+      this.id = TalkingPointPost.createId({authorUserName, createDate});
     } else {
       this.id = id;
     }
@@ -166,17 +164,14 @@ export class TalkingPointPost {
     const validator: DataValidator = new DataValidator();
 
     validator.validate(post.id, "id").notUndefined().notNull().isString().notEmpty();
-    const partitionedId = post.id.split('#');
+    const partitionedId = IdFactory.parseId(post.id);
     if (partitionedId[0] !== TalkingPointPostRepository.objectIdentifier) {
       throw new DataValidationError("TalkingPointPost objectIdentifier is not first value in provided id");
     }
-    if (partitionedId[1] !== post.parentId) {
-      throw new DataValidationError("parentId is not second value in provided id");
-    }
-    if (partitionedId[2] !== post.authorUserName) {
+    if (partitionedId[1] !== post.authorUserName) {
       throw new DataValidationError("authorUserName is not third value in provided id");
     }
-    if (partitionedId[3] !== post.createDate.toISOString()) {
+    if (partitionedId[2] !== IdFactory.dateToString(post.createDate)) {
       throw new DataValidationError("createDate is not fourth value in provided id");
     }
 

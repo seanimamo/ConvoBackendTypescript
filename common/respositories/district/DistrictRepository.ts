@@ -1,7 +1,6 @@
 import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Repository } from "../Repository";
 import { District } from "../../objects/District";
-import { UniqueObjectAlreadyExistsError } from "../error";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 
 /**
@@ -25,7 +24,7 @@ export class DistrictRepository extends Repository<District> {
     static objectIdentifier = "DISTRICT";
 
     createPartitionKey = (district: District) => {
-        return district.title;
+        return district.id;
     }
 
     createSortKey = (district: District) => {
@@ -53,7 +52,7 @@ export class DistrictRepository extends Repository<District> {
 
     async getByTitle(title: string) {
         return await super.getUniqueItemByCompositeKey({
-            primaryKey: title,
+            primaryKey: District.createId({title}),
             sortKey: {
                 value: DistrictRepository.objectIdentifier,
                 conditionExpressionType: "BEGINS_WITH",

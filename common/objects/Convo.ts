@@ -5,6 +5,8 @@ import { GeneralChatRequest } from './talking-point-post/GeneralChatRequest';
 import { ViewPointChatRequest } from './talking-point-post/ViewPointChatRequest';
 import { DataValidationError, DataValidator } from '../util/DataValidator';
 import TransformDate from '../util/TransformDate';
+import { IdFactory } from '../util/IdFactory';
+import { ConvoRepository } from '../respositories/talking-point-post/ConvoRepository';
 
 
 export class Convo {
@@ -16,16 +18,24 @@ export class Convo {
   @Expose() participantUsernames: string[];
   @Type(() => ObjectBanStatus)
   @Expose() banStatus: ObjectBanStatus;
-
   // Optionals
   @Expose() videoUrl?: string; // will only be defined for completed convos
-  @Expose() sourceChatRequests?: GeneralChatRequest[] | ViewPointChatRequest[];
+
+  @Expose() sourcedFrom?: ConvoSource;
+  @Type(() => GeneralChatRequest)
+  @Expose() generalChatRequests?: GeneralChatRequest[];
+  @Type(() => ViewPointChatRequest)
+  @Expose() viewPointChatRequests?: ViewPointChatRequest[];
+
+  @Expose() acceptedUserNames?: string[];
+  @Expose() rejectedUserNames?: string[];
   @Expose() thumbnail?: string;
+  @TransformDate()
   @Expose() scheduledStartDate?: Date;
   @Expose() tags?: string[];
 
-  static createId(params: Convo | {createDate: Date, participantUsernames: string[]}) {
-    return [...params.participantUsernames, params.createDate.toISOString()].join('#')
+  static createId(params: {createDate: Date, participantUsernames: string[]}) {
+    return IdFactory.createId([ConvoRepository.objectIdentifier, ...params.participantUsernames, params.createDate]);
   }
 
   constructor(id: string | null,
@@ -34,8 +44,12 @@ export class Convo {
     title: string,
     participantUsernames: string[],
     banStatus: ObjectBanStatus,
+    sourcedFrom: ConvoSource,
     videoUrl?: string,
-    sourceChatRequests?: GeneralChatRequest[] | ViewPointChatRequest[],
+    generalChatRequests?: GeneralChatRequest[],
+    viewPointChatRequests?: ViewPointChatRequest[],
+    acceptedUserNames?: string[],
+    rejectedUserNames?: string[],
     thumbnail?: string,
     scheduledStartDate?: Date,
     tags?: string[]) {
@@ -50,9 +64,12 @@ export class Convo {
     this.title = title;
     this.participantUsernames = participantUsernames;
     this.banStatus = banStatus;
-
+    this.sourcedFrom = sourcedFrom;
     this.videoUrl = videoUrl;
-    this.sourceChatRequests = sourceChatRequests;
+    this.generalChatRequests = generalChatRequests;
+    this.viewPointChatRequests = viewPointChatRequests;
+    this.acceptedUserNames = acceptedUserNames;
+    this.rejectedUserNames = rejectedUserNames;
     this.thumbnail = thumbnail;
     this.scheduledStartDate = scheduledStartDate;
     this.tags = tags;
@@ -65,8 +82,12 @@ export class Convo {
     title: string,
     participantUsernames: string[],
     banStatus: ObjectBanStatus,
+    sourcedFrom: ConvoSource,
     videoUrl?: string,
-    sourceChatRequests?: GeneralChatRequest[] | ViewPointChatRequest[],
+    generalChatRequests?: GeneralChatRequest[],
+    viewPointChatRequests?: ViewPointChatRequest[],
+    acceptedUserNames?: string[],
+    rejectedUserNames?: string[],
     thumbnail?: string,
     scheduledStartDate?: Date,
     tags?: string[]
@@ -78,8 +99,12 @@ export class Convo {
       params.title,
       params.participantUsernames,
       params.banStatus,
+      params.sourcedFrom,
       params.videoUrl,
-      params.sourceChatRequests,
+      params.generalChatRequests,
+      params.viewPointChatRequests,
+      params.acceptedUserNames,
+      params.rejectedUserNames,
       params.thumbnail,
       params.scheduledStartDate,
       params.tags
@@ -93,28 +118,37 @@ export class Convo {
     // ------------------------------ Id validation ------------------------------
     validator.validate(convo.id, "id").notUndefined().notNull().isString().notEmpty();
     validator.validate(convo.participantUsernames, "participantUsernames").notUndefined().notNull().notEmpty();
-    const partitionedId = convo.id.split('#');
-    for (let i = 0; i < partitionedId.length - 1; i++) {
-      if (!convo.participantUsernames.includes(partitionedId[i])) {
-        throw new DataValidationError("parentId is not first value in provided id");
-      }
+    const partitionedId = IdFactory.parseId(convo.id);
+    if (partitionedId[0] !== ConvoRepository.objectIdentifier) {
+      throw new DataValidationError("ConvoRepository objectIdentifier is not first value in provided id");
     }
-
-    validator.validate(convo.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
-    try {
-      const createDate = new Date(partitionedId[partitionedId.length - 1]);
-      // equality operators (===, ==) don't work with date objects so we use getTime()
-      if (createDate.getTime() !== convo.createDate.getTime()) {
-        throw new DataValidationError("createDate in Id is not equal to object create createDate.")
+    let currIndex = 1;
+    convo.participantUsernames.forEach(participant => {
+      if (partitionedId[currIndex] !== participant) {
+        throw new DataValidationError("participantUsername's are not present in id");
       }
-    } catch (error) {
-      throw new DataValidationError("createDate in id was unable to be parsed: " + JSON.stringify(error));
+      currIndex++;
+    })
+    validator.validate(convo.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
+    if (partitionedId[currIndex] !== IdFactory.dateToString(convo.createDate)) {
+      throw new DataValidationError("createDate in Id is not equal to object create createDate.")
     }
     // ---------------------------------------------------------------------------
 
     validator.validate(convo.status, "status").notUndefined().notNull().isStringInEnum(ConvoStatus);
     validator.validate(convo.title, "title").notUndefined().notNull().isString().notEmpty();
     ObjectBanStatus.validate(convo.banStatus);
+    validator.validate(convo.sourcedFrom, "sourcedFrom").notUndefined().notNull().isStringInEnum(ConvoSource);
+
+    if (convo.acceptedUserNames !== undefined) {
+      validator.validate(convo.acceptedUserNames, "acceptedUserNames").notNull().notEmpty();
+      // Todo: validate accepted usernames against source chat requests / participants if possible.
+    }
+
+    if (convo.rejectedUserNames !== undefined) {
+      validator.validate(convo.rejectedUserNames, "rejectedUserNames").notNull().notEmpty();
+      // Todo: validate rejected usernames against source chat requests if possible.
+    }
 
     if (convo.videoUrl !== undefined) {
       validator.validate(convo.videoUrl, "videoUrl").notNull().isString().notEmpty();
@@ -131,16 +165,41 @@ export class Convo {
     if (convo.tags !== undefined) {
       validator.validate(convo.tags, "tags").notNull();
     }
+
+    if (convo.status === ConvoStatus.NOT_ACCEPTED) {
+      if (convo.acceptedUserNames !== undefined) {
+        throw new DataValidationError("acceptedUsernames should NOT be defined when convo status is NOT_ACCEPTED")
+      }
+    }
+    if (convo.status ===  ConvoStatus.ACCEPTED) {
+      if (convo.acceptedUserNames === undefined) {
+        throw new DataValidationError("acceptedUsernames should be defined when convo status is ACCEPTED")
+      }
+      if (convo.acceptedUserNames.length !== convo.participantUsernames.length) {
+        throw new DataValidationError("not all users accepted convo yet status is ACCEPTED")
+      }
+      convo.acceptedUserNames.forEach(userName => {
+        if (!convo.participantUsernames.includes(userName)) {
+          throw new DataValidationError("acceptedUsernames does not include all participants")
+        }
+      })
+    }
   }
 
 }
 
+export enum ConvoSource {
+  GENERAL_CHAT_REQUEST = "General_Chat_Request",
+  VIEWPOINT_CHAT_REQUEST = "Viewpoint_Chat_Request"
+}
+
 export enum ConvoStatus {
-  NOT_ACCEPTED = "Not_Accepted",
-  PARTIALLY_ACCEPTED = "Partially_Accepted",
+  NOT_ACCEPTED = "Not_Accepted", // Occurs when a Convo is created by the system (e.g. live matching) and all users are prompted to respond
+  PARTIALLY_ACCEPTED = "Partially_Accepted", // Occurs when a recommendation provided to a user is accepted by only 1 of the users in the given recommendation
   ACCEPTED = "Accepted",
   IN_PROGRESS = "In_Progress",
   COMPLETED = "Completed",
-  PAUSED = "Paused",
-  CANCELED = "Canceled"
+  PAUSED = "Paused", // Occurs when a Convo that was in progress is paused
+  REJECTED = "Rejected", // Occurs when a Convo that is either not accepted or partially accepted is rejected.
+  CANCELED = "Canceled" // Occurs when a Convo that is in an accepted status is becomes canceled.
 }

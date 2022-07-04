@@ -1,7 +1,10 @@
 
-import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { Convo } from "../../objects/Convo";
+import { AttributeValue, DynamoDBClient, UpdateItemCommand, UpdateItemCommandInput } from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { Convo, ConvoStatus } from "../../objects/Convo";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
+import { InvalidParametersError, ObjectDoesNotExistError } from "../error";
+import { PaginatedResponse } from "../PaginatedResponse";
 import { Repository } from "../Repository";
 
 /**
@@ -98,72 +101,123 @@ export class ConvoRepository extends Repository<Convo> {
     queryLimit?: number;
   }) {
     const sortKeyValue = ConvoRepository.objectIdentifier;
+    const authorNameIndexes = [DYNAMODB_INDEXES.GSI2, DYNAMODB_INDEXES.GSI3, DYNAMODB_INDEXES.GSI4, DYNAMODB_INDEXES.GSI5];
+    for (let i = 0; i < authorNameIndexes.length; i++) {
+      const response = await super.getItemsByCompositeKey({
+        primaryKey: params.username,
+        sortKey: {
+          value: sortKeyValue,
+          conditionExpressionType: "BEGINS_WITH"
+        },
+        index: authorNameIndexes[i],
+        paginationToken: params.paginationToken,
+        queryLimit: params.queryLimit,
+        sortDirection: "DESCENDING"
+      });
+      if (response.data.length !== 0) {
+        response.queryHint = { index: authorNameIndexes[i] }
+        return response;
+      }
+    }
+    return new PaginatedResponse([]);
+  }
 
-    let index = DYNAMODB_INDEXES.GSI2;
-    const attempt1 = await super.getItemsByCompositeKey({
-      primaryKey: params.username,
-      sortKey: {
-        value: sortKeyValue,
-        conditionExpressionType: "BEGINS_WITH"
-      },
-      index: index,
-      paginationToken: params.paginationToken,
-      queryLimit: params.queryLimit
-    });
-    if (attempt1.data.length !== 0) {
-      attempt1.queryHint = { index: index! }
-      return attempt1;
+  async acceptConvo(convoId: string, username: string) {
+    let convo = await this.getById(convoId) as Convo | null;
+    if (convo === null) {
+      throw new ObjectDoesNotExistError("Convo does not exist");
     }
 
-    index = DYNAMODB_INDEXES.GSI3;
-    const attempt2 = await super.getItemsByCompositeKey({
-      primaryKey: params.username,
-      sortKey: {
-        value: sortKeyValue,
-        conditionExpressionType: "BEGINS_WITH"
-      },
-      index: index,
-      paginationToken: params.paginationToken,
-      queryLimit: params.queryLimit
-    });
-    if (attempt2.data.length !== 0) {
-      attempt2.queryHint = { index: index! }
-      return attempt2;
+    if (!convo.participantUsernames.includes(username)) {
+      throw new InvalidParametersError("The provided user is not a participant of the Convo");
+    }
+    if (convo.acceptedUserNames?.includes(username)) {
+      throw new InvalidParametersError("The provided user has already accepted the Convo");
     }
 
-    index = DYNAMODB_INDEXES.GSI4;
-    const attempt3 = await super.getItemsByCompositeKey({
-      primaryKey: params.username,
-      sortKey: {
-        value: sortKeyValue,
-        conditionExpressionType: "BEGINS_WITH"
-      },
-      index: index,
-      paginationToken: params.paginationToken,
-      queryLimit: params.queryLimit
-    });
-    if (attempt3.data.length !== 0) {
-      attempt3.queryHint = { index: index! }
-      return attempt3;
+    // Will create a new empty list if acceptedUserNames does not currently exist
+    let updateExpression = `SET acceptedUserNames = list_append(if_not_exists(acceptedUserNames, :empty_list), :usernameVal)`
+    + `, #statusKey = :statusVal`;
+    let expressionVals: Record<string, AttributeValue> = {
+      ":usernameVal": { L: [{ S: username }] },
+      ":empty_list": { L: [] },
+    };
+    let expressionNames = {
+      "#statusKey": 'status'
+    };
+
+    if (convo.acceptedUserNames && convo.acceptedUserNames.length + 1 === convo.participantUsernames.length) {
+      // Updates status of convo to ACCEPTED if all participants have accepted or partially accepted if this is the first user.
+      expressionVals[':statusVal'] = { S: ConvoStatus.ACCEPTED };
+    } else {
+      expressionVals[':statusVal'] = { S: ConvoStatus.PARTIALLY_ACCEPTED };
     }
 
-    index = DYNAMODB_INDEXES.GSI5;
-    const attempt4 = await super.getItemsByCompositeKey({
-      primaryKey: params.username,
-      sortKey: {
-        value: sortKeyValue,
-        conditionExpressionType: "BEGINS_WITH"
+    const updateParams: UpdateItemCommandInput = {
+      TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
+      Key: {
+        [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: convoId },
+        [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: this.createSortKey(convo) }
       },
-      index: index,
-      paginationToken: params.paginationToken,
-      queryLimit: params.queryLimit
-    });
-    if (attempt4.data.length !== 0) {
-      attempt4.queryHint = { index: index! }
-      return attempt4;
+      UpdateExpression: updateExpression,
+      ExpressionAttributeValues: expressionVals,
+      ExpressionAttributeNames: expressionNames,
+      ReturnValues: 'ALL_NEW'
     }
 
-    return null;
+    const response = await this.client.send(new UpdateItemCommand(updateParams));
+    return this.serializer.plainJsonToClass(this.itemType, unmarshall(response.Attributes!));
+  }
+
+  async rejectConvo(convoId: string, username: string) {
+    let convo = await this.getById(convoId) as Convo | null;
+    if (convo === null) {
+      throw new ObjectDoesNotExistError("Convo does not exist");
+    }
+
+    if (!convo.participantUsernames.includes(username)) {
+      throw new InvalidParametersError("The provided user is not a participant of the Convo");
+    }
+    if (convo.rejectedUserNames?.includes(username)) {
+      throw new InvalidParametersError("The provided user has already rejected the Convo");
+    }
+    if (convo.status === ConvoStatus.REJECTED || convo.status === ConvoStatus.CANCELED ) {
+      throw new InvalidParametersError("Cannot reject a Convo that has a status of REJECTED or CANCELED.");
+    }
+
+    // Will create a new empty list if rejectedUserNames does not currently exist
+    let updateExpression = `SET rejectedUserNames = list_append(if_not_exists(rejectedUserNames, :empty_list), :usernameVal)`
+    + `, #statusKey = :statusVal`;
+    let expressionVals: Record<string, AttributeValue> = {
+      ":usernameVal": { L: [{ S: username }] },
+      ":empty_list": { L: [] },
+    };
+    let expressionNames = {
+      "#statusKey": 'status'
+    };
+
+    if (convo.status === ConvoStatus.ACCEPTED) {
+      // When a user rejects a convo that has already become accepted the convo becomes CANCELED
+      expressionVals[':statusVal'] = { S: ConvoStatus.CANCELED };
+    } else {
+      // When a user rejects a convo that was not accepted then it becomes REJECTED
+      expressionVals[':statusVal'] = { S: ConvoStatus.REJECTED };
+    }
+
+    const updateParams: UpdateItemCommandInput = {
+      TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
+      Key: {
+        [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: convoId },
+        [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: this.createSortKey(convo) }
+      },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeValues: expressionVals,
+      ExpressionAttributeNames: expressionNames,
+      ReturnValues: 'ALL_NEW'
+    }
+
+    const response = await this.client.send(new UpdateItemCommand(updateParams));
+    return this.serializer.plainJsonToClass(this.itemType, unmarshall(response.Attributes!));
   }
 
 

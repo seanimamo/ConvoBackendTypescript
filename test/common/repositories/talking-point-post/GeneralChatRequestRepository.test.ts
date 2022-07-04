@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
-import { getDummyDistrict, getDummyGeneralChatRequest, getDummyTalkingPointPost, getDummyTalkingPointPostProps } from "../../../util/DummyFactory";
+import { getDummyDistrict, getDummyGeneralChatRequest, getDummyGeneralChatRequestProps, getDummyTalkingPointPost, getDummyTalkingPointPostProps } from "../../../util/DummyFactory";
 import { District } from "../../../../common/objects/District";
 import { ParentObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../../../../common/respositories/error";
 import { TalkingPointPost } from "../../../../common/objects/talking-point-post/TalkingPointPost";
@@ -8,6 +8,7 @@ import { TalkingPointPostRepository } from "../../../../common/respositories/tal
 import { DistrictRepository } from "../../../../common/respositories/district/DistrictRepository";
 import { GeneralChatRequestRepository } from "../../../../common/respositories/talking-point-post/GeneralChatRequestRepository";
 import { GeneralChatRequest } from "../../../../common/objects/talking-point-post/GeneralChatRequest";
+import { ConvoPreference } from "../../../../common/objects/enums";
 
 let v3Client: DynamoDBClient;
 let talkingPointRepo: TalkingPointPostRepository;
@@ -88,23 +89,30 @@ describe("GeneralChatRequestRepository", () => {
     async () => {
       await districtRepo.save(district);
       const talkingPoint1 = getDummyTalkingPointPost();
-      const talkingPoint2 = TalkingPointPost.builder(
-        {
-          ...getDummyTalkingPointPostProps(),
-          createDate: new Date('2022-01-02'),
-        }
-      )
+      const talkingPoint2 = TalkingPointPost.builder({
+        ...getDummyTalkingPointPostProps(),
+        createDate: new Date(talkingPoint1.createDate.getDate() + 1),
+      });
       await talkingPointRepo.save({ data: talkingPoint1 });
       await talkingPointRepo.save({ data: talkingPoint2 });
-
-      const chatRequest1 = getDummyGeneralChatRequest();
-      const chatRequest2 = getDummyGeneralChatRequest();
-      chatRequest2.id = "634636738";
-      const chatRequest3 = getDummyGeneralChatRequest();
-      chatRequest3.id = "2357034622";
-      const chatRequest4 = getDummyGeneralChatRequest();
-      chatRequest4.id = "1248590543";
-      chatRequest4.parentId = talkingPoint2.id
+      // create date is used in the id of the request so changing it creates a unique id.
+      const chatRequest1 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-01')
+      });
+      const chatRequest2 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-02')
+      });
+      const chatRequest3 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-03')
+      });
+      const chatRequest4 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-04'),
+        parentId: talkingPoint2.id
+      });
       await chatRequestRepo.save({ data: chatRequest1 });
       await chatRequestRepo.save({ data: chatRequest2 });
       await chatRequestRepo.save({ data: chatRequest3 });
@@ -124,14 +132,24 @@ describe("GeneralChatRequestRepository", () => {
     async () => {
       await districtRepo.save(district);
       await talkingPointRepo.save({ data: talkingPoint });
-      const chatRequest1 = getDummyGeneralChatRequest();
-      const chatRequest2 = getDummyGeneralChatRequest();
-      chatRequest2.id = "634636738";
-      const chatRequest3 = getDummyGeneralChatRequest();
-      chatRequest3.id = "2357034622";
-      const chatRequest4 = getDummyGeneralChatRequest();
-      chatRequest4.id = "1248590543";
-      chatRequest4.authorUserName = "someOtherUsrename11";
+      // create date is used in the id of the request so changing it creates a unique id.
+      const chatRequest1 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-01')
+      });
+      const chatRequest2 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-02')
+      });
+      const chatRequest3 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-03')
+      });
+      const chatRequest4 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-04'),
+        authorUserName: "someOtherUsername11"
+      });
       await chatRequestRepo.save({ data: chatRequest1 });
       await chatRequestRepo.save({ data: chatRequest2 });
       await chatRequestRepo.save({ data: chatRequest3 });
@@ -146,4 +164,70 @@ describe("GeneralChatRequestRepository", () => {
       expect(retrievedDistrict1Posts.data).toContainEqual(chatRequest3);
       expect(retrievedDistrict1Posts.data).not.toContainEqual(chatRequest4);
     });
+
+  test("getByTalkingPointPost() - filters by convo preference",
+    async () => {
+      await districtRepo.save(district);
+      await talkingPointRepo.save({ data: talkingPoint });
+      // create date is used in the id of the request so changing it creates a unique id.
+      const chatRequest1 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-01'),
+        parentId: talkingPoint.id,
+        convoPreference: ConvoPreference.CASUAL
+      });
+      const chatRequest2 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-02'),
+        parentId: talkingPoint.id,
+        convoPreference: ConvoPreference.CASUAL
+      });
+      const chatRequest3 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-03'),
+        parentId: talkingPoint.id,
+        convoPreference: ConvoPreference.DEBATE
+      });
+      const chatRequest4 = GeneralChatRequest.builder({
+        ...getDummyGeneralChatRequestProps(),
+        createDate: new Date('2022-01-04'),
+                parentId: talkingPoint.id,
+        convoPreference: ConvoPreference.NONE
+      });
+      await chatRequestRepo.save({ data: chatRequest1 });
+      await chatRequestRepo.save({ data: chatRequest2 });
+      await chatRequestRepo.save({ data: chatRequest3 });
+      await chatRequestRepo.save({ data: chatRequest4 });
+
+
+      // 7. list only general chat requests the user is interested in based on convo preference
+      const retrievedGeneralChatReqs1 = await chatRequestRepo.getByTalkingPointPost({
+        postId: talkingPoint.id,
+        convoPreference: ConvoPreference.CASUAL
+      });
+      expect(retrievedGeneralChatReqs1.data.length).toEqual(2);
+      expect(retrievedGeneralChatReqs1.data).toContainEqual(chatRequest1);
+      expect(retrievedGeneralChatReqs1.data).toContainEqual(chatRequest2);
+
+      const retrievedGeneralChatReqs2 = await chatRequestRepo.getByTalkingPointPost({
+        postId: talkingPoint.id,
+        convoPreference: ConvoPreference.DEBATE
+      });
+      expect(retrievedGeneralChatReqs2.data.length).toEqual(1);
+      expect(retrievedGeneralChatReqs2.data).toContainEqual(chatRequest3);
+
+      const retrievedGeneralChatReqs3 = await chatRequestRepo.getByTalkingPointPost({
+        postId: talkingPoint.id,
+        convoPreference: ConvoPreference.NONE
+      });
+      expect(retrievedGeneralChatReqs3.data.length).toEqual(1);
+      expect(retrievedGeneralChatReqs3.data).toContainEqual(chatRequest4);
+    });
+
+    test("getByAuthorUsername() - returns empty list when no results found", async () => {
+      await chatRequestRepo.save({ data: chatRequest, checkParentExistence: false });
+      const response = await chatRequestRepo.getByAuthorUsername({ username: "userWithNoChatReqs" });
+      expect(response.data).toHaveLength(0);
+    })
+
 });

@@ -1,12 +1,15 @@
 import 'reflect-metadata'; //required for class transformer to work;
 import { Expose, Type } from 'class-transformer';
-import { DataValidator } from '../util/DataValidator';
+import { DataValidationError, DataValidator } from '../util/DataValidator';
 import TransformDate from '../util/TransformDate';
 import { ViewMode } from './enums';
 import { ObjectBanStatus } from './ObjectBanStatus';
+import { IdFactory } from '../util/IdFactory';
+import { DistrictRepository } from '../respositories/district/DistrictRepository';
 
 export class District {
-    @Expose() title: string; // This is also the UUID for a district.
+    @Expose() id: string;
+    @Expose() title: string; // This is also the id for a district.
     @Expose() authorUsername: string;
     @TransformDate()
     @Expose() createDate: Date;
@@ -28,7 +31,9 @@ export class District {
     @Expose() description?: string;
     @Expose() thumbnail?: string;
 
-    constructor(title: string,
+    constructor(
+        id: string | null,
+        title: string,
         authorUsername: string,
         createDate: Date,
         banStatus: ObjectBanStatus,
@@ -43,7 +48,11 @@ export class District {
         tertiaryCategory?: Category,
         description?: string,
         thumbnail?: string) {
-
+        if (id === null) {
+            this.id = District.createId({ title });
+        } else {
+            this.id = id;
+        }
         this.title = title;
         this.authorUsername = authorUsername;
         this.createDate = createDate;
@@ -65,6 +74,7 @@ export class District {
 
     static builder(
         props: {
+            id: string | null,
             title: string,
             authorUsername: string,
             createDate: Date,
@@ -83,6 +93,7 @@ export class District {
         }
     ) {
         return new District(
+            props.id,
             props.title,
             props.authorUsername,
             props.createDate,
@@ -101,9 +112,22 @@ export class District {
         )
     }
 
+    static createId(params: { title: string }) {
+        return IdFactory.createId([DistrictRepository.objectIdentifier, params.title]);
+    }
+
     static validate(district: District) {
         // TODO: Grab validator from singleton source
         const validator = new DataValidator();
+
+        validator.validate(district.id, "id").notUndefined().notNull().isString().notEmpty();
+        const partitionedId = IdFactory.parseId(district.id);
+        if (partitionedId[0] !== DistrictRepository.objectIdentifier) {
+            throw new DataValidationError("DistrictRepository objectIdentifier is not first value in provided id");
+        }
+        if (partitionedId[1] !== district.title) {
+            throw new DataValidationError("title is not second value in provided id");
+        }
         validator.validate(district.title, "title").notUndefined().notNull().isString().notEmpty();
         validator.validate(district.authorUsername, "authorUsername").notUndefined().notNull().isString().notEmpty();
         validator.validate(district.createDate, 'createDate').notUndefined().notNull().isDate().dateIsNotInFuture();

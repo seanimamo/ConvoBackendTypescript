@@ -7,11 +7,13 @@ import { TalkingPointPostRepository } from "./TalkingPointPostRepository";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 
 export class GeneralChatRequestRepository extends Repository<GeneralChatRequest> {
-  static objectIdentifier = "GENERAL_CHAT_REQ";
+  static objectIdentifier = "CHAT_REQ_GENERAL";
   #talkingPointPostRepo: TalkingPointPostRepository;
 
+  // Note that create date is used in the id. 
+  // In reality, since ISO date time is used a collision would only happen if another request was created with the same timestamp down to the millisecond.
   createPartitionKey(object: GeneralChatRequest): string {
-    return object.id;
+    return object.id; 
   }
 
   createSortKey(object: GeneralChatRequest): string {
