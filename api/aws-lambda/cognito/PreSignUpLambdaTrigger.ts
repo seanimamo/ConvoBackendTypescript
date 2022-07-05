@@ -5,7 +5,7 @@ import { UserBanStatus, UserBanType } from "../../../common/objects/user/UserBan
 import { UserPassword } from "../../../common/objects/user/UserPassword";
 import { UniqueObjectAlreadyExistsError } from "../../../common/respositories/error";
 import { UserRepository } from "../../../common/respositories/user/UserRepository";
-import { DataValidator, InvalidDataTypeError } from '../../../common/util/DataValidator';
+import { DataValidationError, DataValidator, InvalidDataTypeError } from '../../../common/util/DataValidator';
 import { InvalidRequestException } from "../../error";
 
 /**
@@ -46,7 +46,7 @@ export class PreSignUpLambdaTrigger {
       this.dataValidator.validate(event.request.clientMetadata!['rawPassword'], 'clientMetadata.rawPassword').notUndefined().notNull().isString().notEmpty()
       this.dataValidator.validate(event.request.clientMetadata!['hideRealName'], 'clientMetadata.hideRealName').notUndefined().notNull().isString().notEmpty().isBoolean();
     } catch (error) {
-      if (error instanceof InvalidDataTypeError) {
+      if (error instanceof InvalidDataTypeError || error instanceof DataValidationError) {
         throw new InvalidRequestException(`Request has one or more missing or invalid attributes: ${error.message}`);
       }
     }
