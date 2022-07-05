@@ -293,7 +293,7 @@ describe("mock End To End", () => {
      * 
      * UI Location: Convo User Dashboard (User 1's dashboard)
      */
-     const rejectedConvo = await convoRepository.acceptConvo(acceptedConvo.id, user3.userName);
+     const rejectedConvo = await convoRepository.rejectConvo(acceptedConvo.id, user1.userName);
      expect(rejectedConvo.rejectedUserNames).toBeDefined();
      expect(rejectedConvo.rejectedUserNames).toHaveLength(1);
      expect(rejectedConvo.rejectedUserNames).toContainEqual(user1.userName);

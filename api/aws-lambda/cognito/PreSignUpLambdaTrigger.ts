@@ -71,7 +71,6 @@ export class PreSignUpLambdaTrigger {
       banStatus: {
         type: UserBanType.NONE
       },
-      birthDate: new Date('2000-04-11T10:20:30Z'),
       metrics: {
         convoScore: 0,
         followerCount: 0,

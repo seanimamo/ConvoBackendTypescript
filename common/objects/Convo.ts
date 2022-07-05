@@ -7,7 +7,14 @@ import { DataValidationError, DataValidator } from '../util/DataValidator';
 import TransformDate from '../util/TransformDate';
 import { IdFactory } from '../util/IdFactory';
 import { ConvoRepository } from '../respositories/talking-point-post/ConvoRepository';
+import { ObjectId } from '../ObjectId';
 
+export class ConvoId extends ObjectId {
+  constructor(params: {createDate: Date, participantUsernames: string[]}) {
+    super();
+    super._id = ObjectId.createId([ConvoRepository.objectIdentifier, ...params.participantUsernames, params.createDate]);
+  }
+}
 
 export class Convo {
   @Expose() id: string;
