@@ -8,16 +8,21 @@ import TransformDate from '../util/TransformDate';
 import { IdFactory } from '../util/IdFactory';
 import { ConvoRepository } from '../respositories/talking-point-post/ConvoRepository';
 import { ObjectId } from '../ObjectId';
+import TransformObjectId from '../util/TransformObjectId';
 
 export class ConvoId extends ObjectId {
-  constructor(params: {createDate: Date, participantUsernames: string[]}) {
-    super();
-    super._id = ObjectId.createId([ConvoRepository.objectIdentifier, ...params.participantUsernames, params.createDate]);
+  public static readonly IDENTIFIER = ConvoRepository.objectIdentifier;
+
+  constructor(params: { participantUsernames: string[], createDate: Date } | string) {
+    typeof (params) === 'string'
+      ? super(ConvoId.IDENTIFIER, params)
+      : super(ConvoId.IDENTIFIER, [...params.participantUsernames, params.createDate]);
   }
 }
 
 export class Convo {
-  @Expose() id: string;
+  @TransformObjectId(ConvoId)
+  @Expose() id: ConvoId;
   @Expose() status: ConvoStatus;
   @TransformDate()
   @Expose() createDate: Date;
@@ -41,11 +46,7 @@ export class Convo {
   @Expose() scheduledStartDate?: Date;
   @Expose() tags?: string[];
 
-  static createId(params: {createDate: Date, participantUsernames: string[]}) {
-    return IdFactory.createId([ConvoRepository.objectIdentifier, ...params.participantUsernames, params.createDate]);
-  }
-
-  constructor(id: string | null,
+  constructor(id: ConvoId | null,
     status: ConvoStatus,
     createDate: Date,
     title: string,
@@ -62,7 +63,7 @@ export class Convo {
     tags?: string[]) {
 
     if (id === null) {
-      this.id = Convo.createId({createDate, participantUsernames});
+      this.id = new ConvoId({ createDate, participantUsernames });
     } else {
       this.id = id;
     }
@@ -83,7 +84,7 @@ export class Convo {
   }
 
   static builder(params: {
-    id: string | null,
+    id: ConvoId | null,
     status: ConvoStatus,
     createDate: Date,
     title: string,
@@ -122,12 +123,12 @@ export class Convo {
     // TODO: Grab validator from singleton source
     const validator: DataValidator = new DataValidator();
 
-    // ------------------------------ Id validation ------------------------------
-    validator.validate(convo.id, "id").notUndefined().notNull().isString().notEmpty();
+    // START -------- Id Validation --------
+    validator.validate(convo.id, "id").notUndefined().notNull();
     validator.validate(convo.participantUsernames, "participantUsernames").notUndefined().notNull().notEmpty();
-    const partitionedId = IdFactory.parseId(convo.id);
+    const partitionedId = ObjectId.parseId(convo.id.getValue());
     if (partitionedId[0] !== ConvoRepository.objectIdentifier) {
-      throw new DataValidationError("ConvoRepository objectIdentifier is not first value in provided id");
+      throw new DataValidationError("objectIdentifier is not first value in provided id");
     }
     let currIndex = 1;
     convo.participantUsernames.forEach(participant => {
@@ -140,7 +141,8 @@ export class Convo {
     if (partitionedId[currIndex] !== IdFactory.dateToString(convo.createDate)) {
       throw new DataValidationError("createDate in Id is not equal to object create createDate.")
     }
-    // ---------------------------------------------------------------------------
+    // END -------- Id Validation --------
+
 
     validator.validate(convo.status, "status").notUndefined().notNull().isStringInEnum(ConvoStatus);
     validator.validate(convo.title, "title").notUndefined().notNull().isString().notEmpty();
@@ -178,7 +180,7 @@ export class Convo {
         throw new DataValidationError("acceptedUsernames should NOT be defined when convo status is NOT_ACCEPTED")
       }
     }
-    if (convo.status ===  ConvoStatus.ACCEPTED) {
+    if (convo.status === ConvoStatus.ACCEPTED) {
       if (convo.acceptedUserNames === undefined) {
         throw new DataValidationError("acceptedUsernames should be defined when convo status is ACCEPTED")
       }

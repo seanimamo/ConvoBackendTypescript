@@ -44,7 +44,7 @@ export class PreSignUpLambdaTrigger {
       this.dataValidator.validate(event.request.userAttributes['custom:lastName'], 'userAttributes[custom:lastName]').notUndefined().notNull().isString().notEmpty();
       this.dataValidator.validate(event.request.clientMetadata, 'clientMetadata').notUndefined().notNull();
       this.dataValidator.validate(event.request.clientMetadata!['rawPassword'], 'clientMetadata.rawPassword').notUndefined().notNull().isString().notEmpty()
-      this.dataValidator.validate(event.request.clientMetadata!['hideRealName'], 'clientMetadata.hideRealName').notUndefined().notNull().isString().notEmpty().isBoolean();
+      this.dataValidator.validate(event.request.clientMetadata!['hideRealName'], 'clientMetadata.hideRealName').notUndefined().notNull().isString().notEmpty();
     } catch (error) {
       if (error instanceof InvalidDataTypeError || error instanceof DataValidationError) {
         throw new InvalidRequestException(`Request has one or more missing or invalid attributes: ${error.message}`);

@@ -1,7 +1,7 @@
 
 import { AttributeValue, DynamoDBClient, UpdateItemCommand, UpdateItemCommandInput } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
-import { Convo, ConvoStatus } from "../../objects/Convo";
+import { Convo, ConvoId, ConvoStatus } from "../../objects/Convo";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 import { InvalidParametersError, ObjectDoesNotExistError } from "../error";
 import { PaginatedResponse } from "../PaginatedResponse";
@@ -36,7 +36,7 @@ export class ConvoRepository extends Repository<Convo> {
   static objectIdentifier = "CONVO";
 
   createPartitionKey(object: Convo): string {
-    return object.id;
+    return object.id.getValue();
   }
 
   createSortKey(object: Convo): string {
@@ -80,9 +80,9 @@ export class ConvoRepository extends Repository<Convo> {
   /**
    * Retrieve a single Talking Point Post by its unique id.
    */
-  async getById(id: string) {
+  async getById(id: ConvoId) {
     return await super.getUniqueItemByCompositeKey({
-      primaryKey: id,
+      primaryKey: id.getValue(),
       sortKey: {
         value: ConvoRepository.objectIdentifier,
         conditionExpressionType: "BEGINS_WITH",
@@ -122,8 +122,8 @@ export class ConvoRepository extends Repository<Convo> {
     return new PaginatedResponse([]);
   }
 
-  async acceptConvo(convoId: string, username: string) {
-    let convo = await this.getById(convoId) as Convo | null;
+  async acceptConvo(id: ConvoId, username: string) {
+    let convo = await this.getById(id) as Convo | null;
     if (convo === null) {
       throw new ObjectDoesNotExistError("Convo does not exist");
     }
@@ -156,7 +156,7 @@ export class ConvoRepository extends Repository<Convo> {
     const updateParams: UpdateItemCommandInput = {
       TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
       Key: {
-        [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: convoId },
+        [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: id.getValue() },
         [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: this.createSortKey(convo) }
       },
       UpdateExpression: updateExpression,
@@ -169,8 +169,8 @@ export class ConvoRepository extends Repository<Convo> {
     return this.serializer.plainJsonToClass(this.itemType, unmarshall(response.Attributes!));
   }
 
-  async rejectConvo(convoId: string, username: string) {
-    let convo = await this.getById(convoId) as Convo | null;
+  async rejectConvo(id: ConvoId, username: string) {
+    let convo = await this.getById(id) as Convo | null;
     if (convo === null) {
       throw new ObjectDoesNotExistError("Convo does not exist");
     }
@@ -207,7 +207,7 @@ export class ConvoRepository extends Repository<Convo> {
     const updateParams: UpdateItemCommandInput = {
       TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
       Key: {
-        [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: convoId },
+        [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: id.getValue() },
         [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: this.createSortKey(convo) }
       },
       UpdateExpression: updateExpression,

@@ -14,35 +14,35 @@ export class DataValidator {
 
   isString() {
     if (typeof this.data !== 'string') {
-      throw new DataValidationError(`data is not a string`);
+      throw new DataValidationError(`${this.dataLabel} is not a string`);
     }
     return this;
   }
 
   isNumber() {
     if (typeof this.data !== 'number') {
-      throw new DataValidationError(`data is not a number`);
+      throw new DataValidationError(`${this.dataLabel} is not a number`);
     }
     return this;
   }
 
   isBoolean() {
     if (typeof this.data !== 'boolean') {
-      throw new DataValidationError(`data is not a boolean`);
+      throw new DataValidationError(`${this.dataLabel} is not a boolean`);
     }
     return this;
   }
 
   isDate() {
     if (!(this.data instanceof Date)) {
-      throw new DataValidationError(`data is not a Date`);
+      throw new DataValidationError(`${this.dataLabel} is not a Date`);
     }
     return this;
   }
 
   isClass<T>(classType: ClassConstructor<T>) {
     if (!(this.data instanceof classType)) {
-      throw new DataValidationError('invalid class type');
+      throw new DataValidationError(`${this.dataLabel} is an invalid class type`);
     }
     return this;
   }

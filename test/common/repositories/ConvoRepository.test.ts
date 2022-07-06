@@ -4,7 +4,7 @@ import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
 import { getDummyConvo, getDummyConvoProps } from "../../util/DummyFactory";
 import { InvalidParametersError, ObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../../../common/respositories/error";
 import { ConvoRepository } from "../../../common/respositories/talking-point-post/ConvoRepository";
-import { Convo, ConvoStatus } from "../../../common/objects/Convo";
+import { Convo, ConvoId, ConvoStatus } from "../../../common/objects/Convo";
 
 let v3Client: DynamoDBClient;
 let convoRepository: ConvoRepository;
@@ -58,7 +58,7 @@ describe("ConvoRepository", () => {
 
   test("getById() - Getting a nonexistant convo returns null", async () => {
     await convoRepository.save(convo);
-    await expect(convoRepository.getById(convo.id + 'asd')).resolves.toBeNull();
+    await expect(convoRepository.getById(new ConvoId('asdf'))).resolves.toBeNull();
   });
 
   test("getByAuthorUsername() - succeeds retrieving by all 4 participants", async () => {
