@@ -1,4 +1,4 @@
-import { ObjectId } from "../../../common/ObjectId";
+import { ObjectId } from "../../../common/objects/ObjectId";
 import { Convo, ConvoId } from "../../../common/objects/Convo";
 import { ClassSerializer } from "../../../common/util/ClassSerializer";
 import { DataValidationError } from "../../../common/util/DataValidator";

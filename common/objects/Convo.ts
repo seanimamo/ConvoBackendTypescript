@@ -7,7 +7,7 @@ import { DataValidationError, DataValidator } from '../util/DataValidator';
 import TransformDate from '../util/TransformDate';
 import { IdFactory } from '../util/IdFactory';
 import { ConvoRepository } from '../respositories/convo/ConvoRepository';
-import { ObjectId } from '../ObjectId';
+import { ObjectId } from './ObjectId';
 import TransformObjectId from '../util/TransformObjectId';
 
 export class ConvoId extends ObjectId {

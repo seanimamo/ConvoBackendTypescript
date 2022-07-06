@@ -1,6 +1,6 @@
 // TransformDate.ts
 import { ClassConstructor, Transform } from "class-transformer";
-import { ObjectId } from "../ObjectId";
+import { ObjectId } from "../objects/ObjectId";
 
 // Sourced from: https://stackoverflow.com/questions/59899045/plaintoclass-does-not-convert-a-date-to-string
 // (Note I made a slight modification) based on a comment,
