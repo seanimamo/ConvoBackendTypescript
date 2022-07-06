@@ -6,7 +6,7 @@ import { ViewPointChatRequest } from './talking-point-post/ViewPointChatRequest'
 import { DataValidationError, DataValidator } from '../util/DataValidator';
 import TransformDate from '../util/TransformDate';
 import { IdFactory } from '../util/IdFactory';
-import { ConvoRepository } from '../respositories/talking-point-post/ConvoRepository';
+import { ConvoRepository } from '../respositories/convo/ConvoRepository';
 import { ObjectId } from '../ObjectId';
 import TransformObjectId from '../util/TransformObjectId';
 

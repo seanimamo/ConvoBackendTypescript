@@ -3,7 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
 import { getDummyConvo, getDummyConvoProps } from "../../util/DummyFactory";
 import { InvalidParametersError, ObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../../../common/respositories/error";
-import { ConvoRepository } from "../../../common/respositories/talking-point-post/ConvoRepository";
+import { ConvoRepository } from "../../../common/respositories/convo/ConvoRepository";
 import { Convo, ConvoId, ConvoStatus } from "../../../common/objects/Convo";
 
 let v3Client: DynamoDBClient;

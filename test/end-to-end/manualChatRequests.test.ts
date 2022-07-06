@@ -9,7 +9,7 @@ import { GeneralChatRequest } from "../../common/objects/talking-point-post/Gene
 import { TalkingPointPost } from "../../common/objects/talking-point-post/TalkingPointPost";
 import { User } from "../../common/objects/user/User";
 import { DistrictRepository } from "../../common/respositories/district/DistrictRepository";
-import { ConvoRepository } from "../../common/respositories/talking-point-post/ConvoRepository";
+import { ConvoRepository } from "../../common/respositories/convo/ConvoRepository";
 import { GeneralChatRequestRepository } from "../../common/respositories/talking-point-post/GeneralChatRequestRepository";
 
 import { TalkingPointPostRepository } from "../../common/respositories/talking-point-post/TalkingPointPostRepository";
