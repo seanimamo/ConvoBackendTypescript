@@ -8,7 +8,7 @@ import { UserRepository } from "../../../../../common/respositories/user/UserRep
 import { ClassSerializer } from "../../../../../common/util/ClassSerializer";
 import { DataValidationError, DataValidator } from "../../../../../common/util/DataValidator";
 import { InvalidRequestException } from "../../../../error";
-import { CreateDistrictRequest } from "../../../../model/resources/district/createDistrictRequest";
+import { CreateDistrictRequest } from "../../../../model/resources/district/CreateDistrictRequest";
 
 export class CreateDistrictHandler {
   dataValidator: DataValidator;

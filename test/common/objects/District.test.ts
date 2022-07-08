@@ -1,7 +1,8 @@
 import { ClassSerializer } from "../../../common/util/ClassSerializer";
-import { District } from "../../../common/objects/District";
+import { District, DistrictId } from "../../../common/objects/District";
 import { getDummyDistrict } from "../../util/DummyFactory";
 import { DataValidationError } from "../../../common/util/DataValidator";
+import { ObjectId } from "../../../common/objects/ObjectId";
 
 describe("Test District", () => {
     const district = getDummyDistrict();
@@ -20,15 +21,23 @@ describe("Test District", () => {
       expect(districtDeserialized).toEqual(district);
     });
     
-    test("validate succesfully validates a valid object", () => {
+    test("validate() - succesfully validates a valid object", () => {
       expect(District.validate(district)).toBeUndefined();
     });
   
-    test("validate throws error with invalid object", () => {
+    test("validate() - throws error with invalid object", () => {
       const districtPlainJson = classSerializer.classToPlainJson(district);
       districtPlainJson['title'] = undefined;
       const districtClassFromPlainJson = classSerializer.plainJsonToClass(District, districtPlainJson);
       expect(() => District.validate(districtClassFromPlainJson)).toThrowError(DataValidationError);
+    });
+
+    test("DistrictId - is formatted as expected", () => {
+      const params = {title: 'TestDistrict'}
+      const districtId = new DistrictId(params);
+      const parsedId = ObjectId.parseId(districtId);
+      expect(parsedId[0]).toStrictEqual(DistrictId.IDENTIFIER);
+      expect(parsedId[1]).toStrictEqual(params.title);
     });
   
   });

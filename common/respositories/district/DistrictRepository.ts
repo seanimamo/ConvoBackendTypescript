@@ -1,6 +1,6 @@
 import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Repository } from "../Repository";
-import { District } from "../../objects/District";
+import { District, DistrictId } from "../../objects/District";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 
 /**
@@ -21,15 +21,14 @@ import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
  * 
  */
 export class DistrictRepository extends Repository<District> {
-    static objectIdentifier = "DISTRICT";
 
     createPartitionKey = (district: District) => {
-        return district.id;
+        return district.id.getValue();
     }
 
     createSortKey = (district: District) => {
         return [
-            DistrictRepository.objectIdentifier,
+            DistrictId.IDENTIFIER,
             district.postCount
         ].join(Repository.compositeKeyDelimeter);
     }
@@ -42,7 +41,7 @@ export class DistrictRepository extends Repository<District> {
         District.validate(district);
 
         const items: Record<string, AttributeValue> = {};
-        items[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: DistrictRepository.objectIdentifier };
+        items[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: DistrictId.IDENTIFIER };
         items[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: district.title };
         items[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: district.authorUsername };
         items[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(district) };
@@ -52,9 +51,9 @@ export class DistrictRepository extends Repository<District> {
 
     async getByTitle(title: string) {
         return await super.getUniqueItemByCompositeKey({
-            primaryKey: District.createId({title}),
+            primaryKey: new DistrictId({title}).getValue(),
             sortKey: {
-                value: DistrictRepository.objectIdentifier,
+                value: DistrictId.IDENTIFIER,
                 conditionExpressionType: "BEGINS_WITH",
             },
         });
@@ -68,7 +67,7 @@ export class DistrictRepository extends Repository<District> {
         queryLimit?: number;
     }) {
         return await super.getItemsByCompositeKey({
-            primaryKey: DistrictRepository.objectIdentifier,
+            primaryKey: DistrictId.IDENTIFIER,
             index: DYNAMODB_INDEXES.GSI1,
             paginationToken: params?.paginationToken,
             queryLimit: params?.queryLimit,
@@ -87,7 +86,7 @@ export class DistrictRepository extends Repository<District> {
         return await super.getItemsByCompositeKey({
             primaryKey: params.username,
             sortKey: {
-                value: DistrictRepository.objectIdentifier,
+                value: DistrictId.IDENTIFIER,
                 conditionExpressionType: "BEGINS_WITH"
             },
             index: DYNAMODB_INDEXES.GSI2,

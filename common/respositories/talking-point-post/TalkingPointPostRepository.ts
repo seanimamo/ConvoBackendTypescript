@@ -4,8 +4,10 @@ import { DistrictRepository } from "../district/DistrictRepository";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 import { Repository } from "../Repository";
 import { ParentObjectDoesNotExistError } from "../error";
-import { TalkingPointPost } from "../../objects/talking-point-post/TalkingPointPost";
+import { TalkingPointPost, TalkingPointPostId } from "../../objects/talking-point-post/TalkingPointPost";
 import { ObjectBanType } from "../../objects/ObjectBanStatus";
+import { ObjectId } from "../../objects/ObjectId";
+import { DistrictId } from "../../objects/District";
 
 
 /**
@@ -72,15 +74,14 @@ import { ObjectBanType } from "../../objects/ObjectBanStatus";
  * 
  */
 export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
-  static objectIdentifier = "POST_TALKING_POINT";
   #districtRepository: DistrictRepository;
 
   createPartitionKey(object: TalkingPointPost): string {
-    return TalkingPointPost.createId(object);
+    return object.id.getValue();
   }
 
   createSortKey(object: TalkingPointPost): string {
-    return [TalkingPointPostRepository.objectIdentifier,
+    return [TalkingPointPostId.IDENTIFIER,
     object.viewMode, object.banStatus.type, object.metrics.absoluteScore,
     ].join(Repository.compositeKeyDelimeter);
   }
@@ -98,19 +99,20 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
       params.checkParentExistence = true;
     }
 
-    if (params.data.parentType !== ParentType.DISTRICT) {
+    if (ObjectId.getIdentifier(params.data.parentId) !== DistrictId.IDENTIFIER) {
       throw new Error("General Chat Requests can only be parented under a district")
     }
 
     if (params.checkParentExistence) {
-      const existingDistrict = await this.#districtRepository.getByTitle(params.data.parentId);
+      // TODO: add logic to get the title from a DistrictId without having to manually parse
+      const existingDistrict = await this.#districtRepository.getByTitle(ObjectId.parseId(params.data.parentId)[1]);
       if (existingDistrict == null) {
         throw new ParentObjectDoesNotExistError();
       }
     }
 
     const gsiAttributes: Record<string, AttributeValue> = {}
-    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: params.data.parentId };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: params.data.parentId.getValue() };
     gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(params.data) };
     gsiAttributes[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: params.data.authorUserName };
     gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(params.data) };
@@ -141,11 +143,11 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
 
 
   // Retrieve a single Talking Point Post by its unique id.
-  async getById(chatRequestId: string) {
+  async getById(id: TalkingPointPostId) {
     return await super.getUniqueItemByCompositeKey({
-      primaryKey: chatRequestId,
+      primaryKey: id.getValue(),
       sortKey: {
-        value: TalkingPointPostRepository.objectIdentifier,
+        value: TalkingPointPostId.IDENTIFIER,
         conditionExpressionType: "BEGINS_WITH",
       },
     });
@@ -160,16 +162,16 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     queryLimit?: number;
   }) {
 
-    let sortKeyValue = TalkingPointPostRepository.objectIdentifier;
+    let sortKeyValue = TalkingPointPostId.IDENTIFIER;
     if (params.viewMode) {
-      sortKeyValue = [sortKeyValue, params.viewMode].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, params.viewMode].join(TalkingPointPostId.IDENTIFIER);
     }
     if (params.banType) {
-      sortKeyValue = [sortKeyValue, params.banType].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, params.banType].join(TalkingPointPostId.IDENTIFIER);
     }
 
     return await super.getItemsByCompositeKey({
-      primaryKey: params.title,
+      primaryKey: new DistrictId({title:params.title}).getValue(),
       sortKey: {
         value: sortKeyValue,
         conditionExpressionType: "BEGINS_WITH"
@@ -190,12 +192,12 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     queryLimit?: number;
   }) {
 
-    let sortKeyValue = TalkingPointPostRepository.objectIdentifier;
+    let sortKeyValue = TalkingPointPostId.IDENTIFIER;
     if (params.viewMode) {
-      sortKeyValue = [sortKeyValue, params.viewMode].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, params.viewMode].join(TalkingPointPostId.IDENTIFIER);
     }
     if (params.banType) {
-      sortKeyValue = [sortKeyValue, params.banType].join(TalkingPointPostRepository.objectIdentifier);
+      sortKeyValue = [sortKeyValue, params.banType].join(TalkingPointPostId.IDENTIFIER);
     }
 
     return await super.getItemsByCompositeKey({

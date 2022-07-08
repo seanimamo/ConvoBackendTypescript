@@ -3,7 +3,7 @@ module.exports = {
   roots: ['<rootDir>/test'],
   testMatch: ['**/*.test.ts'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest'
+    '^.+\\.(t|j)sx?$': ['@swc-node/jest'],
   },
   setupFiles: ["./setupJestDynalite.js"],
 };

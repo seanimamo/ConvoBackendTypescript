@@ -45,11 +45,21 @@ export abstract class ObjectId {
     }
   }
 
-  static parseId(id: string) {
+  static parseId(id: string | ObjectId) {
+    if (id instanceof ObjectId) {
+      return id.getValue().split(ObjectId.ID_DELIMETER);
+    } 
     return id.split(ObjectId.ID_DELIMETER);
   }
 
   static dateToString(date: Date) {
     return date.toISOString();
+  }
+
+  static getIdentifier(id: string | ObjectId) {
+    if (id instanceof ObjectId) {
+      return ObjectId.parseId(id.getValue())[0];
+    } 
+    return ObjectId.parseId(id)[0];
   }
 }

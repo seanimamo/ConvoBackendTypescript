@@ -1,7 +1,8 @@
 import { getDummyGeneralChatRequest } from "../../../util/DummyFactory";
-import { GeneralChatRequest } from "../../../../common/objects/talking-point-post/GeneralChatRequest";
+import { GeneralChatRequest, GeneralChatRequestId } from "../../../../common/objects/talking-point-post/GeneralChatRequest";
 import { ClassSerializer } from "../../../../common/util/ClassSerializer";
 import { DataValidationError } from "../../../../common/util/DataValidator";
+import { ObjectId } from "../../../../common/objects/ObjectId";
 
 describe("Test General Chat Request ", () => {
   const chatRequest: GeneralChatRequest = getDummyGeneralChatRequest();
@@ -26,10 +27,18 @@ describe("Test General Chat Request ", () => {
 
   test("validate throws error with invalid object", () => {
     const chatRequestPlainJson = classSerializer.classToPlainJson(chatRequest);
-    chatRequestPlainJson['parentType'] = "somethingNotInTheParentTypeEnum";
-    const chatRequestClassFromPlainJson = classSerializer.plainJsonToClass(GeneralChatRequest, chatRequestPlainJson);
-    expect(() => GeneralChatRequest.validate(chatRequestClassFromPlainJson)).toThrowError(DataValidationError);
+    chatRequestPlainJson['id'] = GeneralChatRequestId.IDENTIFIER + '#anINvalidId';
+    const chatRequestFromJson = classSerializer.plainJsonToClass(GeneralChatRequest, chatRequestPlainJson)
+    expect(() => GeneralChatRequest.validate(chatRequestFromJson)).toThrowError(DataValidationError);
   });
 
+  test("GeneralChatRequestId - is formatted as expected", () => {
+    const params = {authorUserName: 'testUser', createDate: new Date()}
+    const id = new GeneralChatRequestId(params);
+    const parsedId = ObjectId.parseId(id);
+    expect(parsedId[0]).toStrictEqual(GeneralChatRequestId.IDENTIFIER);
+    expect(parsedId[1]).toStrictEqual(params.authorUserName);
+    expect(parsedId[2]).toStrictEqual(ObjectId.dateToString(params.createDate));
+  });
 
 });

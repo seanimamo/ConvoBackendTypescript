@@ -2,15 +2,26 @@ import 'reflect-metadata'; //required for class transformer to work;
 import { Expose } from "class-transformer";
 import { DataValidationError, DataValidator } from "../../util/DataValidator";
 import TransformDate from "../../util/TransformDate";
-import { ConvoPreference, ParentType } from "../enums";
-import { GeneralChatRequestRepository } from '../../respositories/talking-point-post/GeneralChatRequestRepository';
-import { IdFactory } from '../../util/IdFactory';
+import { ConvoPreference } from "../enums";
+import { ObjectId } from '../ObjectId';
+import TransformObjectId from '../../util/TransformObjectId';
+
+export class GeneralChatRequestId extends ObjectId {
+  public static readonly IDENTIFIER = "CHAT_REQ_GENERAL";
+
+  constructor(params: { authorUserName: string, createDate: Date } | string) {
+      typeof (params) === 'string'
+          ? super(GeneralChatRequestId.IDENTIFIER, params)
+          : super(GeneralChatRequestId.IDENTIFIER, [params.authorUserName, params.createDate]);
+  }
+}
 
 // A Request submitted to auto match with anyone over a Talking Point Post (No viewpoint)
 export class GeneralChatRequest {
-  @Expose() readonly id: string;
-  @Expose() parentId: string;
-  @Expose() parentType: ParentType;
+  @TransformObjectId()
+  @Expose() readonly id: GeneralChatRequestId;
+  @TransformObjectId()
+  @Expose() parentId: ObjectId;
   @TransformDate()
   @Expose() readonly createDate: Date;
   @Expose() readonly authorUserName: string;
@@ -21,9 +32,8 @@ export class GeneralChatRequest {
   @Expose() chatReason?: string;
 
   constructor(
-    id: string | null,
-    parentId: string,
-    parentType: ParentType,
+    id: GeneralChatRequestId | null,
+    parentId: ObjectId,
     createDate: Date,
     authorUserName: string,
     convoPreference: ConvoPreference,
@@ -32,12 +42,11 @@ export class GeneralChatRequest {
     chatReason?: string,
   ) {
     if (id === null) {
-      this.id = GeneralChatRequest.createId({ authorUserName, createDate });
+      this.id = new GeneralChatRequestId({ authorUserName, createDate });
     } else {
       this.id = id;
     }
     this.parentId = parentId;
-    this.parentType = parentType;
     this.createDate = createDate;
     this.authorUserName = authorUserName;
     this.convoPreference = convoPreference;
@@ -46,14 +55,9 @@ export class GeneralChatRequest {
     this.chatReason = chatReason;
   }
 
-  static createId(params: { authorUserName: string, createDate: Date }) {
-    return IdFactory.createId([GeneralChatRequestRepository.objectIdentifier, params.authorUserName, params.createDate]);
-  }
-
   static builder(props: {
-    id: string | null,
-    parentId: string,
-    parentType: ParentType,
+    id: GeneralChatRequestId | null,
+    parentId: ObjectId,
     createDate: Date,
     authorUserName: string,
     convoPreference: ConvoPreference,
@@ -64,7 +68,6 @@ export class GeneralChatRequest {
     return new GeneralChatRequest(
       props.id,
       props.parentId,
-      props.parentType,
       props.createDate,
       props.authorUserName,
       props.convoPreference,
@@ -77,19 +80,18 @@ export class GeneralChatRequest {
   static validate(chatRequest: GeneralChatRequest) {
     // TODO: Grab validator from singleton source
     const validator: DataValidator = new DataValidator();
-    validator.validate(chatRequest.id, "id").notUndefined().notNull().isString().notEmpty();
-    const partitionedId = IdFactory.parseId(chatRequest.id);
-    if (partitionedId[0] !== GeneralChatRequestRepository.objectIdentifier) {
+    validator.validate(chatRequest.id, "id").notUndefined().notNull().notEmpty();
+    const partitionedId = ObjectId.parseId(chatRequest.id);
+    if (partitionedId[0] !== GeneralChatRequestId.IDENTIFIER) {
       throw new DataValidationError("GeneralChatRequestRepository objectIdentifier is not first value in provided id");
     }
     if (partitionedId[1] !== chatRequest.authorUserName) {
       throw new DataValidationError("authorUserName is not third value in provided id");
     }
-    if (partitionedId[2] !== IdFactory.dateToString(chatRequest.createDate)) {
+    if (partitionedId[2] !== ObjectId.dateToString(chatRequest.createDate)) {
       throw new DataValidationError("createDate is not fourth value in provided id");
     }
-    validator.validate(chatRequest.parentId, "parentId").notUndefined().notNull().isString().notEmpty();
-    validator.validate(chatRequest.parentType, "parentType").notUndefined().notNull().isStringInEnum(ParentType);
+    validator.validate(chatRequest.parentId, "parentId").notUndefined().notNull().notEmpty();
     validator.validate(chatRequest.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
     validator.validate(chatRequest.authorUserName, "authorUserName").notUndefined().notNull().isString().notEmpty();
     validator.validate(chatRequest.convoPreference, "convoPreference").notUndefined().notNull().isString().notEmpty();

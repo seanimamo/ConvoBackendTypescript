@@ -3,7 +3,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
 import { Convo, ConvoSource, ConvoStatus } from "../../common/objects/Convo";
-import { District } from "../../common/objects/District";
+import { District, DistrictId } from "../../common/objects/District";
 import { ConvoPreference } from "../../common/objects/enums";
 import { GeneralChatRequest } from "../../common/objects/talking-point-post/GeneralChatRequest";
 import { TalkingPointPost } from "../../common/objects/talking-point-post/TalkingPointPost";
@@ -101,7 +101,7 @@ describe("mock End To End", () => {
     const talkingPoints = [];
     talkingPoints.push(TalkingPointPost.builder({
       ...getDummyTalkingPointPostProps(),
-      parentId: districts[0].title,
+      parentId: new DistrictId({title: districts[0].title}),
       createDate: new Date('2022-01-01'),
       metrics: {
         ...getDummyTalkingPointPostProps().metrics,
@@ -110,7 +110,7 @@ describe("mock End To End", () => {
     }));
     talkingPoints.push(TalkingPointPost.builder({
       ...getDummyTalkingPointPostProps(),
-      parentId: districts[0].title,
+      parentId: new DistrictId({title: districts[0].title}),
       createDate: new Date('2022-01-02'),
       metrics: {
         ...getDummyTalkingPointPostProps().metrics,
@@ -119,7 +119,7 @@ describe("mock End To End", () => {
     }));
     talkingPoints.push(TalkingPointPost.builder({
       ...getDummyTalkingPointPostProps(),
-      parentId: districts[0].title,
+      parentId: new DistrictId({title: districts[0].title}),
       createDate: new Date('2022-01-03'),
       metrics: {
         ...getDummyTalkingPointPostProps().metrics,
@@ -128,7 +128,7 @@ describe("mock End To End", () => {
     }));
     talkingPoints.push(TalkingPointPost.builder({
       ...getDummyTalkingPointPostProps(),
-      parentId: districts[1].title,
+      parentId: new DistrictId({title: districts[1].title}),
       createDate: new Date('2022-01-04'),
     }));
     // purposely saved out of order to prove they return in order of absolute score

@@ -5,13 +5,11 @@ import { GeneralChatRequest } from './talking-point-post/GeneralChatRequest';
 import { ViewPointChatRequest } from './talking-point-post/ViewPointChatRequest';
 import { DataValidationError, DataValidator } from '../util/DataValidator';
 import TransformDate from '../util/TransformDate';
-import { IdFactory } from '../util/IdFactory';
-import { ConvoRepository } from '../respositories/convo/ConvoRepository';
 import { ObjectId } from './ObjectId';
 import TransformObjectId from '../util/TransformObjectId';
 
 export class ConvoId extends ObjectId {
-  public static readonly IDENTIFIER = ConvoRepository.objectIdentifier;
+  public static readonly IDENTIFIER = "CONVO";
 
   constructor(params: { participantUsernames: string[], createDate: Date } | string) {
     typeof (params) === 'string'
@@ -21,8 +19,8 @@ export class ConvoId extends ObjectId {
 }
 
 export class Convo {
-  @TransformObjectId(ConvoId)
-  @Expose() id: ConvoId;
+  @TransformObjectId()
+  @Expose() readonly id: ConvoId;
   @Expose() status: ConvoStatus;
   @TransformDate()
   @Expose() createDate: Date;
@@ -127,7 +125,7 @@ export class Convo {
     validator.validate(convo.id, "id").notUndefined().notNull();
     validator.validate(convo.participantUsernames, "participantUsernames").notUndefined().notNull().notEmpty();
     const partitionedId = ObjectId.parseId(convo.id.getValue());
-    if (partitionedId[0] !== ConvoRepository.objectIdentifier) {
+    if (partitionedId[0] !== ConvoId.IDENTIFIER) {
       throw new DataValidationError("objectIdentifier is not first value in provided id");
     }
     let currIndex = 1;
@@ -138,7 +136,7 @@ export class Convo {
       currIndex++;
     })
     validator.validate(convo.createDate, "createDate").notUndefined().notNull().isDate().dateIsNotInFuture();
-    if (partitionedId[currIndex] !== IdFactory.dateToString(convo.createDate)) {
+    if (partitionedId[currIndex] !== ObjectId.dateToString(convo.createDate)) {
       throw new DataValidationError("createDate in Id is not equal to object create createDate.")
     }
     // END -------- Id Validation --------

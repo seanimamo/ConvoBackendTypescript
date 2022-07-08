@@ -1,5 +1,5 @@
 import { District } from "../../../../common/objects/District"
 
-export type createDistrictResponse = {
+export type CreateDistrictResponse = {
   data: District;
 }

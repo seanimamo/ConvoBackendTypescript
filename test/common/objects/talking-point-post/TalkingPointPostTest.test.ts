@@ -1,7 +1,8 @@
 import { ClassSerializer } from "../../../../common/util/ClassSerializer";
-import { TalkingPointPost } from "../../../../common/objects/talking-point-post/TalkingPointPost";
+import { TalkingPointPost, TalkingPointPostId } from "../../../../common/objects/talking-point-post/TalkingPointPost";
 import { getDummyTalkingPointPost } from "../../../util/DummyFactory";
 import { DataValidationError } from "../../../../common/util/DataValidator";
+import { ObjectId } from "../../../../common/objects/ObjectId";
 
 describe("Test Talking Point Post", () => {
   const talkingPointPost: TalkingPointPost = getDummyTalkingPointPost();
@@ -29,6 +30,15 @@ describe("Test Talking Point Post", () => {
     talkingPointPostPlainJson['id'] = undefined;
     const talkingPointPostClassFromPlainJson = classSerializer.plainJsonToClass(TalkingPointPost, talkingPointPostPlainJson);
     expect(() => TalkingPointPost.validate(talkingPointPostClassFromPlainJson)).toThrowError(DataValidationError);
+  });
+
+  test("TalkingPointPostId - is formatted as expected", () => {
+    const params = {authorUserName: 'testUser', createDate: new Date()}
+    const id = new TalkingPointPostId(params);
+    const parsedId = ObjectId.parseId(id);
+    expect(parsedId[0]).toStrictEqual(TalkingPointPostId.IDENTIFIER);
+    expect(parsedId[1]).toStrictEqual(params.authorUserName);
+    expect(parsedId[2]).toStrictEqual(ObjectId.dateToString(params.createDate));
   });
 
 });

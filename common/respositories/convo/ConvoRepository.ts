@@ -14,7 +14,7 @@ import { Repository } from "../Repository";
  * 
  * 
  * 
-* (Note there are multiple gsi's here to account for participants in a convo.)
+ * (Note there are multiple gsi's here to account for participants in a convo.)
  * (Get posts by author username, sorted by create date)
  * GSI1: authorUserName
  * SKEY: CONVO#<createDate>
@@ -33,14 +33,12 @@ import { Repository } from "../Repository";
  * 
  */
 export class ConvoRepository extends Repository<Convo> {
-  static objectIdentifier = "CONVO";
-
   createPartitionKey(object: Convo): string {
     return object.id.getValue();
   }
 
   createSortKey(object: Convo): string {
-    return [ConvoRepository.objectIdentifier,
+    return [ConvoId.IDENTIFIER,
     object.createDate.toISOString(),
     ].join(Repository.compositeKeyDelimeter);
   }
@@ -84,7 +82,7 @@ export class ConvoRepository extends Repository<Convo> {
     return await super.getUniqueItemByCompositeKey({
       primaryKey: id.getValue(),
       sortKey: {
-        value: ConvoRepository.objectIdentifier,
+        value: ConvoId.IDENTIFIER,
         conditionExpressionType: "BEGINS_WITH",
       },
     });
@@ -100,7 +98,7 @@ export class ConvoRepository extends Repository<Convo> {
     paginationToken?: Record<string, AttributeValue>,
     queryLimit?: number;
   }) {
-    const sortKeyValue = ConvoRepository.objectIdentifier;
+    const sortKeyValue = ConvoId.IDENTIFIER;
     const authorNameIndexes = [DYNAMODB_INDEXES.GSI2, DYNAMODB_INDEXES.GSI3, DYNAMODB_INDEXES.GSI4, DYNAMODB_INDEXES.GSI5];
     for (let i = 0; i < authorNameIndexes.length; i++) {
       const response = await super.getItemsByCompositeKey({
@@ -222,6 +220,3 @@ export class ConvoRepository extends Repository<Convo> {
 
 
 }
-
-// - Should Convo's be always posted as Talking point posts? Or should they be standalone?
-// - Swap sort keys to be POST_<more descriptive identifier> so we can sort between talking points vs other types of posts

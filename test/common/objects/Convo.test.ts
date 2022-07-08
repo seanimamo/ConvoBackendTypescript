@@ -36,9 +36,7 @@ describe("Test Convo", () => {
   test("ConvoId - is formatted as expected", () => {
     const params = {createDate: new Date('2022-01-01'), participantUsernames: ['user1', 'user2']}
     const convoId = new ConvoId(params);
-
-    const idToString = convoId.getValue();
-    const parsedId = ObjectId.parseId(idToString);
+    const parsedId = ObjectId.parseId(convoId);
     expect(parsedId[0]).toStrictEqual(ConvoId.IDENTIFIER);
     expect(parsedId[1]).toStrictEqual(params.participantUsernames[0]);
     expect(parsedId[2]).toStrictEqual(params.participantUsernames[1]);

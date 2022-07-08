@@ -5,8 +5,8 @@ import TransformDate from "../../util/TransformDate";
 import { ParentType, ViewMode } from "../enums";
 import { LinkPreview } from "./LinkPreview";
 import { ObjectBanStatus } from '../ObjectBanStatus';
-import { TalkingPointPostRepository } from '../../respositories/talking-point-post/TalkingPointPostRepository';
-import { IdFactory } from '../../util/IdFactory';
+import { ObjectId } from '../ObjectId';
+import TransformObjectId from '../../util/TransformObjectId';
 
 export type TalkingPointPostConvoSource = {
   id: string;
@@ -25,12 +25,24 @@ export enum AgeRating {
   ADULT = "Adult (+18)"
 }
 
+
+export class TalkingPointPostId extends ObjectId {
+  public static readonly IDENTIFIER = "POST_TALKING_POINT";
+
+  constructor(params: { authorUserName: string, createDate: Date } | string) {
+      typeof (params) === 'string'
+          ? super(TalkingPointPostId.IDENTIFIER, params)
+          : super(TalkingPointPostId.IDENTIFIER, [params.authorUserName, params.createDate]);
+  }
+}
+
 export class TalkingPointPost {
-  @Expose() readonly id: string; // uuid
-  @Expose() readonly parentId: string; // this is a only district as of now but may change.
+  @TransformObjectId()
+  @Expose() readonly id: TalkingPointPostId; // uuid
+  @TransformObjectId()
+  @Expose() readonly parentId: ObjectId; // this is a only district as of now but may change.
   @Expose() title: string;
   @Expose() readonly authorUserName: string; // The person to create the post
-  @Expose() readonly parentType: ParentType;
   @Expose() description: string;
   @TransformDate()
   @Expose() readonly createDate: Date;
@@ -42,10 +54,6 @@ export class TalkingPointPost {
   @Expose() banStatus: ObjectBanStatus;
   @Expose() viewMode: ViewMode;
   @Expose() ageRating: AgeRating;
-  // chatRequests: {
-  //   viewPoint: ViewPointRequest[];
-  //   general: GeneralChatRequest[];
-  // }
   @Expose()
   metrics: {
     absoluteScore: number;
@@ -57,14 +65,9 @@ export class TalkingPointPost {
   @Expose() authorImageUrl?: string;
   @Expose() tags?: string[];
 
-  static createId(params: { authorUserName: string, createDate: Date }) {
-    return IdFactory.createId([TalkingPointPostRepository.objectIdentifier, params.authorUserName, params.createDate]);
-  }
-
   constructor(
-    id: string | null, // Leaving the id as null will let be automatically created as expected
-    parentId: string,
-    parentType: ParentType,
+    id: TalkingPointPostId | null, // Leaving the id as null will let be automatically created as expected
+    parentId: ObjectId,
     title: string,
     description: string,
     authorUserName: string,
@@ -89,12 +92,11 @@ export class TalkingPointPost {
     tags?: string[],
   ) {
     if (id === null) {
-      this.id = TalkingPointPost.createId({authorUserName, createDate});
+      this.id = new TalkingPointPostId({authorUserName, createDate});
     } else {
       this.id = id;
     }
     this.parentId = parentId;
-    this.parentType = parentType;
     this.title = title;
     this.description = description;
     this.authorUserName = authorUserName;
@@ -111,9 +113,8 @@ export class TalkingPointPost {
   }
 
   static builder(props: {
-    id: string | null, // Leaving the id as null will let be automatically created as expected
-    parentId: string,
-    parentType: ParentType,
+    id: TalkingPointPostId | null, // Leaving the id as null will let be automatically created as expected
+    parentId: ObjectId,
     title: string,
     description: string,
     authorUserName: string,
@@ -141,7 +142,6 @@ export class TalkingPointPost {
     return new TalkingPointPost(
       props.id,
       props.parentId,
-      props.parentType,
       props.title,
       props.description,
       props.authorUserName,
@@ -163,20 +163,19 @@ export class TalkingPointPost {
     // TODO: Grab validator from singleton source
     const validator: DataValidator = new DataValidator();
 
-    validator.validate(post.id, "id").notUndefined().notNull().isString().notEmpty();
-    const partitionedId = IdFactory.parseId(post.id);
-    if (partitionedId[0] !== TalkingPointPostRepository.objectIdentifier) {
-      throw new DataValidationError("TalkingPointPost objectIdentifier is not first value in provided id");
+    validator.validate(post.id, "id").notUndefined().notNull();
+    const partitionedId = TalkingPointPostId.parseId(post.id.getValue());
+    if (partitionedId[0] !== TalkingPointPostId.IDENTIFIER) {
+      throw new DataValidationError("TalkingPointPostId Identifier is not first value in provided id");
     }
     if (partitionedId[1] !== post.authorUserName) {
       throw new DataValidationError("authorUserName is not third value in provided id");
     }
-    if (partitionedId[2] !== IdFactory.dateToString(post.createDate)) {
+    if (partitionedId[2] !== TalkingPointPostId.dateToString(post.createDate)) {
       throw new DataValidationError("createDate is not fourth value in provided id");
     }
 
-    validator.validate(post.parentId, "parentId").notUndefined().notNull().isString().notEmpty();
-    validator.validate(post.parentType, "parentType").notUndefined().notNull().isStringInEnum(ParentType);
+    validator.validate(post.parentId, "parentId").notUndefined().notNull().notEmpty();
     validator.validate(post.title, "title").notUndefined().notNull().isString().notEmpty();
     validator.validate(post.description, "description").notUndefined().notNull().isString().notEmpty();
     validator.validate(post.authorUserName, "authorUserName").notUndefined().notNull().isString().notEmpty();
@@ -225,4 +224,3 @@ export class TalkingPointPost {
   };
 
 }
-

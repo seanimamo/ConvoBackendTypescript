@@ -1,4 +1,4 @@
-import { Category, District } from "../../common/objects/District";
+import { Category, District, DistrictId } from "../../common/objects/District";
 import { ParentType, ViewMode } from "../../common/objects/enums";
 import { GeneralChatRequest } from "../../common/objects/talking-point-post/GeneralChatRequest";
 import { AgeRating, TalkingPointPost, TalkingPointPostSourceType } from "../../common/objects/talking-point-post/TalkingPointPost";
@@ -71,8 +71,7 @@ export const getDummyTalkingPointPostProps = () => {
   const dummyDistrict = getDummyDistrict()
   return {
     id: null,
-    parentId: dummyDistrict.title,
-    parentType: ParentType.DISTRICT,
+    parentId: new DistrictId({title: dummyDistrict.title}),
     title: "Dummy Talking Point Post",
     description: "Dummy Talking Point Post Description",
     authorUserName: dummyUser.userName,

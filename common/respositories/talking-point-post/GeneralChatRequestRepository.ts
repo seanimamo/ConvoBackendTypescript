@@ -1,24 +1,25 @@
 import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { ConvoPreference, ParentType } from "../../objects/enums";
-import { GeneralChatRequest } from "../../objects/talking-point-post/GeneralChatRequest";
+import { ConvoPreference } from "../../objects/enums";
+import { GeneralChatRequest, GeneralChatRequestId } from "../../objects/talking-point-post/GeneralChatRequest";
 import { Repository } from "../Repository";
 import { ParentObjectDoesNotExistError } from "../error";
 import { TalkingPointPostRepository } from "./TalkingPointPostRepository";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
+import { ObjectId } from "../../objects/ObjectId";
+import { TalkingPointPostId } from "../../objects/talking-point-post/TalkingPointPost";
 
 export class GeneralChatRequestRepository extends Repository<GeneralChatRequest> {
-  static objectIdentifier = "CHAT_REQ_GENERAL";
   #talkingPointPostRepo: TalkingPointPostRepository;
 
   // Note that create date is used in the id. 
   // In reality, since ISO date time is used a collision would only happen if another request was created with the same timestamp down to the millisecond.
   createPartitionKey(object: GeneralChatRequest): string {
-    return object.id; 
+    return object.id.getValue(); 
   }
 
   createSortKey(object: GeneralChatRequest): string {
     return [
-      GeneralChatRequestRepository.objectIdentifier,
+      GeneralChatRequestId.IDENTIFIER,
       object.convoPreference
     ].join(Repository.compositeKeyDelimeter);
   }
@@ -35,7 +36,7 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     }
 
     // This may change in the future.
-    if (params.data.parentType !== ParentType.TALKING_POINT_POST) {
+    if (ObjectId.getIdentifier(params.data.parentId) !== TalkingPointPostId.IDENTIFIER) {
       throw new Error("General Chat Requests can only be parented under a talking point post")
     }
 
@@ -47,7 +48,7 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     }
 
     const items: Record<string, AttributeValue> = {};
-    items[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: params.data.parentId };
+    items[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: params.data.parentId.getValue() };
     items[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(params.data) };
     items[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: params.data.authorUserName };
     items[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(params.data) };
@@ -61,11 +62,11 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
    * @param chatRequestId 
    * @returns 
    */
-  async getById(chatRequestId: string) {
+  async getById(id: GeneralChatRequestId) {
     return await super.getUniqueItemByCompositeKey({
-      primaryKey: chatRequestId,
+      primaryKey: id.getValue(),
       sortKey: {
-        value: GeneralChatRequestRepository.objectIdentifier,
+        value: GeneralChatRequestId.IDENTIFIER,
         conditionExpressionType: "BEGINS_WITH",
       },
     });
@@ -77,21 +78,21 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
    * @returns 
    */
   async getByTalkingPointPost(params: {
-    postId: string,
+    postId: TalkingPointPostId,
     convoPreference?: ConvoPreference,
     paginationToken?: Record<string, AttributeValue>,
     queryLimit?: number;
   }) {
-    let sortKeyValue = GeneralChatRequestRepository.objectIdentifier;
+    let sortKeyValue = GeneralChatRequestId.IDENTIFIER;
     if (params.convoPreference) {
       sortKeyValue = [
-        GeneralChatRequestRepository.objectIdentifier,
+        GeneralChatRequestId.IDENTIFIER,
         params.convoPreference
       ].join(Repository.compositeKeyDelimeter);
     }
 
     return await super.getItemsByCompositeKey({
-      primaryKey: params.postId,
+      primaryKey: params.postId.getValue(),
       sortKey: {
         value: sortKeyValue,
         conditionExpressionType: "BEGINS_WITH"
@@ -113,7 +114,7 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     return await super.getItemsByCompositeKey({
       primaryKey: params.username,
       sortKey: {
-        value: GeneralChatRequestRepository.objectIdentifier,
+        value: GeneralChatRequestId.IDENTIFIER,
         conditionExpressionType: "BEGINS_WITH"
       },
       index: DYNAMODB_INDEXES.GSI2,
