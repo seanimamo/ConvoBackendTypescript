@@ -5,7 +5,7 @@ export abstract class ObjectId {
   public getValue() { return this._id };
 
   // Used to allow base abstract class to consistently insert identifier into the id.
-  protected abstract getIdentifier(): string; 
+  public abstract getIdentifier(): string; 
 
   constructor(params: unknown[] | string) {
     if (typeof (params) === 'string') {

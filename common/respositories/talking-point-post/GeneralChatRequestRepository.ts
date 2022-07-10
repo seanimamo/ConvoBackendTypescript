@@ -36,7 +36,7 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     }
 
     // This may change in the future.
-    if (ObjectId.getIdentifier(params.data.parentId) !== TalkingPointPostId.IDENTIFIER) {
+    if (params.data.parentId.getIdentifier() !== TalkingPointPostId.IDENTIFIER) {
       throw new Error("General Chat Requests can only be parented under a talking point post")
     }
 

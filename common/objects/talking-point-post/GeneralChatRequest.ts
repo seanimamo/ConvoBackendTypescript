@@ -15,7 +15,7 @@ export class GeneralChatRequestId extends ObjectId {
           : super([params.authorUserName, params.createDate]);
   }
 
-  protected getIdentifier(): string {
+  public getIdentifier(): string {
     return GeneralChatRequestId.IDENTIFIER;
   }
 }

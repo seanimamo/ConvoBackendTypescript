@@ -16,7 +16,7 @@ export class UserId extends ObjectId {
       : super([params.userName]);
   }
 
-  protected getIdentifier(): string {
+  public getIdentifier(): string {
     return UserId.IDENTIFIER;
   }
 }

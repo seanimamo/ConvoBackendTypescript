@@ -16,7 +16,7 @@ export class DistrictId extends ObjectId {
             : super([params.title]);
     }
 
-    protected getIdentifier(): string {
+    public getIdentifier(): string {
         return DistrictId.IDENTIFIER;
     }
 }

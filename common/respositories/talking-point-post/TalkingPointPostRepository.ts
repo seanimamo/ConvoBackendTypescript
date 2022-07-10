@@ -99,7 +99,7 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
       params.checkParentExistence = true;
     }
 
-    if (ObjectId.getIdentifier(params.data.parentId) !== DistrictId.IDENTIFIER) {
+    if (params.data.parentId.getIdentifier() !== DistrictId.IDENTIFIER) {
       throw new Error("General Chat Requests can only be parented under a district")
     }
 

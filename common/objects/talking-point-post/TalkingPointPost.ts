@@ -35,7 +35,7 @@ export class TalkingPointPostId extends ObjectId {
           : super([params.authorUserName, params.createDate]);
   }
 
-  protected getIdentifier(): string {
+  public getIdentifier(): string {
     return TalkingPointPostId.IDENTIFIER;
   }
 }

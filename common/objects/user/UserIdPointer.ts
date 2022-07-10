@@ -22,7 +22,7 @@ export class UserIdPointerId extends ObjectId{
           : super([params.uuid]);
   }
 
-  protected getIdentifier(): string {
+  public getIdentifier(): string {
       return UserIdPointerId.IDENTIFIER;
   }
 }

@@ -17,7 +17,7 @@ export class ConvoId extends ObjectId {
       : super([...params.participantUsernames, params.createDate]);
   }
 
-  protected getIdentifier(): string {
+  public getIdentifier(): string {
     return ConvoId.IDENTIFIER;
   }
 }
