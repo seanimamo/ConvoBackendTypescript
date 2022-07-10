@@ -2,10 +2,29 @@ import 'reflect-metadata'; //required for class transformer to work;
 import { UserPassword } from "./UserPassword";
 import { UserBanStatus } from "./UserBanStatus";
 import { Expose, Type } from 'class-transformer';
-import { DataValidator } from '../../util/DataValidator';
+import { DataValidationError, DataValidator } from '../../util/DataValidator';
 import TransformDate from '../../util/TransformDate';
+import { ObjectId } from '../ObjectId';
+import TransformObjectId from '../../util/TransformObjectId';
+
+export class UserId extends ObjectId {
+  public static readonly IDENTIFIER = "USER";
+
+  constructor(params: { userName: string } | string) {
+    typeof (params) === 'string'
+      ? super(params)
+      : super([params.userName]);
+  }
+
+  protected getIdentifier(): string {
+    return UserId.IDENTIFIER;
+  }
+}
+
 
 export class User {
+  @TransformObjectId()
+  @Expose() id: UserId
   @Expose() userName: string;
   @Type(() => UserPassword)
   @Expose() password: UserPassword;
@@ -28,8 +47,11 @@ export class User {
   @Expose() bio?: string;
   @Expose() occupation?: string;
   @Expose() location?: string;
+  @Expose() profession?: string;
 
-  constructor(userName: string,
+  constructor(
+    id: UserId | null,
+    userName: string,
     password: UserPassword,
     email: string,
     isEmailValidated: boolean,
@@ -47,7 +69,13 @@ export class User {
     thumbnail?: string,
     bio?: string,
     occupation?: string,
-    location?: string) {
+    location?: string,
+    profession?: string) {
+    if (id === null) {
+      this.id = new UserId({ userName });
+    } else {
+      this.id = id;
+    }
     this.userName = userName;
     this.password = password;
     this.email = email;
@@ -63,10 +91,12 @@ export class User {
     this.bio = bio;
     this.occupation = occupation;
     this.location = location;
+    this.profession = profession;
   }
 
   static builder(
     props: {
+      id: UserId | null;
       userName: string;
       password: UserPassword,
       email: string,
@@ -85,10 +115,12 @@ export class User {
       thumbnail?: string,
       bio?: string,
       occupation?: string,
-      location?: string
+      location?: string,
+      profession?: string
     }
   ) {
     return new User(
+      props.id,
       props.userName,
       props.password,
       props.email,
@@ -103,13 +135,22 @@ export class User {
       props.thumbnail,
       props.bio,
       props.occupation,
-      props.location
+      props.location,
+      props.profession
     )
   }
 
   static validate(user: User) {
     // TODO: Grab validator from singleton source
     const validator: DataValidator = new DataValidator();
+    const partitionedId = ObjectId.parseId(user.id);
+    if (partitionedId[0] !== UserId.IDENTIFIER) {
+      throw new DataValidationError("objectIdentifier is not first value in provided id");
+    }
+    if (partitionedId[1] !== user.userName) {
+      throw new DataValidationError("username is not second value in provided id");
+    }
+    validator.validate(user.id, 'id').notUndefined().notNull();
 
     // TODO: add complex more userName format/constraints validation
     validator.validate(user.userName, 'userName').notUndefined().notNull().isString().notEmpty();
@@ -147,6 +188,9 @@ export class User {
     }
     if (user.location !== undefined) {
       validator.validate(user.location, 'location').notNull().notEmpty().isString();
+    }
+    if (user.profession !== undefined) {
+      validator.validate(user.profession, 'profession').notNull().notEmpty().isString();
     }
   }
 }

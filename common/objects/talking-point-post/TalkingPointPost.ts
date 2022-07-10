@@ -31,8 +31,12 @@ export class TalkingPointPostId extends ObjectId {
 
   constructor(params: { authorUserName: string, createDate: Date } | string) {
       typeof (params) === 'string'
-          ? super(TalkingPointPostId.IDENTIFIER, params)
-          : super(TalkingPointPostId.IDENTIFIER, [params.authorUserName, params.createDate]);
+          ? super(params)
+          : super([params.authorUserName, params.createDate]);
+  }
+
+  protected getIdentifier(): string {
+    return TalkingPointPostId.IDENTIFIER;
   }
 }
 

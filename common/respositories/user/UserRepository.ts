@@ -1,25 +1,24 @@
 import { DynamoDBClient, UpdateItemCommand, UpdateItemCommandInput } from "@aws-sdk/client-dynamodb";
-import { User } from "../../objects/user/User";
-import { UserAccountType, UserUuidPointer } from "../../objects/user/UserUuidPointer";
+import { User, UserId } from "../../objects/user/User";
+import { UserAccountType, UserIdPointer, UserIdPointerId } from "../../objects/user/UserIdPointer";
 import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "./error";
-import { UserUuidPointerRepository } from "./UserUuidPointerRepository";
+import { UserIdPointerRepository } from "./UserIdPointerRepository";
 import { Repository } from "../Repository";
 import "dotenv/config";
 import { ObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../error";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 
 export class UserRepository extends Repository<User> {
-    static objectIdentifier = "USER";
     #client: DynamoDBClient;
-    #userUuidPointerRepo: UserUuidPointerRepository;
+    #userUuidPointerRepo: UserIdPointerRepository;
 
     createPartitionKey = (user: User) => {
-        return user.userName;
+        return user.id.getValue();
     }
 
     createSortKey = (user: User) => {
         return [
-            UserRepository.objectIdentifier,
+            UserId.IDENTIFIER,
             user.metrics.followerCount
         ].join(Repository.compositeKeyDelimeter);
     }
@@ -27,7 +26,7 @@ export class UserRepository extends Repository<User> {
     constructor(client: DynamoDBClient) {
         super(client, User);
         this.#client = client;
-        this.#userUuidPointerRepo = new UserUuidPointerRepository(client);
+        this.#userUuidPointerRepo = new UserIdPointerRepository(client);
     }
 
     async save(user: User) {
@@ -35,7 +34,7 @@ export class UserRepository extends Repository<User> {
         try {
             // In the future with OAuth logins, we will utilize other account types.
             await this.#userUuidPointerRepo.save(
-                UserUuidPointer.fromUser(user, UserAccountType.CONVO)
+                UserIdPointer.fromUser(user, UserAccountType.CONVO)
             );
         } catch (error) {
             if (error instanceof UniqueObjectAlreadyExistsError) {
@@ -55,14 +54,18 @@ export class UserRepository extends Repository<User> {
         }
     }
 
-    async getByUsername(userName: string) {
+    async getById(id: UserId) {
         return await super.getUniqueItemByCompositeKey({
-            primaryKey: userName,
+            primaryKey: id.getValue(),
             sortKey: {
-                value: UserRepository.objectIdentifier,
+                value: UserId.IDENTIFIER,
                 conditionExpressionType: "BEGINS_WITH",
             },
         });
+    }
+
+    async getByUsername(userName: string) {
+        return await this.getById(new UserId({userName}));
     }
 
     async updateIsEmailValidated(userName: string, isEmailValidated: boolean) {
@@ -73,7 +76,7 @@ export class UserRepository extends Repository<User> {
         const params: UpdateItemCommandInput = {
             TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
             Key: {
-                [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: user.userName },
+                [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: user.id.getValue() },
                 [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: this.createSortKey(user) }
             },
             UpdateExpression: `SET isEmailValidated = :isEmailValidated`,

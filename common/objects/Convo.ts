@@ -13,8 +13,12 @@ export class ConvoId extends ObjectId {
 
   constructor(params: { participantUsernames: string[], createDate: Date } | string) {
     typeof (params) === 'string'
-      ? super(ConvoId.IDENTIFIER, params)
-      : super(ConvoId.IDENTIFIER, [...params.participantUsernames, params.createDate]);
+      ? super(params)
+      : super([...params.participantUsernames, params.createDate]);
+  }
+
+  protected getIdentifier(): string {
+    return ConvoId.IDENTIFIER;
   }
 }
 
@@ -124,7 +128,7 @@ export class Convo {
     // START -------- Id Validation --------
     validator.validate(convo.id, "id").notUndefined().notNull();
     validator.validate(convo.participantUsernames, "participantUsernames").notUndefined().notNull().notEmpty();
-    const partitionedId = ObjectId.parseId(convo.id.getValue());
+    const partitionedId = ObjectId.parseId(convo.id);
     if (partitionedId[0] !== ConvoId.IDENTIFIER) {
       throw new DataValidationError("objectIdentifier is not first value in provided id");
     }

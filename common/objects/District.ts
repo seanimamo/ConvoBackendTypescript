@@ -12,8 +12,12 @@ export class DistrictId extends ObjectId {
 
     constructor(params: { title: string } | string) {
         typeof (params) === 'string'
-            ? super(DistrictId.IDENTIFIER, params)
-            : super(DistrictId.IDENTIFIER, [params.title]);
+            ? super(params)
+            : super([params.title]);
+    }
+
+    protected getIdentifier(): string {
+        return DistrictId.IDENTIFIER;
     }
 }
 

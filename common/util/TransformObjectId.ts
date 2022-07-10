@@ -5,6 +5,8 @@ import { DistrictId } from "../objects/District";
 import { GeneralChatRequestId } from "../objects/talking-point-post/GeneralChatRequest";
 import { TalkingPointPostId } from "../objects/talking-point-post/TalkingPointPost";
 import { ObjectId } from "../objects/ObjectId";
+import { UserId } from '../objects/user/User';
+import { UserIdPointer, UserIdPointerId } from '../objects/user/UserIdPointer';
 
 /**
  * Transformer Sourced from: https://stackoverflow.com/questions/59899045/plaintoclass-does-not-convert-a-date-to-string
@@ -24,11 +26,15 @@ export default function TransformObjectId() {
       }
       const identifier = ObjectId.getIdentifier(value);
       switch (identifier) {
+        case UserId.IDENTIFIER:
+          return new UserId(value);
+        case UserIdPointerId.IDENTIFIER:
+          return new UserIdPointerId(value);
         case ConvoId.IDENTIFIER:
           return new ConvoId(value);
         case DistrictId.IDENTIFIER:
           return new DistrictId(value);
-        case "POST_TALKING_POINT":
+        case TalkingPointPostId.IDENTIFIER:
           return new TalkingPointPostId(value);
         case GeneralChatRequestId.IDENTIFIER:
           return new GeneralChatRequestId(value);

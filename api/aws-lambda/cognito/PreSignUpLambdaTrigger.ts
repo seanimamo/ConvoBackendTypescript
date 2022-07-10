@@ -61,6 +61,7 @@ export class PreSignUpLambdaTrigger {
 
 
     const user = User.builder({
+      id: null,
       userName: userName,
       password: UserPassword.fromPlainTextPassword(rawPassword),
       email: email,

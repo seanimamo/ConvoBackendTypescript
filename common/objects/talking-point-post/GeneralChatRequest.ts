@@ -11,8 +11,12 @@ export class GeneralChatRequestId extends ObjectId {
 
   constructor(params: { authorUserName: string, createDate: Date } | string) {
       typeof (params) === 'string'
-          ? super(GeneralChatRequestId.IDENTIFIER, params)
-          : super(GeneralChatRequestId.IDENTIFIER, [params.authorUserName, params.createDate]);
+          ? super(params)
+          : super([params.authorUserName, params.createDate]);
+  }
+
+  protected getIdentifier(): string {
+    return GeneralChatRequestId.IDENTIFIER;
   }
 }
 

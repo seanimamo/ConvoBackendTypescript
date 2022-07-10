@@ -32,8 +32,8 @@ afterEach(async () => {
 })
 
 afterAll(async () => {
-  v3Client.destroy();
-  stopDb();
+  await v3Client.destroy();
+  await stopDb();
 })
 
 describe("DistrictRepository", () => {

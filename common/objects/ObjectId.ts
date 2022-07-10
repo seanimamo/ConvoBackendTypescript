@@ -4,11 +4,14 @@ export abstract class ObjectId {
   private readonly _id: string;
   public getValue() { return this._id };
 
-  constructor(identifier: string, params: unknown[] | string) {
+  // Used to allow base abstract class to consistently insert identifier into the id.
+  protected abstract getIdentifier(): string; 
+
+  constructor(params: unknown[] | string) {
     if (typeof (params) === 'string') {
       this._id = params;
     } else if (Array.isArray(params)) {
-      this._id = ObjectId.createId([identifier, ...params]);
+      this._id = ObjectId.createId([this.getIdentifier(), ...params]);
     } else {
       throw new Error("Unknown param type provided to ObjectId constructor");
     }
@@ -56,10 +59,7 @@ export abstract class ObjectId {
     return date.toISOString();
   }
 
-  static getIdentifier(id: string | ObjectId) {
-    if (id instanceof ObjectId) {
-      return ObjectId.parseId(id.getValue())[0];
-    } 
+  static getIdentifier(id: string) {
     return ObjectId.parseId(id)[0];
   }
 }

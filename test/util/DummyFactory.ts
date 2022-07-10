@@ -13,6 +13,7 @@ import { Convo, ConvoSource, ConvoStatus } from "../../common/objects/Convo";
 
 export const getDummyUserProps = () => {
   return {
+    id: null,
     userName: "seanimam",
     password: UserPassword.fromPlainTextPassword('test'),
     email: "test@gmail.com",

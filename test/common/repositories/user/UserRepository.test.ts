@@ -3,7 +3,7 @@ import { User } from "../../../../common/objects/user/User";
 import { UserRepository } from "../../../../common/respositories/user/UserRepository";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
-import { getDummyUser } from "../../../util/DummyFactory";
+import { getDummyUser, getDummyUserProps } from "../../../util/DummyFactory";
 import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "../../../../common/respositories/user/error";
 import { ObjectDoesNotExistError } from "../../../../common/respositories/error";
 import { UserPassword } from "../../../../common/objects/user/UserPassword";
@@ -37,8 +37,8 @@ afterEach(async () => {
 })
 
 afterAll(async () => {
-  v3Client.destroy();
-  stopDb();
+  await v3Client.destroy();
+  await stopDb();
 })
 
 describe("Test User Repository", () => {
@@ -64,9 +64,12 @@ describe("Test User Repository", () => {
 
   test("Saving a user with a prexisting email fails", async () => {
     await userRepository.save(user);
-    const newUserWithDuplicateEmail = getDummyUser();
-    newUserWithDuplicateEmail.userName = "aDifferentUsername";
-    newUserWithDuplicateEmail.email = user.email;
+    const newUserWithDuplicateEmail = User.builder({
+      ...getDummyUserProps(),
+      userName : "aDifferentUsername",
+      email: user.email
+    });
+  
     await expect(userRepository.save(newUserWithDuplicateEmail)).rejects.toThrow(EmailAlreadyInUseError);
   });
 
@@ -79,8 +82,7 @@ describe("Test User Repository", () => {
 
   test("Updating user IsEmailValidated fails if user does not exist", async () => {
     await expect(userRepository.updateIsEmailValidated("userThatDoesntExisttt", user.isEmailValidated))
-    .rejects
-    .toThrow(ObjectDoesNotExistError);
+    .rejects.toThrow(ObjectDoesNotExistError);
   });
 
 });
