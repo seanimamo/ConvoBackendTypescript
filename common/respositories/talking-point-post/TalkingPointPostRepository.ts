@@ -73,6 +73,13 @@ import { DistrictId } from "../../objects/District";
  * SKEY: <viewMode>#<banStatus>#POST_TALKING_POINT#<Trait Name>#<TraitTimeBasedScore>
  * 
  */
+
+class TalkingPointPostRepositoryGsiSortKey extends ObjectId {
+  public getIdentifier(): string {
+    return TalkingPointPostId.IDENTIFIER;
+  }
+}
+
 export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
   #districtRepository: DistrictRepository;
 
@@ -81,9 +88,7 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
   }
 
   createSortKey(object: TalkingPointPost): string {
-    return [TalkingPointPostId.IDENTIFIER,
-    object.viewMode, object.banStatus.type, object.metrics.absoluteScore,
-    ].join(Repository.compositeKeyDelimeter);
+    return object.id.getValue();
   }
 
   // GSi key for replys should include the source type
@@ -112,10 +117,13 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     }
 
     const gsiAttributes: Record<string, AttributeValue> = {}
+    const gsiSortKey = new TalkingPointPostRepositoryGsiSortKey([
+      params.data.viewMode, params.data.banStatus.type, params.data.metrics.absoluteScore,
+    ]);
     gsiAttributes[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: params.data.parentId.getValue() };
-    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(params.data) };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: gsiSortKey.getValue() };
     gsiAttributes[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: params.data.authorUserName };
-    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(params.data) };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: gsiSortKey.getValue() };
 
     // * (Get post by id)
     // * PKEY: id
@@ -171,7 +179,7 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     }
 
     return await super.getItemsByCompositeKey({
-      primaryKey: new DistrictId({title:params.title}).getValue(),
+      primaryKey: new DistrictId({ title: params.title }).getValue(),
       sortKey: {
         value: sortKeyValue,
         conditionExpressionType: "BEGINS_WITH"

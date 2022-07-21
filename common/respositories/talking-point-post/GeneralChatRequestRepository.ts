@@ -8,6 +8,12 @@ import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 import { ObjectId } from "../../objects/ObjectId";
 import { TalkingPointPostId } from "../../objects/talking-point-post/TalkingPointPost";
 
+class GeneralChatRequestRepositoryGsiSortKey extends ObjectId {
+  public getIdentifier(): string {
+      return GeneralChatRequestId.IDENTIFIER;
+  }
+}
+
 export class GeneralChatRequestRepository extends Repository<GeneralChatRequest> {
   #talkingPointPostRepo: TalkingPointPostRepository;
 
@@ -18,10 +24,7 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
   }
 
   createSortKey(object: GeneralChatRequest): string {
-    return [
-      GeneralChatRequestId.IDENTIFIER,
-      object.convoPreference
-    ].join(Repository.compositeKeyDelimeter);
+    return object.id.getValue();
   }
 
   constructor(client: DynamoDBClient) {
@@ -48,10 +51,11 @@ export class GeneralChatRequestRepository extends Repository<GeneralChatRequest>
     }
 
     const items: Record<string, AttributeValue> = {};
+    const convoPreferenceGsiSortKey = new GeneralChatRequestRepositoryGsiSortKey([params.data.convoPreference, params.data.createDate]);
     items[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: params.data.parentId.getValue() };
-    items[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(params.data) };
+    items[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: convoPreferenceGsiSortKey.getValue() };
     items[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: params.data.authorUserName };
-    items[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(params.data) };
+    items[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: convoPreferenceGsiSortKey.getValue() };
 
     return await super.saveItem({ object: params.data, checkForExistingKey: "PRIMARY", extraItemAttributes: items });
   }

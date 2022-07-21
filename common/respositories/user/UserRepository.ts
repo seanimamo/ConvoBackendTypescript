@@ -137,7 +137,7 @@ export class UserRepository extends Repository<User> {
             expressionAttributeValues[':settings'] = { M: marshall(params.settings) };
         }
 
-        const updateExpression = Repository.updateItemExpressionBuilder(updateExpressionCommands);
+        const updateExpression = this.updateItemExpressionBuilder(updateExpressionCommands);
         if (updateExpression === null) {
             throw new InvalidParametersError();
         }

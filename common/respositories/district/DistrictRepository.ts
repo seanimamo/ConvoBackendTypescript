@@ -2,6 +2,7 @@ import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { Repository } from "../Repository";
 import { District, DistrictId } from "../../objects/District";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
+import { ObjectId } from "../../objects/ObjectId";
 
 /**
  * (Get District by id/title *the title of a district is also its title.) 
@@ -20,6 +21,13 @@ import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
  * 
  * 
  */
+
+class DistrictRepositoryGsiSortKey extends ObjectId {
+    public getIdentifier(): string {
+        return DistrictId.IDENTIFIER
+    }
+}
+
 export class DistrictRepository extends Repository<District> {
 
     createPartitionKey = (district: District) => {
@@ -41,17 +49,17 @@ export class DistrictRepository extends Repository<District> {
         District.validate(district);
 
         const items: Record<string, AttributeValue> = {};
+        const postCountSortKey = new DistrictRepositoryGsiSortKey([district.postCount, district.title]);
         items[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: DistrictId.IDENTIFIER };
-        items[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: district.title };
+        items[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: postCountSortKey.getValue() };
         items[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: district.authorUsername };
-        items[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(district) };
-
+        items[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: postCountSortKey.getValue() };
         return await super.saveItem({ object: district, checkForExistingKey: "PRIMARY", extraItemAttributes: items });
     }
 
     async getByTitle(title: string) {
         return await super.getUniqueItemByCompositeKey({
-            primaryKey: new DistrictId({title}).getValue(),
+            primaryKey: new DistrictId({ title }).getValue(),
             sortKey: {
                 value: DistrictId.IDENTIFIER,
                 conditionExpressionType: "BEGINS_WITH",

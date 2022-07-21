@@ -2,6 +2,7 @@
 import { AttributeValue, DynamoDBClient, UpdateItemCommand, UpdateItemCommandInput } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { Convo, ConvoId, ConvoStatus } from "../../objects/Convo";
+import { ObjectId } from "../../objects/ObjectId";
 import { DYNAMODB_INDEXES } from "../DynamoDBConstants";
 import { InvalidParametersError, ObjectDoesNotExistError } from "../error";
 import { PaginatedResponse } from "../PaginatedResponse";
@@ -32,15 +33,20 @@ import { Repository } from "../Repository";
  * SKEY: CONVO#<createDate>
  * 
  */
+
+class ConvoRepositoryGsiSortKey extends ObjectId {
+  public getIdentifier(): string {
+    return ConvoId.IDENTIFIER;
+  }
+}
+
 export class ConvoRepository extends Repository<Convo> {
   createPartitionKey(object: Convo): string {
     return object.id.getValue();
   }
 
   createSortKey(object: Convo): string {
-    return [ConvoId.IDENTIFIER,
-    object.createDate.toISOString(),
-    ].join(Repository.compositeKeyDelimeter);
+    return object.id.getValue();
   }
 
   constructor(client: DynamoDBClient) {
@@ -51,21 +57,22 @@ export class ConvoRepository extends Repository<Convo> {
     Convo.validate(convo);
 
     const gsiAttributes: Record<string, AttributeValue> = {}
+    const participantUsernameSortKey = new ConvoRepositoryGsiSortKey([convo.createDate]);
     gsiAttributes[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: this.createPartitionKey(convo) };
-    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: this.createSortKey(convo) };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: participantUsernameSortKey.getValue() };
     gsiAttributes[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: convo.participantUsernames[0] };
-    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: this.createSortKey(convo) };
+    gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: participantUsernameSortKey.getValue() };
     if (convo.participantUsernames.length > 1) {
       gsiAttributes[`${DYNAMODB_INDEXES.GSI3.partitionKeyName}`] = { S: convo.participantUsernames[1] };
-      gsiAttributes[`${DYNAMODB_INDEXES.GSI3.sortKeyName}`] = { S: this.createSortKey(convo) };
+      gsiAttributes[`${DYNAMODB_INDEXES.GSI3.sortKeyName}`] = { S: participantUsernameSortKey.getValue() };
     }
     if (convo.participantUsernames.length > 2) {
       gsiAttributes[`${DYNAMODB_INDEXES.GSI4.partitionKeyName}`] = { S: convo.participantUsernames[2] };
-      gsiAttributes[`${DYNAMODB_INDEXES.GSI4.sortKeyName}`] = { S: this.createSortKey(convo) };
+      gsiAttributes[`${DYNAMODB_INDEXES.GSI4.sortKeyName}`] = { S: participantUsernameSortKey.getValue() };
     }
     if (convo.participantUsernames.length > 3) {
       gsiAttributes[`${DYNAMODB_INDEXES.GSI5.partitionKeyName}`] = { S: convo.participantUsernames[3] };
-      gsiAttributes[`${DYNAMODB_INDEXES.GSI5.sortKeyName}`] = { S: this.createSortKey(convo) };
+      gsiAttributes[`${DYNAMODB_INDEXES.GSI5.sortKeyName}`] = { S: participantUsernameSortKey.getValue() };
     }
 
     return await super.saveItem({
@@ -135,7 +142,7 @@ export class ConvoRepository extends Repository<Convo> {
 
     // Will create a new empty list if acceptedUserNames does not currently exist
     let updateExpression = `SET acceptedUserNames = list_append(if_not_exists(acceptedUserNames, :empty_list), :usernameVal)`
-    + `, #statusKey = :statusVal`;
+      + `, #statusKey = :statusVal`;
     let expressionVals: Record<string, AttributeValue> = {
       ":usernameVal": { L: [{ S: username }] },
       ":empty_list": { L: [] },
@@ -155,7 +162,7 @@ export class ConvoRepository extends Repository<Convo> {
       TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
       Key: {
         [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: id.getValue() },
-        [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: this.createSortKey(convo) }
+        [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: id.getValue() }
       },
       UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionVals,
@@ -179,13 +186,13 @@ export class ConvoRepository extends Repository<Convo> {
     if (convo.rejectedUserNames?.includes(username)) {
       throw new InvalidParametersError("The provided user has already rejected the Convo");
     }
-    if (convo.status === ConvoStatus.REJECTED || convo.status === ConvoStatus.CANCELED ) {
+    if (convo.status === ConvoStatus.REJECTED || convo.status === ConvoStatus.CANCELED) {
       throw new InvalidParametersError("Cannot reject a Convo that has a status of REJECTED or CANCELED.");
     }
 
     // Will create a new empty list if rejectedUserNames does not currently exist
     let updateExpression = `SET rejectedUserNames = list_append(if_not_exists(rejectedUserNames, :empty_list), :usernameVal)`
-    + `, #statusKey = :statusVal`;
+      + `, #statusKey = :statusVal`;
     let expressionVals: Record<string, AttributeValue> = {
       ":usernameVal": { L: [{ S: username }] },
       ":empty_list": { L: [] },
@@ -206,7 +213,7 @@ export class ConvoRepository extends Repository<Convo> {
       TableName: process.env.DYNAMO_MAIN_TABLE_NAME!,
       Key: {
         [DYNAMODB_INDEXES.PRIMARY.partitionKeyName]: { S: id.getValue() },
-        [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: this.createSortKey(convo) }
+        [DYNAMODB_INDEXES.PRIMARY.sortKeyName]: { S: id.getValue() }
       },
       UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionVals,

@@ -194,7 +194,7 @@ export abstract class Repository<T> {
    * @param commands list of partial dynamodb update expressions
    * @returns string DynamoDB UpdateExpression or null if no commands provided.
    */
-  static updateItemExpressionBuilder(commands: string[]) {
+  protected updateItemExpressionBuilder(commands: string[]) {
     if (commands.length == 0) {
       return null;
     }

@@ -120,6 +120,7 @@ describe("TalkingPointPostRepository", () => {
       }));
       talkingPoints.push(TalkingPointPost.builder({
         ...getDummyTalkingPointPostProps(),
+        createDate: new Date(talkingPoints[0].createDate.getDate() - 3),
         parentId: new DistrictId({ title: districts[1].title })
       }));
 
