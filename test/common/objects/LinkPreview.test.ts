@@ -9,7 +9,7 @@ describe("Test LinkPreview", () => {
   
     test("Check that transforming the class to and from plain json does not change any data", () => {
       const objectPlainJson = classSerializer.classToPlainJson(linkPreview);
-      console.log("linkPreview class turned to plain json: ", objectPlainJson);
+      // console.log("linkPreview class turned to plain json: ", objectPlainJson);
       const linkPreviewClassFromPlainJson = classSerializer.plainJsonToClass(LinkPreview, objectPlainJson);
       expect(linkPreviewClassFromPlainJson).toEqual(linkPreview);
     });

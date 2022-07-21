@@ -18,7 +18,7 @@ describe("Test Comment", () => {
   
     test("Check that transforming the class to and from plain json does not change any data", () => {
       const commentPlainJson = classSerializer.classToPlainJson(comment);
-      console.log("comment class turned to plain json: ", commentPlainJson);
+      // console.log("comment class turned to plain json: ", commentPlainJson);
       const commentClassFromPlainJson = classSerializer.plainJsonToClass(Comment, commentPlainJson);
       expect(commentClassFromPlainJson).toEqual(comment);
     });

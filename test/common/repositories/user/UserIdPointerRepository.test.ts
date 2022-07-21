@@ -15,7 +15,6 @@ jest.setTimeout(100000);
 
 beforeAll(async () => {
   await startDb();
-  console.log("process.env.MOCK_DYNAMODB_ENDPOINT: ", process.env.MOCK_DYNAMODB_ENDPOINT)
 
   v3Client = new DynamoDBClient({
     region: "us-east-1",

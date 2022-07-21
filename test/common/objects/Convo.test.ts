@@ -11,7 +11,7 @@ describe("Test Convo", () => {
 
   test("Check that transforming the class to and from plain json does not change any data", () => {
     const convoPlainJson = classSerializer.classToPlainJson(convo);
-    console.log("convo class turned to plain json: ", convoPlainJson);
+    // console.log("convo class turned to plain json: ", convoPlainJson);
     const convoClassFromPlainJson = classSerializer.plainJsonToClass(Convo, convoPlainJson);
     expect(convoClassFromPlainJson).toEqual(convo);
   });

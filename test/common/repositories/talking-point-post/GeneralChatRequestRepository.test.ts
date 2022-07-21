@@ -17,11 +17,9 @@ let chatRequestRepo: GeneralChatRequestRepository;
 let talkingPoint: TalkingPointPost;
 let district: District;
 let chatRequest: GeneralChatRequest;
-jest.setTimeout(10000);
 
 beforeAll(async () => {
   await startDb();
-  console.log("process.env.MOCK_DYNAMODB_ENDPOINT: ", process.env.MOCK_DYNAMODB_ENDPOINT)
 
   v3Client = new DynamoDBClient({
     region: "us-east-1",
@@ -93,8 +91,10 @@ describe("GeneralChatRequestRepository", () => {
         ...getDummyTalkingPointPostProps(),
         createDate: new Date(talkingPoint1.createDate.getDate() + 1),
       });
-      await talkingPointRepo.save({ data: talkingPoint1 });
-      await talkingPointRepo.save({ data: talkingPoint2 });
+      await Promise.all([
+        talkingPointRepo.save({ data: talkingPoint1 }),
+        talkingPointRepo.save({ data: talkingPoint2 })
+      ])
       // create date is used in the id of the request so changing it creates a unique id.
       const chatRequest1 = GeneralChatRequest.builder({
         ...getDummyGeneralChatRequestProps(),
@@ -113,10 +113,13 @@ describe("GeneralChatRequestRepository", () => {
         createDate: new Date('2022-01-04'),
         parentId: talkingPoint2.id
       });
-      await chatRequestRepo.save({ data: chatRequest1 });
-      await chatRequestRepo.save({ data: chatRequest2 });
-      await chatRequestRepo.save({ data: chatRequest3 });
-      await chatRequestRepo.save({ data: chatRequest4 });
+
+      await Promise.all([
+        chatRequestRepo.save({ data: chatRequest1 }),
+        chatRequestRepo.save({ data: chatRequest2 }),
+        chatRequestRepo.save({ data: chatRequest3 }),
+        chatRequestRepo.save({ data: chatRequest4 })
+      ]);
 
       const retrievedDistrict1Posts = await chatRequestRepo.getByTalkingPointPost({
         postId: talkingPoint1.id
@@ -150,10 +153,12 @@ describe("GeneralChatRequestRepository", () => {
         createDate: new Date('2022-01-04'),
         authorUserName: "someOtherUsername11"
       });
-      await chatRequestRepo.save({ data: chatRequest1 });
-      await chatRequestRepo.save({ data: chatRequest2 });
-      await chatRequestRepo.save({ data: chatRequest3 });
-      await chatRequestRepo.save({ data: chatRequest4 });
+      await Promise.all([
+        chatRequestRepo.save({ data: chatRequest1 }),
+        chatRequestRepo.save({ data: chatRequest2 }),
+        chatRequestRepo.save({ data: chatRequest3 }),
+        chatRequestRepo.save({ data: chatRequest4 })
+      ]);
 
       const retrievedDistrict1Posts = await chatRequestRepo.getByAuthorUsername({
         username: chatRequest1.authorUserName
@@ -194,11 +199,12 @@ describe("GeneralChatRequestRepository", () => {
                 parentId: talkingPoint.id,
         convoPreference: ConvoPreference.NONE
       });
-      await chatRequestRepo.save({ data: chatRequest1 });
-      await chatRequestRepo.save({ data: chatRequest2 });
-      await chatRequestRepo.save({ data: chatRequest3 });
-      await chatRequestRepo.save({ data: chatRequest4 });
-
+      await Promise.all([
+        chatRequestRepo.save({ data: chatRequest1 }),
+        chatRequestRepo.save({ data: chatRequest2 }),
+        chatRequestRepo.save({ data: chatRequest3 }),
+        chatRequestRepo.save({ data: chatRequest4 })
+      ]);
 
       // 7. list only general chat requests the user is interested in based on convo preference
       const retrievedGeneralChatReqs1 = await chatRequestRepo.getByTalkingPointPost({

@@ -25,9 +25,9 @@ export const getDummyUserProps = () => {
       type: UserBanType.NONE,
     },
     birthDate: new Date('2000-04-11'),
-    thumbnail: "string",
-    bio: "string",
-    occupation: "string",
+    thumbnail: "testthumbnail",
+    bio: "testbio",
+    profession: "testprofession",
     metrics: {
       convoScore: 0,
       followerCount: 0,

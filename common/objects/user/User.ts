@@ -45,7 +45,6 @@ export class User {
   @Expose() birthDate?: Date;
   @Expose() thumbnail?: string;
   @Expose() bio?: string;
-  @Expose() occupation?: string;
   @Expose() location?: string;
   @Expose() profession?: string;
 
@@ -68,7 +67,6 @@ export class User {
     birthDate?: Date,
     thumbnail?: string,
     bio?: string,
-    occupation?: string,
     location?: string,
     profession?: string) {
     if (id === null) {
@@ -89,7 +87,6 @@ export class User {
     this.banStatus = banStatus;
     this.thumbnail = thumbnail;
     this.bio = bio;
-    this.occupation = occupation;
     this.location = location;
     this.profession = profession;
   }
@@ -114,7 +111,6 @@ export class User {
       birthDate?: Date,
       thumbnail?: string,
       bio?: string,
-      occupation?: string,
       location?: string,
       profession?: string
     }
@@ -134,7 +130,6 @@ export class User {
       props.birthDate,
       props.thumbnail,
       props.bio,
-      props.occupation,
       props.location,
       props.profession
     )
@@ -179,9 +174,6 @@ export class User {
     // TODO: add complex user thumbnail format contraints validation
     if (user.thumbnail !== undefined) {
       validator.validate(user.thumbnail, 'thumbnail').notNull().notEmpty().isString();
-    }
-    if (user.occupation !== undefined) {
-      validator.validate(user.occupation, 'occupation').notNull().notEmpty().isString();
     }
     if (user.bio !== undefined) {
       validator.validate(user.bio, 'bio').notNull().notEmpty().isString();

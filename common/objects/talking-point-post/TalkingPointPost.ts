@@ -2,7 +2,7 @@ import 'reflect-metadata'; //required for class transformer to work;
 import { Expose, Type } from "class-transformer";
 import { DataValidationError, DataValidator } from "../../util/DataValidator";
 import TransformDate from "../../util/TransformDate";
-import { ParentType, ViewMode } from "../enums";
+import { ViewMode } from "../enums";
 import { LinkPreview } from "./LinkPreview";
 import { ObjectBanStatus } from '../ObjectBanStatus';
 import { ObjectId } from '../ObjectId';

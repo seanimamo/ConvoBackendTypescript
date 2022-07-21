@@ -18,7 +18,7 @@ describe("Test UserPassword logic", () => {
 
   test("Check that transforming the class to and from plain json does not change any data", () => {
     const passwordPlainJson = classSerializer.classToPlainJson(userPassword);
-    console.log("passwordPlainJson", passwordPlainJson);
+    // console.log("passwordPlainJson", passwordPlainJson);
     const passwordClassFromPlainJson = classSerializer.plainJsonToClass(UserPassword, passwordPlainJson);
     expect(passwordClassFromPlainJson.isPasswordCorrect(plainTextPassword)).toEqual(true);
     expect(passwordClassFromPlainJson).toEqual(userPassword);

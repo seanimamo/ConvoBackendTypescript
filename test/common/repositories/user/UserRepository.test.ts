@@ -5,11 +5,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { startDb, stopDb, createTables, deleteTables } from "jest-dynalite";
 import { getDummyUser, getDummyUserProps } from "../../../util/DummyFactory";
 import { EmailAlreadyInUseError, UsernameAlreadyInUseError } from "../../../../common/respositories/user/error";
-import { ObjectDoesNotExistError } from "../../../../common/respositories/error";
-import { UserPassword } from "../../../../common/objects/user/UserPassword";
-import { UserBanType } from "../../../../common/objects/user/UserBanStatus";
-import { marshall } from "@aws-sdk/util-dynamodb";
-import { ClassSerializer } from "../../../../common/util/ClassSerializer";
+import { InvalidParametersError, ObjectDoesNotExistError } from "../../../../common/respositories/error";
 
 let v3Client: DynamoDBClient;
 let userRepository: UserRepository;
@@ -18,7 +14,6 @@ jest.setTimeout(1000000);
 
 beforeAll(async () => {
   await startDb();
-  console.log("process.env.MOCK_DYNAMODB_ENDPOINT: ", process.env.MOCK_DYNAMODB_ENDPOINT)
 
   v3Client = new DynamoDBClient({
     region: "us-east-1",
@@ -85,4 +80,46 @@ describe("Test User Repository", () => {
     .rejects.toThrow(ObjectDoesNotExistError);
   });
 
+  test("updateProfile() - succeeds in updating all values", async () => {
+    await userRepository.save(user);
+    const updatedFirstName = "newFirstName";
+    const updatedLastName = "newFirstName";
+    const updatedthumbnail = "updatedthumbnail";
+    const updatedbio = "updatedbio"
+    const updatedlocation = "updatedlocation"
+    const updatedprofession = "updatedprofession"
+    const updatedsettings = {
+      ...user.settings,
+      hideRealName: !user.settings.hideRealName
+    }
+
+    const updatedUser = await userRepository.updateProfile({
+      userName: user.userName,
+      firstName: updatedFirstName,
+      lastName: updatedLastName,
+      thumbnail: updatedthumbnail,
+      bio: updatedbio,
+      location: updatedlocation,
+      profession: updatedprofession,
+      settings: updatedsettings
+    });
+
+    expect(updatedUser.firstName).toStrictEqual(updatedFirstName);
+    expect(updatedUser.lastName).toStrictEqual(updatedLastName);
+    expect(updatedUser.thumbnail).toStrictEqual(updatedthumbnail);
+    expect(updatedUser.bio).toStrictEqual(updatedbio);
+    expect(updatedUser.location).toStrictEqual(updatedlocation);
+    expect(updatedUser.profession).toStrictEqual(updatedprofession);
+    expect(updatedUser.settings).toStrictEqual(updatedsettings);
+  });
+
+  test("updateProfile() - fails if user does not exist", async () => {
+    await expect(userRepository.updateProfile({userName: "userThatDoesntExistt", firstName: 'newFirstName'}))
+    .rejects.toThrow(ObjectDoesNotExistError);
+  });
+
+  test("updateProfile() - fails if no update parameters are provided", async () => {
+    await expect(userRepository.updateProfile({userName: "userThatDoesntExistt"}))
+    .rejects.toThrow(InvalidParametersError);
+  });
 });

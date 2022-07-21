@@ -10,7 +10,7 @@ describe("Test General Chat Request ", () => {
 
   test("Check that transforming the class to and from plain json does not change any data", () => {
     const chatRequestPlainJson = classSerializer.classToPlainJson(chatRequest);
-    console.log("GeneralChatRequest class turned to plain json: ", chatRequestPlainJson);
+    // console.log("GeneralChatRequest class turned to plain json: ", chatRequestPlainJson);
     const chatRequestClassFromPlainJson = classSerializer.plainJsonToClass(GeneralChatRequest, chatRequestPlainJson);
     expect(chatRequestClassFromPlainJson).toEqual(chatRequest);
   });

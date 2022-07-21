@@ -188,4 +188,24 @@ export abstract class Repository<T> {
     return paginatedResponse;
   }
 
+  /**
+   * Create a Dynamodb update expression with consecutive SET commands.
+   * each command should be formatted as follows: `myAttributeName := :myAttributeValue` or `#myAttributeName := :myAttributeValue` for reserved key words.
+   * @param commands list of partial dynamodb update expressions
+   * @returns string DynamoDB UpdateExpression or null if no commands provided.
+   */
+  static updateItemExpressionBuilder(commands: string[]) {
+    if (commands.length == 0) {
+      return null;
+    }
+    let updateExpression = 'SET';
+    for (let i = 0; i < commands.length; i++) {
+      updateExpression += ` ${commands[i]}`;
+      if (i < commands.length - 1) {
+        updateExpression += ','
+      }
+    }
+    return updateExpression;
+  }
+
 }
