@@ -5,7 +5,7 @@ import { getDummyDistrict, getDummyDistrictProps, getDummyTalkingPointPost, getD
 import { District, DistrictId } from "../../../../common/objects/District";
 import { ParentObjectDoesNotExistError, UniqueObjectAlreadyExistsError } from "../../../../common/respositories/error";
 import { TalkingPointPost } from "../../../../common/objects/talking-point-post/TalkingPointPost";
-import { TalkingPointPostRepository } from "../../../../common/respositories/talking-point-post/TalkingPointPostRepository";
+import { TalkingPointPostRepository, TalkingPointPostRepositoryGsiSortKey } from "../../../../common/respositories/talking-point-post/TalkingPointPostRepository";
 import { DistrictRepository } from "../../../../common/respositories/district/DistrictRepository";
 
 let v3Client: DynamoDBClient;
@@ -72,7 +72,7 @@ describe("TalkingPointPostRepository", () => {
     await expect(talkingPointRepo.getById(talkingPoint.id)).resolves.toEqual(talkingPoint);
   });
 
-  test("getByDistrictTitle() - Retrieve multiple taking points by district title succeeds and only gets posts under the given district title",
+  test("getByDistrictTitle() - Retrieve multiple taking points by district title succeeds,  only gets posts under the given district title sorts correctly.",
     async () => {
       // 1. create districts
       const districts = [];
@@ -85,10 +85,10 @@ describe("TalkingPointPostRepository", () => {
         ...getDummyDistrictProps(),
         title: "TheThirdDistrict"
       }));
-      await Promise.all([districtRepo.save(districts[0]), districtRepo.save(districts[1]), districtRepo.save(districts[2])]);
-      // await districtRepo.save(districts[0]);
-      // await districtRepo.save(districts[1]);
-      // await districtRepo.save(districts[2]);
+      await Promise.all([districtRepo.save(districts[0]),
+      districtRepo.save(districts[1]),
+      districtRepo.save(districts[2])
+      ]);
 
       // 2. create talking point posts
       const talkingPoints = [];
@@ -98,6 +98,7 @@ describe("TalkingPointPostRepository", () => {
         metrics: {
           ...getDummyTalkingPointPostProps().metrics,
           absoluteScore: 1,
+          timeBasedScore: 4
         }
       }));
       talkingPoints.push(TalkingPointPost.builder({
@@ -106,7 +107,8 @@ describe("TalkingPointPostRepository", () => {
         createDate: new Date(talkingPoints[0].createDate.getDate() - 1),
         metrics: {
           ...getDummyTalkingPointPostProps().metrics,
-          absoluteScore: 2
+          absoluteScore: 2,
+          timeBasedScore: 5
         }
       }));
       talkingPoints.push(TalkingPointPost.builder({
@@ -115,7 +117,8 @@ describe("TalkingPointPostRepository", () => {
         createDate: new Date(talkingPoints[0].createDate.getDate() - 2),
         metrics: {
           ...getDummyTalkingPointPostProps().metrics,
-          absoluteScore: 3
+          absoluteScore: 3,
+          timeBasedScore: 3
         }
       }));
       talkingPoints.push(TalkingPointPost.builder({
@@ -130,77 +133,78 @@ describe("TalkingPointPostRepository", () => {
         talkingPointRepo.save({ data: talkingPoints[1] }),
         talkingPointRepo.save({ data: talkingPoints[3] }),
         talkingPointRepo.save({ data: talkingPoints[2] })
-      ])
-      // await talkingPointRepo.save({ data: talkingPoints[0] });
-      // await talkingPointRepo.save({ data: talkingPoints[1] });
-      // await talkingPointRepo.save({ data: talkingPoints[3] });
-      // await talkingPointRepo.save({ data: talkingPoints[2] });
+      ]);
 
       // 3. Retrieve districts
       const retrievedDistrictsDynamoResp = await districtRepo.listDistricts();
       expect(retrievedDistrictsDynamoResp.data).toBeDefined();
       expect(retrievedDistrictsDynamoResp.data.length).toEqual(3);
 
-      // 4. get talkingPoints under a district
-      const retrievedPostDynamoResp = await talkingPointRepo.getByDistrictTitle({ title: districts[0].title });
-      const retrievedPosts = retrievedPostDynamoResp.data;
-      expect(retrievedPosts.length).toEqual(3);
+      // 4. get talkingPoints under a district sorted by absolute score
+      const retrievedPostDynamoResp1 = await talkingPointRepo.getByDistrictTitle({ title: districts[0].title, sortBy: 'AbsoluteScore' });
+      expect(retrievedPostDynamoResp1.data.length).toEqual(3);
       // Confirm posts are sorted by absolute score
-      expect(retrievedPosts[0]).toEqual(talkingPoints[2]);
-      expect(retrievedPosts[1]).toEqual(talkingPoints[1]);
-      expect(retrievedPosts[2]).toEqual(talkingPoints[0]);
+      expect(retrievedPostDynamoResp1.data[0]).toEqual(talkingPoints[2]);
+      expect(retrievedPostDynamoResp1.data[1]).toEqual(talkingPoints[1]);
+      expect(retrievedPostDynamoResp1.data[2]).toEqual(talkingPoints[0]);
+
+      // 5. get talkingPoints under a district sorted by time based score
+      const retrievedPostDynamoResp2 = await talkingPointRepo.getByDistrictTitle({ title: districts[0].title, sortBy: 'TimeBased' });
+      expect(retrievedPostDynamoResp2.data.length).toEqual(3);
+      // Confirm posts are sorted by  time based score
+      expect(retrievedPostDynamoResp2.data[0]).toEqual(talkingPoints[1]);
+      expect(retrievedPostDynamoResp2.data[1]).toEqual(talkingPoints[0]);
+      expect(retrievedPostDynamoResp2.data[2]).toEqual(talkingPoints[2]);
     });
 
-  test("getByAuthorUsername() - Retrieve multiple taking points by author username succeeds and only gets posts under the given author username",
+  test("getByAuthorUsername() - Retrieve multiple taking points by author username succeeds, only gets posts under the given author username, sorts by newest create date",
     async () => {
       await districtRepo.save(district);
-      const post1 = TalkingPointPost.builder({
-        ...getDummyTalkingPointPostProps(),
-        metrics: {
-          ...getDummyTalkingPointPostProps().metrics,
-          absoluteScore: 1
-        }
-      });
-      // Note that changing the createDate changes the uuid of the post.
-      const post2 = TalkingPointPost.builder({
+      const posts: TalkingPointPost[] = [];
+      posts.push(TalkingPointPost.builder({
         ...getDummyTalkingPointPostProps(),
         createDate: new Date('2022-01-01'),
         metrics: {
           ...getDummyTalkingPointPostProps().metrics,
+          absoluteScore: 1
+        }
+      }));
+      // Note that changing the createDate changes the uuid of the post.
+      posts.push(TalkingPointPost.builder({
+        ...getDummyTalkingPointPostProps(),
+        createDate: new Date('2022-01-03'),
+        metrics: {
+          ...getDummyTalkingPointPostProps().metrics,
           absoluteScore: 2
         }
-      });
-      const post3 = TalkingPointPost.builder({
+      }));
+      posts.push(TalkingPointPost.builder({
         ...getDummyTalkingPointPostProps(),
         createDate: new Date('2022-01-02'),
         metrics: {
           ...getDummyTalkingPointPostProps().metrics,
           absoluteScore: 3
         }
-      });
-      const post4 = TalkingPointPost.builder({
+      }));
+      posts.push(TalkingPointPost.builder({
         ...getDummyTalkingPointPostProps(),
         authorUserName: "someOtherduede1231",
-      })
+      }));
       await Promise.all([
-        talkingPointRepo.save({ data: post1 }),
-        talkingPointRepo.save({ data: post2 }),
-        talkingPointRepo.save({ data: post3 }),
-        talkingPointRepo.save({ data: post4 })
+        talkingPointRepo.save({ data: posts[0] }),
+        talkingPointRepo.save({ data: posts[1] }),
+        talkingPointRepo.save({ data: posts[2] }),
+        talkingPointRepo.save({ data: posts[3] })
       ]);
-      // await talkingPointRepo.save({ data: post1 });
-      // await talkingPointRepo.save({ data: post2 });
-      // await talkingPointRepo.save({ data: post3 });
-      // await talkingPointRepo.save({ data: post4 });
 
       const retrievedDistrict1Posts = await talkingPointRepo.getByAuthorUsername({
-        username: post1.authorUserName
+        username: posts[0].authorUserName
       });
 
-      expect(retrievedDistrict1Posts.data).toContainEqual(post1);
-      expect(retrievedDistrict1Posts.data).toContainEqual(post2);
-      expect(retrievedDistrict1Posts.data).toContainEqual(post3);
-      expect(retrievedDistrict1Posts.data).not.toContainEqual(post4);
+      // Confirm posts are sorted by newest create date score
+      expect(retrievedDistrict1Posts.data[0]).toEqual(posts[1]);
+      expect(retrievedDistrict1Posts.data[1]).toEqual(posts[2]);
+      expect(retrievedDistrict1Posts.data[2]).toEqual(posts[0]);
     });
 
 });

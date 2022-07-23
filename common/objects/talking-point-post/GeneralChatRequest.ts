@@ -25,13 +25,15 @@ export class GeneralChatRequest {
   @TransformObjectId()
   @Expose() readonly id: GeneralChatRequestId;
   @TransformObjectId()
-  @Expose() parentId: ObjectId;
+  @Expose() parentId: ObjectId; // Should mainly be a TalkingPointPost
   @TransformDate()
   @Expose() readonly createDate: Date;
   @Expose() readonly authorUserName: string;
-
+  // Preferences
   @Expose() convoPreference: ConvoPreference;
   @Expose() relaxConvoPreferenceRequirment: boolean;
+  // Optionals
+  @Expose() authorProfession?: string;
   @Expose() authorImageUrl?: string;
   @Expose() chatReason?: string;
 
@@ -42,6 +44,7 @@ export class GeneralChatRequest {
     authorUserName: string,
     convoPreference: ConvoPreference,
     relaxConvoPreferenceRequirment: boolean,
+    authorProfession?: string,
     authorImageUrl?: string,
     chatReason?: string,
   ) {
@@ -55,6 +58,7 @@ export class GeneralChatRequest {
     this.authorUserName = authorUserName;
     this.convoPreference = convoPreference;
     this.relaxConvoPreferenceRequirment = relaxConvoPreferenceRequirment;
+    this.authorProfession = authorProfession;
     this.authorImageUrl = authorImageUrl;
     this.chatReason = chatReason;
   }
@@ -66,6 +70,7 @@ export class GeneralChatRequest {
     authorUserName: string,
     convoPreference: ConvoPreference,
     relaxConvoPreferenceRequirment: boolean,
+    authorProfession?: string;
     authorImageUrl?: string,
     chatReason?: string,
   }) {
@@ -76,6 +81,7 @@ export class GeneralChatRequest {
       props.authorUserName,
       props.convoPreference,
       props.relaxConvoPreferenceRequirment,
+      props.authorProfession,
       props.authorImageUrl,
       props.chatReason,
     );
@@ -102,6 +108,9 @@ export class GeneralChatRequest {
     validator.validate(chatRequest.relaxConvoPreferenceRequirment, "relaxConvoPreferenceRequirment")
       .notUndefined().notNull().isBoolean();
 
+    if (chatRequest.authorProfession !== undefined) {
+      validator.validate(chatRequest.authorImageUrl, "authorImageUrl").notNull().isString().notEmpty();
+    }
     if (chatRequest.authorImageUrl !== undefined) {
       validator.validate(chatRequest.authorImageUrl, "authorImageUrl").notNull().isString().notEmpty();
     }

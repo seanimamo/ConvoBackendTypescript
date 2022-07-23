@@ -191,7 +191,7 @@ describe("mock End To End", () => {
      * 2. Get talkingPoints under a district
      * UI Location: Single district page
      */
-    const retrievedPostDynamoResp = await talkingPointPostRepo.getByDistrictTitle({ title: districts[0].title });
+    const retrievedPostDynamoResp = await talkingPointPostRepo.getByDistrictTitle({ title: districts[0].title, sortBy: 'AbsoluteScore' });
     const retrievedPosts = retrievedPostDynamoResp.data;
     expect(retrievedPosts.length).toEqual(3);
     // Confirm posts are sorted by absolute score
