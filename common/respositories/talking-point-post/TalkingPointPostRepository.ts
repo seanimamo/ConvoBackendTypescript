@@ -117,23 +117,12 @@ export class TalkingPointPostRepository extends Repository<TalkingPointPost> {
     }
 
     const gsiAttributes: Record<string, AttributeValue> = {}
-    // const gsiSortKey = new TalkingPointPostRepositoryGsiSortKey([
-    //   params.data.viewMode, params.data.banStatus.type, params.data.metrics.absoluteScore,
-    // ]);
-    // gsiAttributes[`${DYNAMODB_INDEXES.GSI1.partitionKeyName}`] = { S: params.data.parentId.getValue() };
-    // gsiAttributes[`${DYNAMODB_INDEXES.GSI1.sortKeyName}`] = { S: gsiSortKey.getValue() };
-    // gsiAttributes[`${DYNAMODB_INDEXES.GSI2.partitionKeyName}`] = { S: params.data.authorUserName };
-    // gsiAttributes[`${DYNAMODB_INDEXES.GSI2.sortKeyName}`] = { S: gsiSortKey.getValue() };
-
-
     const viewBanAbsScoreSortKey = new TalkingPointPostRepositoryGsiSortKey([
       params.data.viewMode, params.data.banStatus.type, params.data.metrics.absoluteScore,
     ]);
-
     const viewBanTimeScoreSortKey = new TalkingPointPostRepositoryGsiSortKey([
       params.data.viewMode, params.data.banStatus.type, params.data.metrics.timeBasedScore,
     ]);
-
     const viewBanTimeCreateDateSortKey = new TalkingPointPostRepositoryGsiSortKey([
       params.data.viewMode, params.data.banStatus.type, params.data.createDate,
     ]);
