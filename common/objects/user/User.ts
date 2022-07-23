@@ -40,7 +40,7 @@ export class User {
     followingCount: number;
   };
   @Expose() settings: UserSettings;
-  @Expose() banStatus: UserBanStatus;
+  @Expose() banStatus?: UserBanStatus;
   @TransformDate()
   @Expose() birthDate?: Date;
   @Expose() thumbnail?: string;
@@ -63,7 +63,7 @@ export class User {
       followingCount: number;
     },
     settings: UserSettings,
-    banStatus: UserBanStatus,
+    banStatus?: UserBanStatus,
     birthDate?: Date,
     thumbnail?: string,
     bio?: string,
@@ -107,7 +107,7 @@ export class User {
         followingCount: number;
       },
       settings: UserSettings,
-      banStatus: UserBanStatus,
+      banStatus?: UserBanStatus,
       birthDate?: Date,
       thumbnail?: string,
       bio?: string,
@@ -161,7 +161,9 @@ export class User {
     validator.validate(user.metrics.followerCount, 'metrics.followerCount').notUndefined().notNull().isNumber().notNegative();
     validator.validate(user.metrics.followingCount, 'metrics.followingCount').notUndefined().notNull().isNumber().notNegative();
 
-    UserBanStatus.validate(user.banStatus);
+    if (user.banStatus !== undefined) {
+      UserBanStatus.validate(user.banStatus);
+    }
 
     // TODO: add complex user settings contraints validation
     validator.validate(user.settings, 'settings').notUndefined().notNull();

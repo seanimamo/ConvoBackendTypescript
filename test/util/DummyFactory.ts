@@ -21,9 +21,6 @@ export const getDummyUserProps = () => {
     firstName: "sean",
     lastName: "imam",
     joinDate: new Date('2011-04-11'),
-    banStatus: {
-      type: UserBanType.NONE,
-    },
     birthDate: new Date('2000-04-11'),
     thumbnail: "testthumbnail",
     bio: "testbio",
