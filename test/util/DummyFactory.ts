@@ -9,6 +9,8 @@ import { LinkPreview } from "../../common/objects/talking-point-post/LinkPreview
 import { UserBanType } from "../../common/objects/user/UserBanStatus";
 import { ObjectBanStatus, ObjectBanType } from "../../common/objects/ObjectBanStatus";
 import { Convo, ConvoSource, ConvoStatus } from "../../common/objects/Convo";
+import { PositiveTrait, Upvote, UpvoteId } from "../../common/objects/vote/Upvote";
+import { Downvote, DownvoteId, NegativeTrait } from "../../common/objects/vote/Downvote";
 
 
 export const getDummyUserProps = () => {
@@ -69,7 +71,7 @@ export const getDummyTalkingPointPostProps = () => {
   const dummyDistrict = getDummyDistrict()
   return {
     id: null,
-    parentId: new DistrictId({title: dummyDistrict.title}),
+    parentId: new DistrictId({ title: dummyDistrict.title }),
     title: "Dummy Talking Point Post",
     description: "Dummy Talking Point Post Description",
     authorUserName: dummyUser.userName,
@@ -147,3 +149,40 @@ export const getDummyConvo = () => {
   return Convo.builder(getDummyConvoProps());
 }
 
+export const getDummyUpvoteProps = () => {
+  const dummyUser = getDummyUser();
+  const dummyTalkingPoint = getDummyTalkingPointPost();
+  return {
+    id:  new UpvoteId({
+      authorUserName: dummyUser.userName,
+      trait: PositiveTrait.HIGH_QUALITY,
+      parentId: dummyTalkingPoint.id
+    }),
+    parentId: dummyTalkingPoint.id,
+    authorUserName:  dummyUser.userName,
+    createDate: new Date('2022-01-01'),
+    trait: PositiveTrait.HIGH_QUALITY
+  }
+}
+export const getDummyUpvote = () => {
+  return Upvote.builder(getDummyUpvoteProps());
+}
+
+export const getDummyDownvoteProps = () => {
+  const dummyUser = getDummyUser();
+  const dummyTalkingPoint = getDummyTalkingPointPost();
+  return {
+    id:  new DownvoteId({
+      authorUserName: dummyUser.userName,
+      trait: NegativeTrait.DISTURBING,
+      parentId: dummyTalkingPoint.id
+    }),
+    parentId: dummyTalkingPoint.id,
+    authorUserName:  dummyUser.userName,
+    createDate: new Date('2022-01-01'),
+    trait: NegativeTrait.DISTURBING
+  }
+}
+export const getDummyDownvote = () => {
+  return Downvote.builder(getDummyDownvoteProps());
+}

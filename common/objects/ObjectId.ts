@@ -42,17 +42,25 @@ export abstract class ObjectId {
         const complexParam = param as any;
         if (complexParam instanceof Date) {
           array.push(ObjectId.dateToString(complexParam));
-        } else {
+        } else if (complexParam instanceof ObjectId) {
+          // nested Id's get an alternative delimeter to ensure they can separated when parsing
+          array.push(complexParam.getValue().replace(/#/g, '%'));
+        }
+        else {
           throw new Error("Unsupported data type passed to createId");
         }
     }
   }
 
   static parseId(id: string | ObjectId) {
+    let paramters;
     if (id instanceof ObjectId) {
-      return id.getValue().split(ObjectId.ID_DELIMETER);
-    } 
-    return id.split(ObjectId.ID_DELIMETER);
+      paramters = id.getValue().split(ObjectId.ID_DELIMETER)
+    } else {
+      paramters = id.split(ObjectId.ID_DELIMETER);
+    }
+    // nested Id's need their alternative delimeter to go back to the default
+    return paramters.map(param => param = param.replace(/%/g, '#'));
   }
 
   static dateToString(date: Date) {

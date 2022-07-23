@@ -6,7 +6,9 @@ import { GeneralChatRequestId } from "../objects/talking-point-post/GeneralChatR
 import { TalkingPointPostId } from "../objects/talking-point-post/TalkingPointPost";
 import { ObjectId } from "../objects/ObjectId";
 import { UserId } from '../objects/user/User';
-import { UserIdPointer, UserIdPointerId } from '../objects/user/UserIdPointer';
+import { UserIdPointerId } from '../objects/user/UserIdPointer';
+import { DownvoteId } from '../objects/vote/Downvote';
+import { UpvoteId } from '../objects/vote/Upvote';
 
 /**
  * Transformer Sourced from: https://stackoverflow.com/questions/59899045/plaintoclass-does-not-convert-a-date-to-string
@@ -38,6 +40,10 @@ export default function TransformObjectId() {
           return new TalkingPointPostId(value);
         case GeneralChatRequestId.IDENTIFIER:
           return new GeneralChatRequestId(value);
+        case UpvoteId.IDENTIFIER:
+          return new UpvoteId(value);
+        case DownvoteId.IDENTIFIER:
+          return new DownvoteId(value);
         default:
           throw new Error(`Unknown Id Identifier: ${identifier}`)
       }

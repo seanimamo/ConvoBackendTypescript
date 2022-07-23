@@ -7,8 +7,8 @@ import { DataValidationError, DataValidator } from '../../util/DataValidator';
 
 export enum NegativeTrait {
     OFFENSIVE = "Offensive",
-    KNOWLEDGEABLE = 'Disturbing',
-    UPBEAT = 'Low Quality',
+    DISTURBING = 'Disturbing',
+    LOW_QUALITY = 'Low Quality',
 }
 
 export class DownvoteId extends ObjectId {
@@ -17,7 +17,7 @@ export class DownvoteId extends ObjectId {
     constructor(params: { authorUserName: string, trait: NegativeTrait, parentId: ObjectId } | string) {
         typeof (params) === 'string'
             ? super(params)
-            : super([params.authorUserName, params.trait, params.parentId.getValue()]);
+            : super([params.authorUserName, params.trait, params.parentId]);
     }
 
     public getIdentifier(): string {
@@ -64,6 +64,24 @@ export class Downvote {
         this.lastUpdated = lastUpdated;
     }
 
+    static builder(params: {
+        id: DownvoteId | null,
+        parentId: ObjectId,
+        authorUserName: string,
+        createDate: Date,
+        trait: NegativeTrait,
+        lastUpdated?: Date,
+    }) {
+        return new Downvote(
+            params.id,
+            params.parentId,
+            params.authorUserName,
+            params.createDate,
+            params.trait,
+            params.lastUpdated
+        );
+    }
+
     static validate(vote: Downvote) {
         // TODO: Grab validator from singleton source
         const validator: DataValidator = new DataValidator();
@@ -76,11 +94,11 @@ export class Downvote {
         if (partitionedId[1] !== vote.authorUserName) {
             throw new DataValidationError("authorUserName is not second value in provided id");
         }
-        if (partitionedId[2] !== vote.parentId.getValue()) {
-            throw new DataValidationError("parentId is not third value in provided id");
+        if (partitionedId[2] !== vote.trait) {
+            throw new DataValidationError("trait is not third value in provided id");
         }
-        if (partitionedId[3] !== vote.trait) {
-            throw new DataValidationError("trait is not fourth value in provided id");
+        if (partitionedId[3] !== vote.parentId.getValue()) {
+            throw new DataValidationError("parentId is not fourth value in provided id");
         }
 
         validator.validate(vote.parentId, "parentId").notUndefined().notNull().notEmpty();
