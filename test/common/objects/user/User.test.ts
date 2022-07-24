@@ -37,7 +37,7 @@ describe("Test User", () => {
   });
 
   test("UserId - is formatted as expected", () => {
-    const params = {userName: "test123"}
+    const params = { userName: "test123" }
     const userId = new UserId(params);
     const parsedId = ObjectId.parseId(userId);
     expect(parsedId[0]).toStrictEqual(UserId.IDENTIFIER);

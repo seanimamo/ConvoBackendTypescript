@@ -46,7 +46,7 @@ export class User {
   @Expose() thumbnail?: string;
   @Expose() bio?: string;
   @Expose() location?: string;
-  @Expose() profession?: string;
+  @Expose() profession?: string; // make into an object that has a category.
 
   constructor(
     id: UserId | null,
@@ -191,4 +191,12 @@ export class User {
 
 export type UserSettings = {
   hideRealName: boolean;
+}
+
+export enum UserProfessions {
+  ENGINEERING,
+  FINANCE,
+  POLITICS,
+  ENTERTAINMENT,
+  
 }
